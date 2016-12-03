@@ -2,59 +2,57 @@
 
 #include "HX711.h"
 
+//moving average smoothing number
+//when trying to measure a moving cat, we need a high enough value
+#define AVERAGE 20
 
 
+//auto tarre if measurement didnt change by more than TARRE_MAX_DIFF for TARRE_COUNT measurements
+//this is needed because the scale will be running 24/7 and might drift by temperature or other factors
+#define TARRE_COUNT 3000
+#define TARRE_MAX_DIFF 1
 
-float calibrated_weight=992;
+//actual weight you used to calibrate each individual sensor
+#define CALIBRATED_WEIGHT 1074 //i use grams
+
+//raw calibration values during measurement of above weight (raw values are always shown in serial output)
+#define CALIBRATE_FACTOR0 402600
+#define CALIBRATE_FACTOR1 428500
+#define CALIBRATE_FACTOR2 443400
+#define CALIBRATE_FACTOR3 439700
+
+
+//pinout
 HX711 scale0(3,2); //module 1
 HX711 scale1(5,4); //module 2
 HX711 scale2(7,6); //module 3
 HX711 scale3(9,8); //module 4
 
+
+//////////////////////////////////////////////////////////
 HX711 * scale[4];
 float average[4];
+
+
+
+
+
 float factor[4];
-
-
-
-
-
 void setup() {
     Serial.begin(115200);
     Serial.println("starting...");
 
-    // factor[0]=66900;
-    // factor[1]=139000;
-    // factor[2]=110700;
-    // factor[3]=116100;
-    // factor[0]=280800;
-    // factor[1]=334300;
-    // factor[2]=311800;
-    // factor[3]=322550;
-    factor[0]=402600;
-    factor[1]=428500;
-    factor[2]=443400;
-    factor[3]=439700;
+    factor[0]=CALIBRATE_FACTOR0;
+    factor[1]=CALIBRATE_FACTOR1;
+    factor[2]=CALIBRATE_FACTOR2;
+    factor[3]=CALIBRATE_FACTOR3;
 
-    float factor_total=0;
+    //caculate actual factor to get correct weight
     for (int s=0; s<4; s++)
     {
-        factor_total+=factor[s];
+        factor[s]=factor[s]/CALIBRATED_WEIGHT;
     }
 
-    for (int s=0; s<4; s++)
-    {
-        //   factor[s]= factor[s]/  ( calibrated_weight * (factor[s]/factor_total)) ;
-        factor[s]=factor[s]/calibrated_weight;
-
-
-    }
-
-
-    // factor[0]=18500 ;
-    // factor[1]=19800;
-    // factor[2]=20500;
-    // factor[3]=20300;
 
     scale[0]=&scale0;
     scale[1]=&scale1;
@@ -72,11 +70,8 @@ void setup() {
 }
 
 
-#define AVERAGE 5
-#define TARRE_COUNT 3000
-#define TARRE_MAX_DIFF 1
 
-int tarre_countdown=10;
+int tarre_countdown=AVERAGE*2;
 float prev_total=0;
 
 void tarre()
