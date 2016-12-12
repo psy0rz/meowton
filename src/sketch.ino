@@ -3,8 +3,10 @@
 #include "HX711.h"
 
 //moving average smoothing number
-//when trying to measure a moving cat, we need a high enough value
-#define AVERAGE 20
+
+//we're trying to measure a moving cat while eating
+//assume that it stays on the scale for 20-30 seconds at least, so we take a lot of values to average out movements and noise
+#define AVERAGE 100
 
 
 //auto tarre if measurement didnt change by more than TARRE_MAX_DIFF for TARRE_COUNT measurements
@@ -22,12 +24,17 @@
 #define CALIBRATE_FACTOR3 439700
 
 
-//pinout
-HX711 scale0(3,2); //module 1
-HX711 scale1(5,4); //module 2
-HX711 scale2(7,6); //module 3
-HX711 scale3(9,8); //module 4
 
+
+
+//// test measurements
+
+/*
+2016-12-03
+5970 midden
+5995 rechts voor zeer stabiel. tijdens liggen
+t
+*/
 
 //////////////////////////////////////////////////////////
 HX711 * scale[4];
@@ -40,25 +47,32 @@ float average[4];
 float factor[4];
 void setup() {
     Serial.begin(115200);
-    Serial.println("starting...");
-
+    delay(100);
+    Serial.println("\n\n\n\n\nstarting...");
     factor[0]=CALIBRATE_FACTOR0;
     factor[1]=CALIBRATE_FACTOR1;
     factor[2]=CALIBRATE_FACTOR2;
     factor[3]=CALIBRATE_FACTOR3;
 
     //caculate actual factor to get correct weight
-    for (int s=0; s<4; s++)
-    {
-        factor[s]=factor[s]/CALIBRATED_WEIGHT;
-    }
+    // for (int s=0; s<4; s++)
+    // {
+    //     factor[s]=factor[s]/CALIBRATED_WEIGHT;
+    // }
 
-
-    scale[0]=&scale0;
-    scale[1]=&scale1;
-    scale[2]=&scale2;
-    scale[3]=&scale3;
-
+    //pinout of the 4 weight modules
+    // scale[0]=new HX711(0,1);
+    // scale[1]=new HX711(2,3);
+    // scale[2]=new HX711(4,5);
+    // scale[3]=new HX711(6,7);
+    // scale[0]=new HX711(1,0);
+    scale[0]=new HX711(D6,D7);
+    scale[1]=new HX711(D4,D5);
+    scale[2]=new HX711(D2,D3);
+    scale[3]=new HX711(D0,D1);
+    // scale[2]=new HX711(5,4);
+    // scale[3]=new HX711(7,6);
+    //
 
 
     for (int s=0; s<4; s++)
@@ -71,7 +85,7 @@ void setup() {
 
 
 
-int tarre_countdown=AVERAGE*2;
+int tarre_countdown=10;
 float prev_total=0;
 
 void tarre()
@@ -96,7 +110,7 @@ void loop() {
         average[s]+=current/AVERAGE;
         Serial.print(average[s]);
         Serial.print("\t\t");
-        total=total+(average[s]/factor[s]);
+        total=total+(average[s]*CALIBRATED_WEIGHT/factor[s]);
     }
 
 
@@ -132,5 +146,6 @@ void loop() {
             tarre();
         }
     }
+    // delay(100);
 
 }
