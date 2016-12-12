@@ -6,10 +6,10 @@ goals of the project:
 
 * Automaticly weigh a cat with high accuracy while its eating
 * Create graphs so you can see if your cat is getting heavier/lighter or becomes sick for example.
-* Distinguish between multiple cat by recognizing them by weight.
+* Track weight of multiple cats by recognizing them by weight.
 
 version 2 goals:
 * Track how much the cat is eating and drinking (by weighing the food/water with a seperate scales)
 
 version 3 goals:
-* Limit the maximum amount of food each cat can eat in a given time period.
+* Limit the maximum amount of food each cat can eat in a given time period. (by closing the food bowl with a servo for example)
