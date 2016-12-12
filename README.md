@@ -13,3 +13,6 @@ version 2 goals:
 
 version 3 goals:
 * Limit the maximum amount of food each cat can eat in a given time period. (by closing the food bowl with a servo for example)
+
+final goal: 
+* ensuring Mogwai gets a healty weight. :)
