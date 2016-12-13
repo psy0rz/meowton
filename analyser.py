@@ -19,7 +19,7 @@ class Scale:
 
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
-        self.stable_skip_measurements=100
+        self.stable_skip_measurements=600
 
         # number of measurements averaging after which to auto tarre
         self.stable_auto_tarre=600
@@ -146,7 +146,7 @@ with open('measurements.csv','r') as fh:
                 skipped=skipped+1
             else:
                 if skipped:
-                    print("SKIPPED", skipped)
-                print("gra:", scale.stable_count, value )
+                    print("FOR:", skipped)
+                print("gra:", value )
                 prev_value=value
                 skipped=0
