@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.4
+#!/usr/bin/env python3
 
 
 # import beaker.middleware
@@ -8,6 +8,7 @@ import traceback
 # import json
 import sys
 import os.path
+import time
 
 
 @bottle.post('/raw')
@@ -28,8 +29,18 @@ def post_raw():
 
 
         if bottle.request.headers["content-type"].find("application/json")==0:
-            request = bottle.request.json
-            print(request)
+            measurements = bottle.request.json
+            csv=""
+            for measurement in measurements:
+                csv=csv+str(int(time.time()))+";"
+                for sensor in measurement:
+                    csv=csv+(str(sensor)+";")
+                csv=csv+"\n"
+
+            with open('measurements.csv','a') as fh:
+                fh.write(csv)
+
+
 
     except Exception as e:
         print("Error: "+str(e)+"\n")
