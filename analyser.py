@@ -17,12 +17,17 @@ class Scale:
         self.calibrate_weight=calibrate_weight
         self.calibrate_factors=calibrate_factors
 
+
+        #range in grams in which the scale should stay to be considered "stable"
+        self.stable_range=50
+
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
-        self.stable_skip_measurements=600
+        self.stable_skip_measurements=100
 
         # number of measurements averaging after which to auto tarre
-        self.stable_auto_tarre=600
+        self.stable_auto_tarre=6000
+
 
         self.sensor_count=len(calibrate_factors)
         self.stable_reset()
@@ -36,8 +41,6 @@ class Scale:
         self.stable_min=100000000
         self.stable_max=-100000000
         self.stable_count=0
-        #this is in grams:
-        self.stable_range=100
         self.stable_totals=[]
         self.stable_totals_count=0
 
