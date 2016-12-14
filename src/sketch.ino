@@ -14,9 +14,9 @@
 //assume that it stays on the scale for 20-30 seconds at least, so we take a lot of values to average out movements and noise
 // #define AVERAGE 100
 
-//send all raw measurement data to this server
+//send all raw measurement data to this server in json format
 //(for analyses or debugging and tuning)
-#define RAW_URL "http://192.168.13.236:8080/raw"
+#define RAW_URL "http://192.168.13.22:8080/raw"
 //max buffer size: ESP8266HTTPClient has small buffer sizes
 #define RAW_SIZE 2000
 

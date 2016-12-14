@@ -36,7 +36,8 @@ class Scale:
         self.stable_min=100000000
         self.stable_max=-100000000
         self.stable_count=0
-        self.stable_range=2000
+        #this is in grams:
+        self.stable_range=100
         self.stable_totals=[]
         self.stable_totals_count=0
 
@@ -55,15 +56,14 @@ class Scale:
 
     def stable_measurement(self,sensors):
         '''determine if scale is stabilised and calculates average. this is for static loads (not cats ;) and tarring'''
-        total=0
-        for sensor in sensors:
-            total=total+sensor
 
-        if total<self.stable_min:
-            self.stable_min=total
+        weight=self.calibrated_weight(sensors)
 
-        if total>self.stable_max:
-            self.stable_max=total
+        if weight<self.stable_min:
+            self.stable_min=weight
+
+        if weight>self.stable_max:
+            self.stable_max=weight
 
         if (self.stable_max - self.stable_min) < self.stable_range:
             self.stable_count=self.stable_count+1
@@ -126,6 +126,10 @@ scale=Scale(
 
 prev_value=0
 skipped=0
+count=0
+
+
+
 with open('measurements.csv','r') as fh:
     for line in fh:
         # print(line)
@@ -139,14 +143,23 @@ with open('measurements.csv','r') as fh:
         # print("raw: ",sensors)
         scale.measurement(sensors)
 
+        value=int(scale.calibrated_weight(scale.offset(sensors)))
 
         if (scale.stable_totals_count):
-            value=int(scale.calibrated_weight(scale.offset(scale.get_average())))
-            if value==prev_value:
-                skipped=skipped+1
-            else:
-                if skipped:
-                    print("SKIPPED", skipped)
-                print("gra:", scale.stable_count, value )
-                prev_value=value
-                skipped=0
+            avg_value=int(scale.calibrated_weight(scale.offset(scale.get_average())))
+            totals=scale.stable_totals_count
+        else:
+            avg_value=0
+            totals=0
+
+
+        count=count+1
+        print (count, value, avg_value)
+        # if value==prev_value:
+        #     skipped=skipped+1
+        # else:
+        #     if skipped:
+        #         print("SKIPPED", skipped)
+        #     print("gra:", value )
+        #     prev_value=value
+        #     skipped=0
