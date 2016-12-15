@@ -32,6 +32,10 @@ class Scale:
         self.sensor_count=len(calibrate_factors)
         self.stable_reset()
 
+        #we just started, make sure we tarre quickly
+        self.stable_count=self.stable_auto_tarre-30
+
+        self.no_tarre=True
         self.offsets=[]
         for i in range(0, self.sensor_count):
             self.offsets.append(0)
@@ -87,10 +91,11 @@ class Scale:
         self.stable_measurement(sensors)
 
 
-        #do not average for too long and also do auto tarring
-        if self.stable_totals_count>self.stable_auto_tarre:
+        #do auto tarring after a long stable period
+        if self.stable_totals_count>self.stable_auto_tarre or (self.no_tarre and self.stable_totals_count>10):
             self.offsets=self.get_average()
             self.stable_reset()
+            self.no_tarre=False
 
 
     def offset(self, sensors):
