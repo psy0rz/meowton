@@ -10,10 +10,22 @@
         <datavector file="/home/psy/meowton/data.dat" fileRelative="data.dat" field="Column 1" start="0" count="-1" skip="-1" doAve="false" initialVNum="2" initialXNum="13"/>
         <datavector file="/home/psy/meowton/data.dat" fileRelative="data.dat" field="Column 2" start="0" count="-1" skip="-1" doAve="false" initialVNum="3" initialXNum="25"/>
         <datavector file="/home/psy/meowton/data.dat" fileRelative="data.dat" field="Column 3" start="0" count="-1" skip="-1" doAve="false" initialVNum="4" initialXNum="37"/>
-        <string value="2016-12-14 02:52:35" initialTNum="1"/>
-        <string value="2016-12-14 02:52:35" initialTNum="2"/>
+        <string value="2016-12-17 21:57:46" initialTNum="1"/>
+        <string value="2016-12-17 21:57:46" initialTNum="2"/>
         <string value="data.dat" initialTNum="3"/>
         <string value="/home/psy/meowton" initialTNum="4"/>
+        <string orphan="true" editable="true" value="2016-12-16 19:49:38" initialTNum="1"/>
+        <string orphan="true" editable="true" value="2016-12-16 19:49:38" initialTNum="2"/>
+        <string orphan="true" editable="true" value="data.dat" initialTNum="3"/>
+        <string orphan="true" editable="true" value="/home/psy/meowton" initialTNum="4"/>
+        <string orphan="true" editable="true" value="2016-12-16 18:27:45" initialTNum="1"/>
+        <string orphan="true" editable="true" value="2016-12-16 18:27:45" initialTNum="2"/>
+        <string orphan="true" editable="true" value="data.dat" initialTNum="3"/>
+        <string orphan="true" editable="true" value="/home/psy/meowton" initialTNum="4"/>
+        <string orphan="true" editable="true" value="2016-12-14 02:52:35" initialTNum="1"/>
+        <string orphan="true" editable="true" value="2016-12-14 02:52:35" initialTNum="2"/>
+        <string orphan="true" editable="true" value="data.dat" initialTNum="3"/>
+        <string orphan="true" editable="true" value="/home/psy/meowton" initialTNum="4"/>
         <string orphan="true" editable="true" value="2016-12-14 02:28:42" initialTNum="1"/>
         <string orphan="true" editable="true" value="2016-12-14 02:28:42" initialTNum="2"/>
         <string orphan="true" editable="true" value="data.dat" initialTNum="3"/>
@@ -37,9 +49,9 @@
                 </pen>
                 <brush color="#ffffff" style="1"/>
                 <legend auto="true" title="" font="Sans Serif,9,-1,5,50,0,0,0,0,0" fontscale="9.6" verticaldisplay="false" name="Legend">
-                    <position x="-757.7753" y="-344.371151886792"/>
+                    <position x="-779.52139375" y="-344.371151886792"/>
                     <rect x="0" y="0" width="406" height="31"/>
-                    <relativesize width="0.227788899162455" height="0.0372823701773751" centerx="0.163894449581227" centery="0.154085929023998" posx="0.0499999999999999" posy="0.13544474393531"/>
+                    <relativesize width="0.224900517181174" height="0.0372823701773751" centerx="0.162450258590587" centery="0.154085929023998" posx="0.0499999999999999" posy="0.13544474393531"/>
                     <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
                     <pen style="1" width="0" miterlimit="2" cap="16" joinStyle="64">
                         <brush color="#000000" style="1"/>
@@ -49,11 +61,21 @@
                 <cartesianrender name="Cartesian Plot" type="1">
                     <relation tag="Column 2 vs Column 1 (C2)"/>
                     <relation tag="Column 3 vs Column 1 (C3)"/>
+                    <label text="geert" scale="13" color="#000000" font="Sans Serif,9,-1,5,50,0,0,0,0,0" name="Label">
+                        <position x="49.5763499999998" y="4.47720000000004"/>
+                        <rect x="0" y="0" width="77" height="34"/>
+                        <relativesize width="0.0426535463619468" height="0.040890341484863" centerx="0.530598968656637" centery="0.575434862768406" posx="0.509272195475663" posy="0.554989692025974"/>
+                        <transform m11="1" m12="0" m13="0" m21="0" m22="1" m23="0" m31="0" m32="0" m33="1"/>
+                        <pen style="1" width="0" miterlimit="2" cap="16" joinStyle="64">
+                            <brush color="#000000" style="1"/>
+                        </pen>
+                        <brush color="#000000" style="0"/>
+                    </label>
                 </cartesianrender>
-                <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" interpret="false" interpretation="1" display="4" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="0">
+                <plotaxis id="xaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" interpret="false" interpretation="1" display="4" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="2">
                     <plotmarkers xaxis="true" linecolor="#000000" linestyle="1" linewidth="1" curvemode="3"/>
                 </plotaxis>
-                <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" interpret="false" interpretation="1" display="4" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="1">
+                <plotaxis id="yaxis" visible="true" log="false" reversed="false" autobaseoffset="true" baseoffset="false" interpret="false" interpretation="1" display="4" majortickmode="5" minortickcount="5" autominortickcount="true" drawmajorticks="true" drawminorticks="true" drawmajorgridlines="true" drawminorgridlines="false" drawmajorgridlinecolor="#a0a0a4" drawminorgridlinecolor="#a0a0a4" drawmajorgridlinestyle="2" drawminorgridlinestyle="2" drawmajorgridlinewidth="1" drawminorgridlinewidth="1" significantdigits="9" rotation="0" zoommode="2">
                     <plotmarkers xaxis="false" linecolor="#000000" linestyle="1" linewidth="1" curvemode="42221824"/>
                 </plotaxis>
                 <plotlabel id="leftlabel" visible="true" overridetext="" autolabel="true" font="DejaVu Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
@@ -61,7 +83,7 @@
                 <plotlabel id="toplabel" visible="true" overridetext="" autolabel="true" font="DejaVu Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="bottomlabel" visible="true" overridetext="Column 1" autolabel="true" font="DejaVu Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
                 <plotlabel id="numberlabel" visible="true" overridetext="" autolabel="false" font="DejaVu Sans,12,-1,5,50,0,0,0,0,0" fontscale="16" fontcolor="#000000" fontuseglobal="true"/>
-                <projectionrect x="1" y="-36.275" width="482" height="1523.55"/>
+                <projectionrect x="35084.3430565343" y="89.8547856792884" width="1263.44739984021" height="236.75417520453"/>
             </plot>
         </view>
     </graphics>

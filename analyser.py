@@ -28,6 +28,9 @@ class Scale:
         # number of measurements averaging after which to auto tarre
         self.stable_auto_tarre=6000
 
+        #stable measurements and tarring only below this weight
+        self.stable_below=1000
+
 
         self.sensor_count=len(calibrate_factors)
         self.stable_reset()
@@ -120,7 +123,9 @@ class Scale:
 
 
 scale=Scale(
-    calibrate_weight=1074,
+
+
+    calibrate_weight=1074 *1534/ 1645,
     calibrate_factors=[
         402600,
         428500,
