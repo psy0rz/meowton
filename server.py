@@ -10,6 +10,12 @@ import sys
 import os.path
 import time
 
+import pymongo
+import bson.objectid
+
+
+from config import db
+
 
 @bottle.post('/raw')
 def post_raw():
@@ -30,15 +36,18 @@ def post_raw():
 
         if bottle.request.headers["content-type"].find("application/json")==0:
             measurements = bottle.request.json
-            csv=""
-            for measurement in measurements:
-                csv=csv+str(int(time.time()))+";"
-                for sensor in measurement:
-                    csv=csv+(str(sensor)+";")
-                csv=csv+"\n"
+            timestamp=int(time.time())
+            nr=0
+            docs=[]
+            for sensors in measurements:
+                docs.append({
+                    'timestamp':    timestamp,
+                    'nr':           nr,
+                    'sensors':      sensors
+                })
+                nr=nr+1
+            db.measurements.insert_many(docs)
 
-            with open('measurements.csv','a') as fh:
-                fh.write(csv)
 
 
 
