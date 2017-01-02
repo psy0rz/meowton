@@ -1,0 +1,14 @@
+remote:
+  host: "media"
+  user: "meowton"
+  path: "/home/meowton/meowton"
+behaviour:
+  uploadOnSave: true
+  syncDownOnOpen: true
+  forgetConsole: false
+  autoHideConsole: true
+  alwaysSyncAll: true
+option:
+  deleteFiles: true
+  exclude: [
+  ]
