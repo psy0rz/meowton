@@ -9,7 +9,7 @@ import time
 
 import pymongo
 import bson.objectid
-
+from config import db
 
 
 class Scale:
@@ -28,7 +28,7 @@ class Scale:
         self.stable_skip_measurements=100
 
         # number of measurements averaging after which to auto tarre
-        self.stable_auto_tarre=6000
+        self.stable_auto_tarre=600
 
         #stable measurements and tarring only below this weight
         self.stable_below=1000
@@ -65,9 +65,13 @@ class Scale:
             ret.append(int(total/self.stable_totals_count))
         return(ret)
 
+    def get_average_count(self):
+        '''number of samples the current average is caculated over'''
+        return(self.stable_totals_count)
+
 
     def stable_measurement(self,sensors):
-        '''determine if scale is stabilised and calculates average. this is for static loads (not cats ;) and tarring'''
+        '''determine if scale is stabilised and calculates average. '''
 
         weight=self.calibrated_weight(sensors)
 
@@ -144,37 +148,39 @@ skipped=0
 count=0
 
 
+sort_index=[ ( 'timestamp', pymongo.ASCENDING ) , ( 'nr' , pymongo.ASCENDING ) ]
 
-with open('measurements.csv','r') as fh:
-    for line in fh:
-        # print(line)
-        (timestamp, *sensor_strs)=line.rstrip(";\n").split(";")
+db.measurements.create_index(sort_index)
 
-        #make ints
-        sensors=[]
-        for sensor_str in sensor_strs:
-            sensors.append(int(sensor_str))
-
-        # print("raw: ",sensors)
-        scale.measurement(sensors)
-
-        value=int(scale.calibrated_weight(scale.offset(sensors)))
-
-        if (scale.stable_totals_count):
-            avg_value=int(scale.calibrated_weight(scale.offset(scale.get_average())))
-            totals=scale.stable_totals_count
-        else:
-            avg_value=0
-            totals=0
+count=0
+for doc in db.measurements.find(
+    filter=
+    { 'timestamp':
+        { '$gte': int(time.time())-(3*3600)
+        }
+    }
+    ).sort(sort_index):
 
 
-        count=count+1
-        print (count, value, avg_value)
-        # if value==prev_value:
-        #     skipped=skipped+1
-        # else:
-        #     if skipped:
-        #         print("SKIPPED", skipped)
-        #     print("gra:", value )
-        #     prev_value=value
-        #     skipped=0
+    scale.measurement(doc['sensors'])
+    #
+    value=int(scale.calibrated_weight(scale.offset(doc['sensors'])))
+
+    if (scale.stable_totals_count):
+        avg_value=int(scale.calibrated_weight(scale.offset(scale.get_average())))
+        totals=scale.get_average_count()
+    else:
+        avg_value=0
+        totals=0
+
+
+
+    count=count+1
+    if value==prev_value:
+        skipped=skipped+1
+    else:
+        # if skipped:
+        #     print("SKIPPED", skipped)
+        print(value, avg_value, totals)
+        prev_value=value
+        skipped=0
