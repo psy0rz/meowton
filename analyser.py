@@ -144,15 +144,67 @@ class Catalyser():
 
         #measure enter and exist weights and eating time
         self.enter_weight=0
+        self.enter_time=0
         self.exit_weight=0
-        self.eat_time=0
         pass
 
-    def update(self, scale):
+    def event(self, diff, timestamp):
+        '''records change event'''
+
+
+        #only record cat-sized changes :)
+        if abs(diff)<1000:
+            return
+
+        #cat entered
+        if diff>0:
+            self.enter_time=timestamp
+            self.enter_weight=diff
+            #trow old graphs stuff away
+            self.graph_measurements[400:]
+
+        #cat exited
+        else:
+            self.exit_weight=abs(diff)
+
+            #if it took too long we probably missed something
+            timediff=timestamp-self.enter_time
+            if timestamp-self.enter_time>6000:
+                print("Error, cat took too long:", timediff)
+                print()
+                self.enter_weight=0
+                self.enter_time=0
+                return
+
+            #cat can only stay the same weight or get heavier while eating.
+            #if it got much lighter the measurements are wrong
+            if self.exit_weight-self.enter_weight<-2:
+                print("Error, cat got lighter while eating somehow. ", self.enter_weight, self.exit_weight)
+                print()
+                self.enter_weight=0
+                self.enter_time=0
+                return
+
+            print("Date            :", time.ctime(timestamp))
+            print("Cat enter weight:", self.enter_weight)
+            print("Cat exit  weight:", self.exit_weight)
+            print("Food consumed   :", self.exit_weight-self.enter_weight)
+            print("Eating time     :", timediff)
+            print()
+
+            self.enter_weight=0
+            self.enter_time=0
+
+
+
+    def update(self, scale, timestamp):
+        '''update with current state of scale'''
 
         #keep graph of last measuremens
         self.graph_measurements.append(int(scale.calibrated_weight(scale.offset(scale.get_current()))))
-        if (len(self.graph_measurements)>600):
+
+        #make sure the graphs doesnt get too big
+        if (len(self.graph_measurements)>6000):
             self.graph_measurements.pop(0)
 
         #is there a stable average
@@ -169,18 +221,13 @@ class Catalyser():
 
                 #average stayed the same for a number of measurements
                 if self.average_count==100:
+
+                    #determine difference with previous stable average
                     diff=average_current-self.average_prev
+                    self.average_prev=average_current
 
-                    #change was at least the size of a cat?:
-                    if abs(diff)>1000:
-                        if diff>0:
-                            print("Jumped on ,", diff)
-                        else:
-                            print("Jumped off,", abs(diff))
-
-                        print(self.graph_measurements)
-                        print()
-                        self.average_prev=average_current
+                    #record the change-event
+                    self.event(diff, timestamp)
 
 
 
@@ -215,4 +262,4 @@ for doc in db.measurements.find(
 
 
     scale.measurement(doc['sensors'])
-    catalyser.update(scale)
+    catalyser.update(scale, doc["timestamp"])
