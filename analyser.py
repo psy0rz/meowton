@@ -146,6 +146,7 @@ class Catalyser():
         #measure enter and exist weights and eating time
         self.enter_weight=0
         self.enter_time=0
+        self.enter_index=0
         self.exit_weight=0
 
         #per cat data
@@ -162,6 +163,7 @@ class Catalyser():
 
         #keep graph of last measuremenst
         self.graph_measurements.append(int(scale.calibrated_weight(scale.offset(scale.get_current()))))
+        self.enter_index=self.enter_index+1
 
         #is there a stable average
         if scale.get_average_count():
@@ -202,39 +204,31 @@ class Catalyser():
         if diff>0:
             self.enter_time=timestamp
             self.enter_weight=diff
-            # #trow old graphs stuff away
-            # self.graph_measurements[400:]
+            self.enter_index=0
+
 
         #cat exited
         else:
             self.exit_weight=abs(diff)
 
+            errors=[]
+
             #if it took too long we probably missed something
             timediff=timestamp-self.enter_time
+            consumed=self.exit_weight-self.enter_weight
+
             if timestamp-self.enter_time>6000:
-                print("Error, cat took too long:", timediff)
-                print()
-                self.enter_weight=0
-                self.enter_time=0
-                return
+                errors.append("Cat took too long.".format())
 
             #cat can only stay the same weight or get heavier while eating.
             #if it got much lighter the measurements are wrong
             if self.exit_weight-self.enter_weight<-2:
-                print("Error, cat got lighter while eating somehow. ", self.enter_weight, self.exit_weight)
-                print()
-                self.enter_weight=0
-                self.enter_time=0
-                return
+                errors.append("Cat got lighter while eating somehow.")
 
             if self.exit_weight-self.enter_weight>100:
-                print("Error, cat ate impossible amount. ", self.enter_weight, self.exit_weight)
-                print()
-                self.enter_weight=0
-                self.enter_time=0
-                return
+                errors.append("Cat ate impossible amount: {}g".format(consumed))
 
-            #get cat data
+            #determine which cat it is
             cat=self.__find_cat(self.enter_weight)
             if cat:
                 #update moving average weight to not lose track of cat
@@ -251,10 +245,54 @@ class Catalyser():
             print("Name            :", cat['name'])
             print("Cat enter weight:", self.enter_weight)
             print("Cat exit  weight:", self.exit_weight)
-            print("Food consumed   :", self.exit_weight-self.enter_weight)
+            print("Food consumed   :", consumed)
             print("Eating time     :", timediff)
-            print(self.graph_measurements)
+            print("Errors          :", errors)
+            # print(self.graph_measurements)
             print()
+
+
+            ######### graph
+            import matplotlib.pyplot as plt
+
+            entered_x=len(self.graph_measurements)-self.enter_index
+            if entered_x<0:
+                entered_x=0
+
+            exit_x=len(self.graph_measurements)-1
+
+            plt.annotate(
+                'Entered at {}g'.format(self.enter_weight),
+                xy=(entered_x, self.graph_averages[entered_x]),
+                xytext=(entered_x-100, self.graph_averages[entered_x]-500),
+                arrowprops=dict(color='gray', width=0.1, headwidth=5),
+                )
+
+            plt.annotate(
+                'Exitted at {}g'.format(self.exit_weight),
+                xy=(exit_x, self.graph_averages[exit_x]),
+                xytext=(exit_x-1000, self.graph_averages[exit_x]+500),
+                arrowprops=dict(color='gray', width=0.1, headwidth=5),
+                )
+
+            plt.suptitle("{} ({})".format(cat['name'], time.ctime(timestamp)))
+
+            if errors:
+                plt.title("Error: "+" ".join(errors)).set_color('red')
+
+            else:
+                plt.title("Ate {}g in {} seconds".format(consumed, timediff))
+
+
+            #graphs and labels
+            plt.plot(self.graph_measurements,color='black')
+            plt.plot(self.graph_averages, color='red')
+            plt.ylabel('Weight (g)')
+            plt.xlabel('Measurement number')
+
+            plt.savefig("graphs/{}.png".format(timestamp))
+            plt.close()
+
 
             self.enter_weight=0
             self.enter_time=0
@@ -292,7 +330,7 @@ db.measurements.create_index(sort_index)
 for doc in db.measurements.find(
     filter=
     { 'timestamp':
-        { '$gte': int(time.time())-(24*3600)
+        { '$gte': int(time.time())-(24*3600*5)
         }
     }
     ).sort(sort_index):
