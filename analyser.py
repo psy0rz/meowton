@@ -10,7 +10,7 @@ import time
 import pymongo
 import bson.objectid
 from config import db
-
+import collections
 
 class Scale:
     '''to calculate weights from raw data and do stuff like auto tarring and averaging'''
@@ -140,7 +140,8 @@ class Catalyser():
         self.average_last=0
         self.average_prev=0
         self.average_count=0
-        self.graph_measurements=[]
+        self.graph_measurements=collections.deque([],3000)
+        self.graph_averages=collections.deque([],3000)
 
         #measure enter and exist weights and eating time
         self.enter_weight=0
@@ -148,6 +149,8 @@ class Catalyser():
         self.exit_weight=0
 
         #per cat data
+        doc=db.settings.find_one({ 'name': 'cats' })
+
         self.cats=[]
 
         pass
@@ -157,17 +160,15 @@ class Catalyser():
     def update(self, scale, timestamp):
         '''update with current state of scale'''
 
-        #keep graph of last measuremens
+        #keep graph of last measuremenst
         self.graph_measurements.append(int(scale.calibrated_weight(scale.offset(scale.get_current()))))
-
-        #make sure the graphs doesnt get too big
-        if (len(self.graph_measurements)>6000):
-            self.graph_measurements.pop(0)
 
         #is there a stable average
         if scale.get_average_count():
 
             average_current=int(scale.calibrated_weight(scale.offset(scale.get_average())))
+            self.graph_averages.append(average_current)
+
             #the average is still changing
             if average_current!=self.average_last:
                 self.average_count=0
@@ -186,6 +187,8 @@ class Catalyser():
                     #record the change-event
                     self.__event(diff, timestamp)
 
+        else:
+            self.graph_averages.append(None)
 
 
     def __event(self, diff, timestamp):
@@ -199,8 +202,8 @@ class Catalyser():
         if diff>0:
             self.enter_time=timestamp
             self.enter_weight=diff
-            #trow old graphs stuff away
-            self.graph_measurements[400:]
+            # #trow old graphs stuff away
+            # self.graph_measurements[400:]
 
         #cat exited
         else:
@@ -250,6 +253,7 @@ class Catalyser():
             print("Cat exit  weight:", self.exit_weight)
             print("Food consumed   :", self.exit_weight-self.enter_weight)
             print("Eating time     :", timediff)
+            print(self.graph_measurements)
             print()
 
             self.enter_weight=0
