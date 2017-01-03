@@ -36,7 +36,7 @@ class Scale:
 
 
         self.sensor_count=len(calibrate_factors)
-        self.stable_reset()
+        self.__stable_reset()
 
 
         self.no_tarre=True
@@ -47,7 +47,7 @@ class Scale:
         #last sensor readings
         self.current=[]
 
-    def stable_reset(self):
+    def __stable_reset(self):
         self.stable_min=100000000
         self.stable_max=-100000000
         self.stable_count=0
@@ -74,7 +74,7 @@ class Scale:
         return(self.stable_totals_count)
 
 
-    def stable_measurement(self,sensors):
+    def __stable_measurement(self,sensors):
         '''determine if scale is stabilised and calculates average. '''
 
         weight=self.calibrated_weight(sensors)
@@ -88,7 +88,7 @@ class Scale:
         if (self.stable_max - self.stable_min) < self.stable_range:
             self.stable_count=self.stable_count+1
         else:
-            self.stable_reset()
+            self.__stable_reset()
 
         #do averaging after skipping the first measurements because of scale drifting and recovery
         if self.stable_count>=self.stable_skip_measurements:
@@ -101,14 +101,14 @@ class Scale:
 
 
     def measurement(self, sensors):
-        self.stable_measurement(sensors)
+        self.__stable_measurement(sensors)
         self.current=sensors
 
 
         #do auto tarring after a long stable period
         if (self.stable_totals_count>self.stable_auto_tarre)  or (self.no_tarre and self.stable_totals_count>10):
             self.offsets=self.get_average()
-            self.stable_reset()
+            self.__stable_reset()
             self.no_tarre=False
 
 
@@ -148,9 +148,44 @@ class Catalyser():
         self.exit_weight=0
         pass
 
-    def event(self, diff, timestamp):
-        '''records change event'''
 
+
+    def update(self, scale, timestamp):
+        '''update with current state of scale'''
+
+        #keep graph of last measuremens
+        self.graph_measurements.append(int(scale.calibrated_weight(scale.offset(scale.get_current()))))
+
+        #make sure the graphs doesnt get too big
+        if (len(self.graph_measurements)>6000):
+            self.graph_measurements.pop(0)
+
+        #is there a stable average
+        if scale.get_average_count():
+
+            average_current=int(scale.calibrated_weight(scale.offset(scale.get_average())))
+            #the average is still changing
+            if average_current!=self.average_last:
+                self.average_count=0
+                self.average_last=average_current
+            #average stayed the same since last measurement
+            else:
+                self.average_count=self.average_count+1
+
+                #average stayed the same for a number of measurements
+                if self.average_count==100:
+
+                    #determine difference with previous stable average
+                    diff=average_current-self.average_prev
+                    self.average_prev=average_current
+
+                    #record the change-event
+                    self.__event(diff, timestamp)
+
+
+
+    def __event(self, diff, timestamp):
+        '''records change event'''
 
         #only record cat-sized changes :)
         if abs(diff)<1000:
@@ -185,6 +220,13 @@ class Catalyser():
                 self.enter_time=0
                 return
 
+            if self.exit_weight-self.enter_weight>100:
+                print("Error, cat ate impossible amount. ", self.enter_weight, self.exit_weight)
+                print()
+                self.enter_weight=0
+                self.enter_time=0
+                return
+
             print("Date            :", time.ctime(timestamp))
             print("Cat enter weight:", self.enter_weight)
             print("Cat exit  weight:", self.exit_weight)
@@ -194,43 +236,6 @@ class Catalyser():
 
             self.enter_weight=0
             self.enter_time=0
-
-
-
-    def update(self, scale, timestamp):
-        '''update with current state of scale'''
-
-        #keep graph of last measuremens
-        self.graph_measurements.append(int(scale.calibrated_weight(scale.offset(scale.get_current()))))
-
-        #make sure the graphs doesnt get too big
-        if (len(self.graph_measurements)>6000):
-            self.graph_measurements.pop(0)
-
-        #is there a stable average
-        if scale.get_average_count():
-
-            average_current=int(scale.calibrated_weight(scale.offset(scale.get_average())))
-            #the average is still changing
-            if average_current!=self.average_last:
-                self.average_count=0
-                self.average_last=average_current
-            #average stayed the same since last measurement
-            else:
-                self.average_count=self.average_count+1
-
-                #average stayed the same for a number of measurements
-                if self.average_count==100:
-
-                    #determine difference with previous stable average
-                    diff=average_current-self.average_prev
-                    self.average_prev=average_current
-
-                    #record the change-event
-                    self.event(diff, timestamp)
-
-
-
 
 
 scale=Scale(
@@ -253,11 +258,11 @@ db.measurements.create_index(sort_index)
 
 
 for doc in db.measurements.find(
-    filter=
-    { 'timestamp':
-        { '$gte': int(time.time())-(8*3600)
-        }
-    }
+    # filter=
+    # { 'timestamp':
+    #     { '$gte': int(time.time())-(24*3600)
+    #     }
+    # }
     ).sort(sort_index):
 
 
