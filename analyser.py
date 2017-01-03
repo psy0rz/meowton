@@ -388,7 +388,8 @@ def global_graphs():
 
     for name in weights.keys():
         plt.title(name)
-        plt.matplotlib.pyplot.plot_date(matplotlib.dates.epoch2num(timestamps[name]), weights[name])
+        # plt.matplotlib.dates.AutoDateLocator(maxticks=3)
+        # plt.plot_date(matplotlib.dates.epoch2num(timestamps[name]), weights[name])
         plt.savefig("graphs/{}.png".format(name))
         plt.close()
 
