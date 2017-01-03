@@ -12,6 +12,7 @@ import bson.objectid
 from config import db
 import collections
 
+
 class Scale:
     '''to calculate weights from raw data and do stuff like auto tarring and averaging'''
 
@@ -251,6 +252,18 @@ class Catalyser():
             # print(self.graph_measurements)
             print()
 
+            ######### save to event db
+
+            db.events.insert({
+                'name': cat['name'],
+                'timestamp'   : timestamp,
+                'enter_weight': self.enter_weight,
+                'exit_weight' : self.exit_weight,
+                'timediff'    : timediff,
+                'errors'      : errors,
+                'consumed'    : consumed
+            })
+
 
             ######### graph
             import matplotlib.pyplot as plt
@@ -263,15 +276,15 @@ class Catalyser():
 
             plt.annotate(
                 'Entered at {}g'.format(self.enter_weight),
-                xy=(entered_x, self.graph_averages[entered_x]),
-                xytext=(entered_x-100, self.graph_averages[entered_x]-500),
+                xy=(entered_x, self.graph_measurements[entered_x]),
+                xytext=(entered_x-100, self.graph_measurements[entered_x]-500),
                 arrowprops=dict(color='gray', width=0.1, headwidth=5),
                 )
 
             plt.annotate(
                 'Exitted at {}g'.format(self.exit_weight),
-                xy=(exit_x, self.graph_averages[exit_x]),
-                xytext=(exit_x-1000, self.graph_averages[exit_x]+500),
+                xy=(exit_x, self.graph_measurements[exit_x]),
+                xytext=(exit_x-1000, self.graph_measurements[exit_x]+500),
                 arrowprops=dict(color='gray', width=0.1, headwidth=5),
                 )
 
@@ -293,9 +306,11 @@ class Catalyser():
             plt.savefig("graphs/{}.png".format(timestamp))
             plt.close()
 
-
             self.enter_weight=0
             self.enter_time=0
+
+
+
 
     def __find_cat(self, weight):
         '''try to find a cat by weight'''
@@ -306,6 +321,10 @@ class Catalyser():
                 return(cat)
 
         return(None)
+
+
+
+
 
 
 scale=Scale(
@@ -328,11 +347,11 @@ db.measurements.create_index(sort_index)
 
 
 for doc in db.measurements.find(
-    filter=
-    { 'timestamp':
-        { '$gte': int(time.time())-(24*3600*5)
-        }
-    }
+    # filter=
+    # { 'timestamp':
+    #     { '$gte': int(time.time())-(24*3600*5)
+    #     }
+    # }
     ).sort(sort_index):
 
 
