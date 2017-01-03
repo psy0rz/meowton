@@ -37,16 +37,11 @@ def post_raw():
         if bottle.request.headers["content-type"].find("application/json")==0:
             measurements = bottle.request.json
             timestamp=int(time.time())
-            nr=0
-            docs=[]
-            for sensors in measurements:
-                docs.append({
+            doc={
                     'timestamp':    timestamp,
-                    'nr':           nr,
-                    'sensors':      sensors
-                })
-                nr=nr+1
-            db.measurements.insert_many(docs)
+                    'measurements': measurements
+                }
+            db.measurements.insert_one(doc)
 
 
 

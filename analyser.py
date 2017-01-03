@@ -12,6 +12,7 @@ import bson.objectid
 from config import db
 import collections
 import matplotlib.pyplot as plt
+import shelve
 
 
 class Scale:
@@ -326,14 +327,9 @@ class Catalyser():
 
         return(None)
 
-
-
-
-
+############ objects
 
 scale=Scale(
-
-
     calibrate_weight=1074 *1534/ 1645,
     calibrate_factors=[
         402600,
@@ -345,19 +341,83 @@ scale=Scale(
 
 catalyser=Catalyser()
 
-sort_index=[ ( 'timestamp', pymongo.ASCENDING ) , ( 'nr' , pymongo.ASCENDING ) ]
 
-db.measurements.create_index(sort_index)
+def safe_state(timestamp):
+    '''save current state so we can resume later when new measurements have arrived'''
+    with shelve.open("analyser.state") as shelve_db:
+        shelve_db['scale_state']=scale.state
+        shelve_db['catalyser_state']=catalyser.state
+        shelve_db['timestamp']=timestamp
+
+    print("Saved state ",timestamp)
+
+def load_state():
+    with shelve.open("analyser.state") as shelve_db:
+        scale.state=shelve_db['scale_state']=scale.state
+        catalyser.state=shelve_db['catalyser_state']=catalyser.state
+        print("Resuming from state ", shelve_db['timestamp'])
+        return(shelve_db['timestamp'])
+
+def analyse_measurements():
+    '''analyse all new measurements since last time'''
+
+    sort_index=[ ( 'timestamp', pymongo.ASCENDING ) , ( 'nr' , pymongo.ASCENDING ) ]
+
+    db.measurements.create_index(sort_index)
+
+    prev_timestamp=0
+    saved_timestamp=load_state()
+
+    processed_count=0
 
 
-for doc in db.measurements.find(
-    # filter=
-    # { 'timestamp':
-    #     { '$gte': int(time.time())-(24*3600*5)
-    #     }
-    # }
-    ).sort(sort_index):
+    #HACK
+    measurements=[]
+    timestamp=0
+    for doc in db.measurements.find(
+        filter=
+        { 'sensors':
+            { '$exists':1
+            }
+        }
+        ).sort(sort_index):
+
+        if doc['timestamp']==timestamp:
+            measurements.append(doc['sensors'])
+        else:
+            #complete
+            if measurements:
+                db.measurements.insert_one({
+                    'timestamp': timestamp,
+                    'measurements': measurements
+                })
+                measurements=[]
+                print(timestamp)
+
+        timestamp=doc['timestamp']
+
+    sys.exit()
+
+    for doc in db.measurements.find(
+        filter=
+        { 'timestamp':
+            { '$gt': saved_timestamp
+            }
+        }
+        ).sort(sort_index):
+
+        #is current timestamp completed (each timestamp usually has multiple measurements)
+        if doc['timestamp']!=prev_timestamp:
+            if processed_count>100000:
+                safe_state(prev_timestamp) #we save state of the last fully COMPLETED timestamp
+
+        prev_timestamp=doc['timestamp']
+
+        scale.measurement(doc['sensors'])
+        catalyser.update(scale, doc["timestamp"])
 
 
-    scale.measurement(doc['sensors'])
-    catalyser.update(scale, doc["timestamp"])
+
+
+
+analyse_measurements()
