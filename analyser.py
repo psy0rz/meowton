@@ -146,6 +146,10 @@ class Catalyser():
         self.enter_weight=0
         self.enter_time=0
         self.exit_weight=0
+
+        #per cat data
+        self.cats=[]
+
         pass
 
 
@@ -227,7 +231,21 @@ class Catalyser():
                 self.enter_time=0
                 return
 
+            #get cat data
+            cat=self.__find_cat(self.enter_weight)
+            if cat:
+                #update moving average weight to not lose track of cat
+                cat['weight']=int(cat['weight']*0.9 + self.enter_weight*0.1)
+            else:
+                #new cat
+                cat={
+                    'weight': self.enter_weight,
+                    'name': "Cat "+str(len(self.cats))
+                }
+                self.cats.append(cat)
+
             print("Date            :", time.ctime(timestamp))
+            print("Name            :", cat['name'])
             print("Cat enter weight:", self.enter_weight)
             print("Cat exit  weight:", self.exit_weight)
             print("Food consumed   :", self.exit_weight-self.enter_weight)
@@ -236,6 +254,16 @@ class Catalyser():
 
             self.enter_weight=0
             self.enter_time=0
+
+    def __find_cat(self, weight):
+        '''try to find a cat by weight'''
+
+        for cat in self.cats:
+            #max differnce gram for now
+            if abs(cat['weight']-weight)<100:
+                return(cat)
+
+        return(None)
 
 
 scale=Scale(
@@ -258,11 +286,11 @@ db.measurements.create_index(sort_index)
 
 
 for doc in db.measurements.find(
-    # filter=
-    # { 'timestamp':
-    #     { '$gte': int(time.time())-(24*3600)
-    #     }
-    # }
+    filter=
+    { 'timestamp':
+        { '$gte': int(time.time())-(24*3600)
+        }
+    }
     ).sort(sort_index):
 
 
