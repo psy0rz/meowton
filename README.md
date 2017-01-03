@@ -16,3 +16,10 @@ version 3 goals:
 
 final goal: 
 * ensuring Mogwai gets a healty weight. :)
+
+
+## Cloning this project
+
+This project has submodule, therefore you should use the --recursive option:
+
+ git clone --resursive https://github.com/psy0rz/meowton.git
