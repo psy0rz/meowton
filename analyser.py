@@ -12,6 +12,7 @@ import bson.objectid
 from config import db
 import collections
 import matplotlib.pyplot as plt
+import matplotlib
 import shelve
 
 
@@ -31,7 +32,7 @@ class Scale:
 
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
-        self.stable_skip_measurements=100
+        self.stable_skip_measurements=10
 
         # number of measurements averaging after which to auto tarre
         self.stable_auto_tarre=6000
@@ -187,7 +188,7 @@ class Catalyser():
                 self.state['average_count']=self.state['average_count']+1
 
                 #average stayed the same for a number of measurements
-                if self.state['average_count']==100:
+                if self.state['average_count']==10:
 
                     #determine difference with previous stable average
                     diff=average_current-self.state['average_prev']
@@ -237,16 +238,10 @@ class Catalyser():
 
             #determine which cat it is
             cat=self.__find_cat(self.state['enter_weight'])
-            if cat:
-                #update moving average weight to not lose track of cat
+            #update moving average weight to not lose track of cat
+            if not errors:
                 cat['weight']=int(cat['weight']*0.9 + self.state['enter_weight']*0.1)
-            else:
-                #new cat
-                cat={
-                    'weight': self.state['enter_weight'],
-                    'name': "Cat "+str(len(self.state['cats']))
-                }
-                self.state['cats'].append(cat)
+                cat['count']=cat['count']+1
 
             print("Date            :", time.ctime(timestamp))
             print("Name            :", cat['name'])
@@ -255,7 +250,6 @@ class Catalyser():
             print("Food consumed   :", consumed)
             print("Eating time     :", timediff)
             print("Errors          :", errors)
-            # print(self.graph_measurements)
             print()
 
             ######### save to event db
@@ -320,12 +314,25 @@ class Catalyser():
     def __find_cat(self, weight):
         '''try to find a cat by weight'''
 
+        best_match=None
         for cat in self.state['cats']:
             #max differnce gram for now
-            if abs(cat['weight']-weight)<100:
-                return(cat)
+            if abs(cat['weight']-weight)<200:
+                if not best_match or cat['count']>best_match['count']:
+                    best_match=cat
 
-        return(None)
+        if best_match:
+            return(best_match)
+
+        #new cat
+        cat={
+            'weight': weight,
+            'name': "Cat "+str(len(self.state['cats'])),
+            'count': 0
+        }
+        self.state['cats'].append(cat)
+
+        return(cat)
 
 ############ objects
 
@@ -341,6 +348,7 @@ scale=Scale(
 
 catalyser=Catalyser()
 
+sort_index=[ ( 'timestamp', pymongo.ASCENDING ) ]
 
 def save_state(timestamp):
     '''save current state so we can resume later when new measurements have arrived'''
@@ -361,16 +369,44 @@ def load_state():
         else:
             return(0)
 
+def global_graphs():
+    '''create global graphs from all the recorded events'''
+
+
+    weights={}
+    timestamps={}
+    for doc in db.events.find().sort(sort_index):
+        if not doc['errors']:
+
+            if doc['name'] not in weights:
+                weights[doc['name']]=[]
+                timestamps[doc['name']]=[]
+
+            weights[doc['name']].append(doc['enter_weight'])
+            timestamps[doc['name']].append(doc['timestamp'])
+
+
+    for name in weights.keys():
+        plt.title(name)
+        plt.matplotlib.pyplot.plot_date(matplotlib.dates.epoch2num(timestamps[name]), weights[name])
+        plt.savefig("graphs/{}.png".format(name))
+        plt.close()
+
+
 def analyse_measurements():
     '''analyse all new measurements since last time'''
 
-    sort_index=[ ( 'timestamp', pymongo.ASCENDING ) ]
 
     db.measurements.create_index(sort_index)
 
     saved_timestamp=load_state()
     last_save=time.time()
 
+    if not saved_timestamp:
+        #recreate events as well
+        db.events.drop()
+
+    doc=0
     for doc in db.measurements.find(
         filter=
         { 'timestamp':
@@ -389,9 +425,11 @@ def analyse_measurements():
                 save_state(doc["timestamp"])
                 last_save=time.time()
 
-    save_state(doc["timestamp"])
+    if doc:
+        save_state(doc["timestamp"])
 
 
 
 
 analyse_measurements()
+global_graphs()
