@@ -17,9 +17,21 @@ version 3 goals:
 final goal: 
 * ensuring Mogwai gets a healty weight. :)
 
+# example graphs
 
-## Cloning this project
+Every measurement creates a graph for analasys and debugging:
+
+![cat 0](https://github.com/psy0rz/meowton/blob/master/examples/1481594272.png?raw=true)
+
+Example of a global graph (we need more data and tuning of curvefitting/smooting):
+![global](https://github.com/psy0rz/meowton/blob/master/examples/Cat%200.png?raw=true)
+
+
+
+# Cloning this project
 
 This project has submodule, therefore you should use the --recursive option:
 
  git clone --resursive https://github.com/psy0rz/meowton.git
+
+
