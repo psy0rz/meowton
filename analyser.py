@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+### dependencys in ubuntu:
+
+# sudo apt-get install python3-matplotlib
+# sudo apt-get install python3-scipy
+# sudo apt-get install python3-pymongo
+
+
 import re
 import traceback
 # import json
@@ -14,7 +21,7 @@ import collections
 import matplotlib.pyplot as plt
 import matplotlib
 import shelve
-
+import scipy
 
 class Scale:
     '''to calculate weights from raw data and do stuff like auto tarring and averaging'''
@@ -273,6 +280,9 @@ class Catalyser():
 
             exit_x=len(self.state['graph_measurements'])-1
 
+            fig, ax = plt.subplots()
+            ax.yaxis.grid(True)
+
             plt.annotate(
                 'Entered at {}g'.format(self.state['enter_weight']),
                 xy=(entered_x, self.state['graph_measurements'][entered_x]),
@@ -387,9 +397,31 @@ def global_graphs():
 
 
     for name in weights.keys():
+        fig, ax = plt.subplots()
         plt.title(name)
-        plt.plot_date(matplotlib.dates.epoch2num(timestamps[name]), weights[name])
-        plt.savefig("graphs/{}.png".format(name))
+        plt.ylabel('Weight (g)')
+        plt.xlabel('Measurement date')
+        # x=matplotlib.dates.epoch2num(timestamps[name] + [ timestamps[name][len(timestamps[name])-1]+160000 ] )
+        x=matplotlib.dates.epoch2num(timestamps[name])
+
+        y=weights[name]
+        # y.append(6000)
+
+        ax.plot_date(x, y, 'k.')
+
+        #do some polyfitting, from http://stackoverflow.com/questions/21367792/how-to-smooth-date-based-data-in-matplotlib
+        p = scipy.polyfit(x, y, deg=10)
+        y_ = scipy.polyval(p, x)
+        ax.plot_date(x, y_,'r-')
+
+        # ax.xaxis.set_major_locator(matplotlib.dates.DayLocator())
+        # ax.xaxis.set_minor_locator(matplotlib.dates.HourLocator())
+        # ax.autoscale_view()
+        fig.autofmt_xdate()
+        # print(d)
+
+        # plt.savefig("graphs/{}.png".format(name))
+        fig.savefig("graphs/{}.png".format(name))
         plt.close()
 
 
