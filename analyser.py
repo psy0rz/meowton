@@ -2,9 +2,7 @@
 
 ### dependencys in ubuntu:
 
-# sudo apt-get install python3-matplotlib
-# sudo apt-get install python3-scipy
-# sudo apt-get install python3-pymongo
+# sudo apt-get install python3-matplotlib python3-scipy python3-pymongo python3-gdbm
 
 
 import re
@@ -18,10 +16,13 @@ import pymongo
 import bson.objectid
 from config import db
 import collections
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import shelve
 import scipy
+
+
 
 class Scale:
     '''to calculate weights from raw data and do stuff like auto tarring and averaging'''
@@ -372,8 +373,8 @@ def save_state(timestamp):
 def load_state():
     with shelve.open("analyser.state") as shelve_db:
         if 'timestamp' in shelve_db:
-            scale.state=shelve_db['scale_state']=scale.state
-            catalyser.state=shelve_db['catalyser_state']=catalyser.state
+            scale.state=shelve_db['scale_state']
+            catalyser.state=shelve_db['catalyser_state']
             print("Resuming from state ", shelve_db['timestamp'])
             return(shelve_db['timestamp'])
         else:
@@ -433,6 +434,8 @@ def analyse_measurements():
 
     saved_timestamp=load_state()
     last_save=time.time()
+
+    print(catalyser.state['cats'])
 
     if not saved_timestamp:
         #recreate events as well
