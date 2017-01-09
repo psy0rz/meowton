@@ -30,9 +30,20 @@ Example of a global graph (we need more data and tuning of curvefitting/smooting
 
 # Hardware overview
 
+Electronics on prototype board:
+
 ![electronics](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015539.jpg?raw=true)
 
+Tracy eating food while she automagically is getting weighed:
+
 ![cataction](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015321.jpg?raw=true)
+
+# Parts
+
+ * 4x 5kg Kitchen Scale Electronic Load Cell Weighing Sensor: www.banggood.com/5Pcs-YZC-133-5kg-Kitchen-Scale-Electronic-Load-Cell-Weighing-Sensor-p-1043899.html
+ * 4x 24 Bit AD HX711 Weighing Pressure Sensor Module For Arduino: www.banggood.com/5Pcs-24-Bit-AD-HX711-Weighing-Pressure-Sensor-Module-For-Arduino-p-953336.html
+ * Some kind of ESP8266 ESP-12E, i used this one: www.banggood.com/Geekcreit-Doit-NodeMcu-Lua-ESP8266-ESP-12E-WIFI-Development-Board-p-985891.html
+ * Breadboards and jumper wires. (you find them anywhere)
 
 
 # Architecture
