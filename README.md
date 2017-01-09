@@ -17,7 +17,7 @@ version 3 goals:
 final goal: 
 * ensuring Mogwai gets a healty weight. :)
 
-# Example graphs
+# Examples
 
 Every measurement creates a graph for analysys and debugging:
 
@@ -26,6 +26,11 @@ Every measurement creates a graph for analysys and debugging:
 Example of a global graph (we need more data and tuning of curvefitting/smooting):
 ![global](https://github.com/psy0rz/meowton/blob/master/examples/Cat%200.png?raw=true)
 
+# Hardware overview
+
+![electronics](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015539.jpg?raw=true)
+
+![cataction](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015321.jpg?raw=true)
 
 
 # Architecture
