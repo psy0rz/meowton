@@ -17,9 +17,9 @@ version 3 goals:
 final goal: 
 * ensuring Mogwai gets a healty weight. :)
 
-# example graphs
+# Example graphs
 
-Every measurement creates a graph for analasys and debugging:
+Every measurement creates a graph for analysys and debugging:
 
 ![cat 0](https://github.com/psy0rz/meowton/blob/master/examples/1481594272.png?raw=true)
 
