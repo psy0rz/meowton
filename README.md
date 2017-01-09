@@ -50,7 +50,7 @@ Tracy eating food while she automagically is getting weighed:
 
 The raw data is collected from the scale 24/7:
 
-[ weatstone bridge modules ] -> [ ESP8266] -- raw measurement data (10/s) http --> [ server.py ] --> [ mongodb ]
+[ Load cells ] -> [ HX711 ] -> [ ESP8266 ] -- raw measurement data (10/s) http --> [ server.py ] --> [ mongodb ]
 
 A seperate analyser generates the graphs. It can work incrementally or reanalyse all the data if we tune it or fix bugs:
 
