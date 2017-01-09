@@ -19,6 +19,8 @@ final goal:
 
 # Examples
 
+(example graphs of Tracy, she has a healthy weight currently)
+
 Every measurement creates a graph for analysys and debugging:
 
 ![cat 0](https://github.com/psy0rz/meowton/blob/master/examples/1481594272.png?raw=true)
