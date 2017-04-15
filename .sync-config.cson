@@ -7,7 +7,7 @@ behaviour:
   syncDownOnOpen: true
   forgetConsole: false
   autoHideConsole: true
-  alwaysSyncAll: true
+  alwaysSyncAll: false
 option:
   deleteFiles: true
   exclude: [

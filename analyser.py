@@ -18,6 +18,7 @@ from config import db
 import collections
 import matplotlib
 matplotlib.use('Agg')
+from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import shelve
 import scipy
@@ -398,6 +399,9 @@ def global_graphs():
 
 
     for name in weights.keys():
+        if len(weights[name])<5:
+            continue
+
         fig, ax = plt.subplots()
         plt.title(name)
         plt.ylabel('Weight (g)')
@@ -406,22 +410,16 @@ def global_graphs():
         x=matplotlib.dates.epoch2num(timestamps[name])
 
         y=weights[name]
-        # y.append(6000)
+        # ax.plot_date(x, y, 'k.')
 
-        ax.plot_date(x, y, 'k.')
+        # ax.plot_date(x, y)
 
-        #do some polyfitting, from http://stackoverflow.com/questions/21367792/how-to-smooth-date-based-data-in-matplotlib
-        p = scipy.polyfit(x, y, deg=10)
-        y_ = scipy.polyval(p, x)
-        ax.plot_date(x, y_,'r-')
+        ravgs = [sum(y[i:i+5])/5. for i in range(len(y)-4)]
+        ax.plot_date(x, ravgs)
 
-        # ax.xaxis.set_major_locator(matplotlib.dates.DayLocator())
-        # ax.xaxis.set_minor_locator(matplotlib.dates.HourLocator())
-        # ax.autoscale_view()
         fig.autofmt_xdate()
-        # print(d)
 
-        # plt.savefig("graphs/{}.png".format(name))
+
         fig.savefig("graphs/{}.png".format(name))
         plt.close()
 
