@@ -398,6 +398,7 @@ def global_graphs():
             timestamps[doc['name']].append(doc['timestamp'])
 
 
+    #traverse all cats
     for name in weights.keys():
         if len(weights[name])<5:
             continue
@@ -407,16 +408,29 @@ def global_graphs():
         plt.ylabel('Weight (g)')
         plt.xlabel('Measurement date')
         # x=matplotlib.dates.epoch2num(timestamps[name] + [ timestamps[name][len(timestamps[name])-1]+160000 ] )
-        x=matplotlib.dates.epoch2num(timestamps[name])
+        x_values=matplotlib.dates.epoch2num(timestamps[name])
 
-        y=weights[name]
+        y_values=weights[name]
         # ax.plot_date(x, y, 'k.')
 
         # ax.plot_date(x, y)
+        #
+        # ravgs = [sum(y[i:i+5])/5. for i in range(len(y)-4)]
+        y_avgs=[]
+        y_prev=y_values[0]
+        smoothing=0.85  #percentage of previous value to use
+        for y_value in y_values:
+            y_prev=(y_prev* smoothing)+  (y_value * (1-smoothing))
+            y_avgs.append( y_prev  )
 
-        ravgs = [sum(y[i:i+5])/5. for i in range(len(y)-4)]
-        ax.plot_date(x, ravgs)
+        # print("waarden")
+        # print(x_values)
+        # print("gemmm")
+        # print(x_avgs)
+        # print()
 
+        ax.plot_date(x_values, y_values, color='gray', marker='.')
+        ax.plot(x_values, y_avgs, color='red', linewidth=2)
         fig.autofmt_xdate()
 
 
@@ -433,7 +447,7 @@ def analyse_measurements():
     saved_timestamp=load_state()
     last_save=time.time()
 
-    print(catalyser.state['cats'])
+    # print(catalyser.state['cats'])
 
     if not saved_timestamp:
         #recreate events as well
