@@ -40,7 +40,7 @@ class Scale:
 
 
         #range in grams in which the scale should stay to be considered "stable"
-        self.stable_range=100
+        self.stable_range=30
 
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
@@ -48,10 +48,10 @@ class Scale:
 
         # for how many measurements should the scale be in the stable_range to be considered stable?
         # at this point it will generate a measurement event by calling the callback
-        self.stable_wait=20
+        self.stable_wait=50
 
         # number of measurements averaging after which to auto tarre
-        self.stable_auto_tarre=6000
+        self.stable_auto_tarre=500
 
         # #stable measurements and tarring only below this weight
         # self.stable_below=1000
@@ -466,7 +466,6 @@ class Meowton:
                 self.db_timestamp=shelve_db['db_timestamp']
 
     def measurement_event(self,timestamp, weight):
-        # print("jo", timestamp, weight)
         self.points_batch.append({
             "measurement": "events",
             "time": timestamp,
@@ -494,7 +493,7 @@ class Meowton:
 
         if not self.db_timestamp:
             #drop and recreate stuff
-            self.client.query("drop database events", database="meowton", stream=True, chunked=True, chunk_size=1)
+            self.client.query("drop measurement events; drop measurement weights;", database="meowton", stream=True, chunked=True, chunk_size=1)
 
         doc=0
 
@@ -513,6 +512,16 @@ class Meowton:
 
                 self.scale.measurement(point['time'],measurement)
                 # catalyser.update(scale, time["timestamp"])
+
+                # store all calculated weights (for analyses and debugging with grafana)
+                self.points_batch.append({
+                    "measurement": "weights",
+                    "time": point['time'],
+                    "fields":{
+                                'weight': self.scale.calibrated_weight(self.scale.offset(measurement))
+                            }
+                })
+
 
             self.housekeeping()
 
