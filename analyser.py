@@ -2,7 +2,7 @@
 
 ### dependencys in ubuntu:
 
-# sudo apt-get install python3-matplotlib python3-scipy python3-pymongo python3-gdbm
+# sudo apt-get install python3-matplotlib python3-scipy python3-pymongo python3-gdbm python3-influxdb
 
 
 import re

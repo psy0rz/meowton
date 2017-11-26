@@ -9,6 +9,6 @@ behaviour:
   autoHideConsole: true
   alwaysSyncAll: false
 option:
-  deleteFiles: true
+  deleteFiles: false
   exclude: [
   ]
