@@ -12,9 +12,7 @@ import sys
 import os.path
 import time
 
-import pymongo
-import bson.objectid
-from config import db
+import influxdb
 import collections
 import matplotlib
 matplotlib.use('Agg')
@@ -26,14 +24,19 @@ import scipy
 
 
 class Scale:
-    '''to calculate weights from raw data and do stuff like auto tarring and averaging'''
+    '''to calculate weights from raw data and do stuff like auto tarring and averaging
 
-    def __init__(self, calibrate_weight, calibrate_factors):
+    generates events for every stable measurement via measurement_callback
+    '''
+
+    def __init__(self, calibrate_weight, calibrate_factors, callback):
 
         self.state={}
 
+
         self.calibrate_weight=calibrate_weight
         self.calibrate_factors=calibrate_factors
+        self.callback=callback
 
 
         #range in grams in which the scale should stay to be considered "stable"
@@ -42,6 +45,10 @@ class Scale:
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
         self.stable_skip_measurements=10
+
+        # for how many measurements should the scale be in the stable_range to be considered stable?
+        # at this point it will generate a measurement event by calling the callback
+        self.stable_wait=20
 
         # number of measurements averaging after which to auto tarre
         self.stable_auto_tarre=6000
@@ -55,6 +62,7 @@ class Scale:
         self.__stable_reset()
 
 
+        #tarre offsets
         self.state['no_tarre']=True
         self.state['offsets']=[]
         for i in range(0, self.sensor_count):
@@ -90,11 +98,20 @@ class Scale:
         return(self.state['stable_totals_count'])
 
 
-    def __stable_measurement(self,sensors):
-        '''determine if scale is stabilised and calculates average. '''
+    # def __stable_measurement(self,sensors):
+        # '''determine if scale is stabilised and calculates average. '''
 
+
+
+    def measurement(self, timestamp, sensors):
+        """update measurent data and generate stable events when detected"""
+
+        self.state['current']=sensors
+
+        #calculate weight, without offsetting since we're only using it for stability determination
         weight=self.calibrated_weight(sensors)
 
+        # store stability statistics
         if weight<self.state['stable_min']:
             self.state['stable_min']=weight
 
@@ -106,26 +123,26 @@ class Scale:
         else:
             self.__stable_reset()
 
-        #do averaging after skipping the first measurements because of scale drifting and recovery
+        # do averaging, but skip the first measurements because of scale drifting and recovery
+        # note that we average the raw data for better accuracy
         if self.state['stable_count']>=self.stable_skip_measurements:
-                sensor_nr=0
-                for sensor in sensors:
-                    self.state['stable_totals'][sensor_nr]=self.state['stable_totals'][sensor_nr]+sensor
-                    sensor_nr=sensor_nr+1
+            sensor_nr=0
+            for sensor in sensors:
+                self.state['stable_totals'][sensor_nr]=self.state['stable_totals'][sensor_nr]+sensor
+                sensor_nr=sensor_nr+1
 
-                self.state['stable_totals_count']=self.state['stable_totals_count']+1
+            self.state['stable_totals_count']=self.state['stable_totals_count']+1
 
-
-    def measurement(self, sensors):
-        self.__stable_measurement(sensors)
-        self.state['current']=sensors
-
-
-        #do auto tarring after a long stable period
-        if (self.state['stable_totals_count']>self.stable_auto_tarre)  or (self.state['no_tarre'] and self.state['stable_totals_count']>10):
+        # do auto tarring (quick the first time, after that it takes stable_auto_tarre measurements)
+        if (self.state['stable_totals_count'] == self.stable_auto_tarre)  or (self.state['no_tarre'] and self.state['stable_totals_count'] == 10):
             self.state['offsets']=self.get_average()
-            self.__stable_reset()
             self.state['no_tarre']=False
+
+        # generate measuring event
+        if self.state['stable_count'] == self.stable_wait:
+            self.callback(timestamp, self.calibrated_weight(self.offset(self.get_average())) )
+
+
 
 
     def offset(self, sensors):
@@ -346,137 +363,146 @@ class Catalyser():
 
         return(cat)
 
-############ objects
 
-scale=Scale(
-    calibrate_weight=1074 *1534/ 1645,
-    calibrate_factors=[
-        402600,
-        428500,
-        443400,
-        439700,
-    ]
-)
-
-catalyser=Catalyser()
-
-sort_index=[ ( 'timestamp', pymongo.ASCENDING ) ]
-
-def save_state(timestamp):
-    '''save current state so we can resume later when new measurements have arrived'''
-    with shelve.open("analyser.state") as shelve_db:
-        shelve_db['scale_state']=scale.state
-        shelve_db['catalyser_state']=catalyser.state
-        shelve_db['timestamp']=timestamp
-
-    print("Saved state ",timestamp)
-
-def load_state():
-    with shelve.open("analyser.state") as shelve_db:
-        if 'timestamp' in shelve_db:
-            scale.state=shelve_db['scale_state']
-            catalyser.state=shelve_db['catalyser_state']
-            print("Resuming from state ", shelve_db['timestamp'])
-            return(shelve_db['timestamp'])
-        else:
-            return(0)
-
-def global_graphs():
-    '''create global graphs from all the recorded events'''
+# sort_index=[ ( 'timestamp', pymongo.ASCENDING ) ]
 
 
-    weights={}
-    timestamps={}
-    for doc in db.events.find().sort(sort_index):
-        if not doc['errors']:
-
-            if doc['name'] not in weights:
-                weights[doc['name']]=[]
-                timestamps[doc['name']]=[]
-
-            weights[doc['name']].append(doc['enter_weight'])
-            timestamps[doc['name']].append(doc['timestamp'])
-
-
-    #traverse all cats
-    for name in weights.keys():
-        if len(weights[name])<5:
-            continue
-
-        fig, ax = plt.subplots()
-        plt.title(name)
-        plt.ylabel('Weight (g)')
-        plt.xlabel('Measurement date')
-        # x=matplotlib.dates.epoch2num(timestamps[name] + [ timestamps[name][len(timestamps[name])-1]+160000 ] )
-        x_values=matplotlib.dates.epoch2num(timestamps[name])
-
-        y_values=weights[name]
-        # ax.plot_date(x, y, 'k.')
-
-        # ax.plot_date(x, y)
-        #
-        # ravgs = [sum(y[i:i+5])/5. for i in range(len(y)-4)]
-        y_avgs=[]
-        y_prev=y_values[0]
-        smoothing=0.85  #percentage of previous value to use
-        for y_value in y_values:
-            y_prev=(y_prev* smoothing)+  (y_value * (1-smoothing))
-            y_avgs.append( y_prev  )
-
-        # print("waarden")
-        # print(x_values)
-        # print("gemmm")
-        # print(x_avgs)
-        # print()
-
-        ax.plot_date(x_values, y_values, color='gray', marker='.')
-        ax.plot(x_values, y_avgs, color='red', linewidth=2)
-        fig.autofmt_xdate()
-
-
-        fig.savefig("graphs/{}.png".format(name))
-        plt.close()
-
-
-def analyse_measurements():
-    '''analyse all new measurements since last time'''
-
-
-    db.measurements.create_index(sort_index)
-
-    saved_timestamp=load_state()
-    last_save=time.time()
-
-    # print(catalyser.state['cats'])
-
-    if not saved_timestamp:
-        #recreate events as well
-        db.events.drop()
-
-    doc=0
-    for doc in db.measurements.find(
-        filter=
-        { 'timestamp':
-            { '$gt': saved_timestamp
-            }
-        }
-        ).sort(sort_index):
+# def global_graphs():
+#     '''create global graphs from all the recorded events'''
+#
+#
+#     weights={}
+#     timestamps={}
+#     for doc in db.events.find().sort(sort_index):
+#         if not doc['errors']:
+#
+#             if doc['name'] not in weights:
+#                 weights[doc['name']]=[]
+#                 timestamps[doc['name']]=[]
+#
+#             weights[doc['name']].append(doc['enter_weight'])
+#             timestamps[doc['name']].append(doc['timestamp'])
+#
+#
+#     #traverse all cats
+#     for name in weights.keys():
+#         if len(weights[name])<5:
+#             continue
+#
+#         fig, ax = plt.subplots()
+#         plt.title(name)
+#         plt.ylabel('Weight (g)')
+#         plt.xlabel('Measurement date')
+#         # x=matplotlib.dates.epoch2num(timestamps[name] + [ timestamps[name][len(timestamps[name])-1]+160000 ] )
+#         x_values=matplotlib.dates.epoch2num(timestamps[name])
+#
+#         y_values=weights[name]
+#         # ax.plot_date(x, y, 'k.')
+#
+#         # ax.plot_date(x, y)
+#         #
+#         # ravgs = [sum(y[i:i+5])/5. for i in range(len(y)-4)]
+#         y_avgs=[]
+#         y_prev=y_values[0]
+#         smoothing=0.85  #percentage of previous value to use
+#         for y_value in y_values:
+#             y_prev=(y_prev* smoothing)+  (y_value * (1-smoothing))
+#             y_avgs.append( y_prev  )
+#
+#         # print("waarden")
+#         # print(x_values)
+#         # print("gemmm")
+#         # print(x_avgs)
+#         # print()
+#
+#         ax.plot_date(x_values, y_values, color='gray', marker='.')
+#         ax.plot(x_values, y_avgs, color='red', linewidth=2)
+#         fig.autofmt_xdate()
+#
+#
+#         fig.savefig("graphs/{}.png".format(name))
+#         plt.close()
+class Meowton:
 
 
+    def __init__(self):
+        self.scale=Scale(
+            calibrate_weight=1074 *1534/ 1645,
+            calibrate_factors=[
+                402600,
+                428500,
+                443400,
+                439700,
+            ],
+            callback=self.measurement_event
+        )
 
-        for measurement in doc['measurements']:
-            scale.measurement(measurement)
-            catalyser.update(scale, doc["timestamp"])
+        self.catalyser=Catalyser()
 
-            if time.time()-last_save>10:
-                save_state(doc["timestamp"])
-                last_save=time.time()
+        self.last_save=time.time()
 
-    if doc:
-        save_state(doc["timestamp"])
+        self.db_timestamp=self.load_state()
+
+        #db shizzle
+        self.client = influxdb.InfluxDBClient('localhost', 8086, database="meowton")
+        self.client.create_database("meowton")
+
+    def save_state(self, db_timestamp):
+        '''save current state so we can resume later when new measurements have arrived'''
+        with shelve.open("analyser.state") as shelve_db:
+            shelve_db['scale_state']=self.scale.state
+            shelve_db['catalyser_state']=self.catalyser.state
+            shelve_db['db_timestamp']=db_timestamp
+
+        print("Saved state ",timestamp)
+
+    def load_state(self):
+        with shelve.open("analyser.state") as shelve_db:
+            if 'timestamp' in shelve_db:
+                self.scale.state=shelve_db['scale_state']
+                self.catalyser.state=shelve_db['catalyser_state']
+                print("Resuming from state ", shelve_db['db_timestamp'])
+                return(shelve_db['db_timestamp'])
+            else:
+                return(0)
+
+    def measurement_event(self,timestamp, weight):
+        print("jo", timestamp, weight)
+
+    def run(self):
+        '''analyse all new measurements since last time'''
+
+        if not self.db_timestamp:
+            #drop and recreate stuff
+            self.client.query("drop database event", database="meowton", stream=True, chunked=True, chunk_size=1)
+
+        doc=0
+        for result in self.client.query("select * from raw_sensors", database="meowton", stream=True, chunked=True, chunk_size=10000, epoch='ms'):
+            for point in result.get_points():
+                print(point)
+                measurement=[
+                    point['sensor0'],
+                    point['sensor1'],
+                    point['sensor2'],
+                    point['sensor3'],
+                ]
+
+                self.scale.measurement(point['time'],measurement)
+                # catalyser.update(scale, time["timestamp"])
+
+                if time.time()-self.last_save>10:
+                    save_state(point['time'])
+                    self.last_save=time.time()
+
+        if doc:
+            save_state(doc["timestamp"])
 
 
 
 
-analyse_measurements()
-global_graphs()
+# analyse_measurements()
+# global_graphs()
+
+
+meowton=Meowton()
+meowton.run()
