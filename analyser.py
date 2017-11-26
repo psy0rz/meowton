@@ -40,7 +40,7 @@ class Scale:
 
 
         #range in grams in which the scale should stay to be considered "stable"
-        self.stable_range=25
+        self.stable_range=100
 
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
@@ -440,46 +440,70 @@ class Meowton:
         self.catalyser=Catalyser()
 
         self.last_save=time.time()
+        self.db_timestamp=0
 
-        self.db_timestamp=self.load_state()
+        self.load_state()
 
         #db shizzle
         self.client = influxdb.InfluxDBClient('localhost', 8086, database="meowton")
         self.client.create_database("meowton")
 
-    def save_state(self, db_timestamp):
+        self.points_batch=[]
+
+    def save_state(self):
         '''save current state so we can resume later when new measurements have arrived'''
         with shelve.open("analyser.state") as shelve_db:
             shelve_db['scale_state']=self.scale.state
             shelve_db['catalyser_state']=self.catalyser.state
-            shelve_db['db_timestamp']=db_timestamp
+            shelve_db['db_timestamp']=self.db_timestamp
 
-        print("Saved state ",timestamp)
 
     def load_state(self):
         with shelve.open("analyser.state") as shelve_db:
-            if 'timestamp' in shelve_db:
+            if 'db_timestamp' in shelve_db:
                 self.scale.state=shelve_db['scale_state']
                 self.catalyser.state=shelve_db['catalyser_state']
-                print("Resuming from state ", shelve_db['db_timestamp'])
-                return(shelve_db['db_timestamp'])
-            else:
-                return(0)
+                self.db_timestamp=shelve_db['db_timestamp']
 
     def measurement_event(self,timestamp, weight):
-        print("jo", timestamp, weight)
+        # print("jo", timestamp, weight)
+        self.points_batch.append({
+            "measurement": "events",
+            "time": timestamp,
+            "fields":{
+                        'weight': weight,
+                    }
+        })
+
+
+    def housekeeping(self,force=False):
+        """regular saves and batched writing"""
+
+        if force or time.time()-self.last_save>1:
+            if self.points_batch:
+                print("Writing to influxdb, processed up to: ", time.ctime(self.db_timestamp/1000))
+                self.client.write_points(points=self.points_batch, time_precision="ms")
+                self.points_batch=[]
+
+            self.save_state()
+            self.last_save=time.time()
+
 
     def run(self):
         '''analyse all new measurements since last time'''
 
         if not self.db_timestamp:
             #drop and recreate stuff
-            self.client.query("drop database event", database="meowton", stream=True, chunked=True, chunk_size=1)
+            self.client.query("drop database events", database="meowton", stream=True, chunked=True, chunk_size=1)
 
         doc=0
-        for result in self.client.query("select * from raw_sensors", database="meowton", stream=True, chunked=True, chunk_size=10000, epoch='ms'):
+
+        print("Resuming from: ", time.ctime(self.db_timestamp/1000))
+
+        for result in self.client.query("select * from raw_sensors where time>"+str(self.db_timestamp*1000000), database="meowton", stream=True, chunked=True, chunk_size=10000, epoch='ms'):
             for point in result.get_points():
-                print(point)
+                self.db_timestamp=point['time']
+                # print(point)
                 measurement=[
                     point['sensor0'],
                     point['sensor1'],
@@ -490,13 +514,10 @@ class Meowton:
                 self.scale.measurement(point['time'],measurement)
                 # catalyser.update(scale, time["timestamp"])
 
-                if time.time()-self.last_save>10:
-                    save_state(point['time'])
-                    self.last_save=time.time()
+            self.housekeeping()
 
-        if doc:
-            save_state(doc["timestamp"])
-
+        #flush/save last stuff
+        self.housekeeping(force=True)
 
 
 
