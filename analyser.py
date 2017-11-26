@@ -40,7 +40,7 @@ class Scale:
 
 
         #range in grams in which the scale should stay to be considered "stable"
-        self.stable_range=30
+        self.stable_range=25
 
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
