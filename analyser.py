@@ -39,8 +39,12 @@ class Scale:
         self.callback=callback
 
 
-        #range in grams in which the scale should stay to be considered "stable"
+        # range in grams in which the scale should stay to be considered "stable"
         self.stable_range=25
+
+        # max timegap between two measurements (ms)
+        self.stable_max_timegap=5000
+        self.state['last_timestamp']=0
 
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
@@ -104,20 +108,29 @@ class Scale:
 
 
     def measurement(self, timestamp, sensors):
-        """update measurent data and generate stable events when detected"""
+        """update measurent data and generate stable events when detected. timestamp in ms """
 
         self.state['current']=sensors
 
         #calculate weight, without offsetting since we're only using it for stability determination
         weight=self.calibrated_weight(sensors)
 
+
         # store stability statistics
+
+        # reset stable measurement if there is a too big timegap
+        if timestamp-self.state['last_timestamp']>self.stable_max_timegap:
+            self.__stable_reset()
+        self.state['last_timestamp']=timestamp
+
+        # keep min/max values
         if weight<self.state['stable_min']:
             self.state['stable_min']=weight
 
         if weight>self.state['stable_max']:
             self.state['stable_max']=weight
 
+        # reset if weight goes out of stable_range
         if (self.state['stable_max'] - self.state['stable_min']) < self.stable_range:
             self.state['stable_count']=self.state['stable_count']+1
         else:
@@ -167,176 +180,147 @@ class Scale:
 
 
 class Catalyser():
-    '''try to track the weights of several cats during eating. catalyser works with weights instead of raw sensor values'''
+    '''cat analyser that tries to track the weights of several cats during eating'''
 
-    def __init__(self):
+    def __init__(self, callback):
+
+        self.callback=callback
+
         self.state={}
 
-        self.state['average_last']=0
-        self.state['average_prev']=0
-        self.state['average_count']=0
-        self.state['graph_measurements']=collections.deque([],3000)
-        self.state['graph_averages']=collections.deque([],3000)
+        # self.state['average_last']=0
+        # self.state['average_prev']=0
+        # self.state['average_count']=0
+        # self.state['graph_measurements']=collections.deque([],3000)
+        # self.state['graph_averages']=collections.deque([],3000)
 
         #measure enter and exist weights and eating time
         self.state['enter_weight']=0
         self.state['enter_time']=0
-        self.state['enter_index']=0
-        self.state['exit_weight']=0
+
+        #all valid weights of this on-scale period
+        self.state['valid_weights']=[];
+
+        # self.state['exit_weight']=0
 
 
         #per cat data
         self.state['cats']=[]
 
+        # ignore stuff under this weight
+        self.min_cat_weight=2000
+
+        # if cat changes by this much while on scale, invalidate measurement
+        self.on_scale_max_change=100
+
         pass
 
 
 
-    def update(self, scale, timestamp):
-        '''update with current state of scale'''
+    def measurement_event(self, timestamp, weight):
+        '''scale() detected a stable measurement. timestamp in ms, weight in grams. '''
+        # cat on scale?
+        if weight>self.min_cat_weight:
+            # just entered scale?
+            if self.state['enter_time']==0:
+                # start new measurement period
+                self.state['enter_time']=timestamp
+                self.state['enter_weight']=weight
+                self.state['valid_weights']=[weight]
 
-        #keep graph of last measuremenst
-        self.state['graph_measurements'].append(int(scale.calibrated_weight(scale.offset(scale.get_current()))))
-        self.state['enter_index']=self.state['enter_index']+1
-
-        #is there a stable average
-        if scale.get_average_count():
-
-            average_current=int(scale.calibrated_weight(scale.offset(scale.get_average())))
-            self.state['graph_averages'].append(average_current)
-
-            #the average is still changing
-            if average_current!=self.state['average_last']:
-                self.state['average_count']=0
-                self.state['average_last']=average_current
-            #average stayed the same since last measurement
+            # was already on scale?
             else:
-                self.state['average_count']=self.state['average_count']+1
-
-                #average stayed the same for a number of measurements
-                if self.state['average_count']==10:
-
-                    #determine difference with previous stable average
-                    diff=average_current-self.state['average_prev']
-                    self.state['average_prev']=average_current
-
-                    #record the change-event
-                    self.__event(diff, timestamp)
-
+                #cat changed too much during this period?
+                if abs(self.state['enter_weight']-weight)>self.on_scale_max_change:
+                    self.callback(timestamp, None, weight, "Cat changed too much, ignored measurements")
+                    self.state['enter_time']=0
+                else:
+                    self.state['valid_weights'].append(weight)
+        # cat off scale?
         else:
-            self.state['graph_averages'].append(None)
+            # just left scale?
+            if self.state['enter_time']:
+                # end measurement
+                self.state['enter_time']=0
+                if len(self.state['valid_weights'])<2:
+                    self.callback(timestamp, None, weight, "Not enough valid measurements")
+                else:
+                    avg_weight=0
+                    for w in self.state['valid_weights']:
+                        avg_weight=avg_weight+w
+                    avg_weight=int(avg_weight/len(self.state['valid_weights']))
 
 
-    def __event(self, diff, timestamp):
-        '''records change event'''
-
-        #only record cat-sized changes :)
-        if abs(diff)<1000:
-            return
-
-        #cat entered
-        if diff>0:
-            self.state['enter_time']=timestamp
-            self.state['enter_weight']=diff
-            self.state['enter_index']=0
-
-
-        #cat exited
-        else:
-            self.state['exit_weight']=abs(diff)
-
-            errors=[]
-
-            #if it took too long we probably missed something
-            timediff=timestamp-self.state['enter_time']
-            consumed=self.state['exit_weight']-self.state['enter_weight']
-
-            if timestamp-self.state['enter_time']>6000:
-                errors.append("Cat took too long.".format())
-
-            #cat can only stay the same weight or get heavier while eating.
-            #if it got much lighter the measurements are wrong
-            if self.state['exit_weight']-self.state['enter_weight']<-2:
-                errors.append("Cat got lighter while eating somehow.")
-
-            if self.state['exit_weight']-self.state['enter_weight']>100:
-                errors.append("Cat ate impossible amount: {}g".format(consumed))
-
-            #determine which cat it is
-            cat=self.__find_cat(self.state['enter_weight'])
-            #update moving average weight to not lose track of cat
-            if not errors:
-                cat['weight']=int(cat['weight']*0.9 + self.state['enter_weight']*0.1)
-                cat['count']=cat['count']+1
-
-            print("Date            :", time.ctime(timestamp))
-            print("Name            :", cat['name'])
-            print("Cat enter weight:", self.state['enter_weight'])
-            print("Cat exit  weight:", self.state['exit_weight'])
-            print("Food consumed   :", consumed)
-            print("Eating time     :", timediff)
-            print("Errors          :", errors)
-            print()
-
-            ######### save to event db
-
-            db.events.insert({
-                'name': cat['name'],
-                'timestamp'   : timestamp,
-                'enter_weight': self.state['enter_weight'],
-                'exit_weight' : self.state['exit_weight'],
-                'timediff'    : timediff,
-                'errors'      : errors,
-                'consumed'    : consumed
-            })
-
-
-            ######### graph
-
-            entered_x=len(self.state['graph_measurements'])-self.state['enter_index']
-            if entered_x<0:
-                entered_x=0
-
-            exit_x=len(self.state['graph_measurements'])-1
-
-            fig, ax = plt.subplots()
-            ax.yaxis.grid(True)
-
-            plt.annotate(
-                'Entered at {}g'.format(self.state['enter_weight']),
-                xy=(entered_x, self.state['graph_measurements'][entered_x]),
-                xytext=(entered_x-100, self.state['graph_measurements'][entered_x]-500),
-                arrowprops=dict(color='gray', width=0.1, headwidth=5),
-                )
-
-            plt.annotate(
-                'Exitted at {}g'.format(self.state['exit_weight']),
-                xy=(exit_x, self.state['graph_measurements'][exit_x]),
-                xytext=(exit_x-1000, self.state['graph_measurements'][exit_x]+500),
-                arrowprops=dict(color='gray', width=0.1, headwidth=5),
-                )
-
-            plt.suptitle("{} ({})".format(cat['name'], time.ctime(timestamp)))
-
-            if errors:
-                plt.title("Error: "+" ".join(errors)).set_color('red')
-
+                    self.callback(timestamp, self.__find_cat(avg_weight), avg_weight, None)
+            # was already off scale?
             else:
-                plt.title("Ate {}g in {} seconds".format(consumed, timediff))
+                pass
 
 
-            #graphs and labels
-            plt.plot(self.state['graph_measurements'],color='black')
-            plt.plot(self.state['graph_averages'], color='red')
-            plt.ylabel('Weight (g)')
-            plt.xlabel('Measurement number')
 
-            plt.savefig("graphs/{}.png".format(timestamp))
-            plt.close()
 
-            self.state['enter_weight']=0
-            self.state['enter_time']=0
 
+        # #cat entered
+        # if diff>0:
+        #     self.state['enter_time']=timestamp
+        #     self.state['enter_weight']=diff
+        #     self.state['enter_index']=0
+        #
+        #
+        # #cat exited
+        # else:
+        #     self.state['exit_weight']=abs(diff)
+        #
+        #     errors=[]
+        #
+        #     #if it took too long we probably missed something
+        #     timediff=timestamp-self.state['enter_time']
+        #     consumed=self.state['exit_weight']-self.state['enter_weight']
+        #
+        #     if timestamp-self.state['enter_time']>6000:
+        #         errors.append("Cat took too long.".format())
+        #
+        #     #cat can only stay the same weight or get heavier while eating.
+        #     #if it got much lighter the measurements are wrong
+        #     if self.state['exit_weight']-self.state['enter_weight']<-2:
+        #         errors.append("Cat got lighter while eating somehow.")
+        #
+        #     if self.state['exit_weight']-self.state['enter_weight']>100:
+        #         errors.append("Cat ate impossible amount: {}g".format(consumed))
+        #
+        #     #determine which cat it is
+        #     cat=self.__find_cat(self.state['enter_weight'])
+        #     #update moving average weight to not lose track of cat
+        #     if not errors:
+        #         cat['weight']=int(cat['weight']*0.9 + self.state['enter_weight']*0.1)
+        #         cat['count']=cat['count']+1
+        #
+        #     print("Date            :", time.ctime(timestamp))
+        #     print("Name            :", cat['name'])
+        #     print("Cat enter weight:", self.state['enter_weight'])
+        #     print("Cat exit  weight:", self.state['exit_weight'])
+        #     print("Food consumed   :", consumed)
+        #     print("Eating time     :", timediff)
+        #     print("Errors          :", errors)
+        #     print()
+        #
+        #     ######### save to event db
+        #
+        #     db.events.insert({
+        #         'name': cat['name'],
+        #         'timestamp'   : timestamp,
+        #         'enter_weight': self.state['enter_weight'],
+        #         'exit_weight' : self.state['exit_weight'],
+        #         'timediff'    : timediff,
+        #         'errors'      : errors,
+        #         'consumed'    : consumed
+        #     })
+        #
+        #
+        #
+        #     self.state['enter_weight']=0
+        #     self.state['enter_time']=0
+        #
 
 
 
@@ -351,6 +335,10 @@ class Catalyser():
                     best_match=cat
 
         if best_match:
+            #update moving average and count
+            best_match['weight']=int(best_match['weight']*0.9 + weight*0.1)
+            best_match['count']=best_match['count']+1
+
             return(best_match)
 
         #new cat
@@ -364,64 +352,8 @@ class Catalyser():
         return(cat)
 
 
-# sort_index=[ ( 'timestamp', pymongo.ASCENDING ) ]
 
 
-# def global_graphs():
-#     '''create global graphs from all the recorded events'''
-#
-#
-#     weights={}
-#     timestamps={}
-#     for doc in db.events.find().sort(sort_index):
-#         if not doc['errors']:
-#
-#             if doc['name'] not in weights:
-#                 weights[doc['name']]=[]
-#                 timestamps[doc['name']]=[]
-#
-#             weights[doc['name']].append(doc['enter_weight'])
-#             timestamps[doc['name']].append(doc['timestamp'])
-#
-#
-#     #traverse all cats
-#     for name in weights.keys():
-#         if len(weights[name])<5:
-#             continue
-#
-#         fig, ax = plt.subplots()
-#         plt.title(name)
-#         plt.ylabel('Weight (g)')
-#         plt.xlabel('Measurement date')
-#         # x=matplotlib.dates.epoch2num(timestamps[name] + [ timestamps[name][len(timestamps[name])-1]+160000 ] )
-#         x_values=matplotlib.dates.epoch2num(timestamps[name])
-#
-#         y_values=weights[name]
-#         # ax.plot_date(x, y, 'k.')
-#
-#         # ax.plot_date(x, y)
-#         #
-#         # ravgs = [sum(y[i:i+5])/5. for i in range(len(y)-4)]
-#         y_avgs=[]
-#         y_prev=y_values[0]
-#         smoothing=0.85  #percentage of previous value to use
-#         for y_value in y_values:
-#             y_prev=(y_prev* smoothing)+  (y_value * (1-smoothing))
-#             y_avgs.append( y_prev  )
-#
-#         # print("waarden")
-#         # print(x_values)
-#         # print("gemmm")
-#         # print(x_avgs)
-#         # print()
-#
-#         ax.plot_date(x_values, y_values, color='gray', marker='.')
-#         ax.plot(x_values, y_avgs, color='red', linewidth=2)
-#         fig.autofmt_xdate()
-#
-#
-#         fig.savefig("graphs/{}.png".format(name))
-#         plt.close()
 class Meowton:
 
 
@@ -437,7 +369,7 @@ class Meowton:
             callback=self.measurement_event
         )
 
-        self.catalyser=Catalyser()
+        self.catalyser=Catalyser(callback=self.catalyser_event)
 
         self.last_save=time.time()
         self.db_timestamp=0
@@ -474,6 +406,24 @@ class Meowton:
                     }
         })
 
+        self.catalyser.measurement_event(timestamp, weight)
+
+
+    def catalyser_event(self, timestamp, cat, weight, message):
+        # print("Cat event", cat, weight, message)
+
+        if not message:
+            self.points_batch.append({
+                "measurement": "cats",
+                "tags":{
+                    "cat": cat['name']
+                },
+                "time": timestamp,
+                "fields":{
+                            'weight': weight,
+                        }
+            })
+
 
     def housekeeping(self,force=False):
         """regular saves and batched writing"""
@@ -492,8 +442,9 @@ class Meowton:
         '''analyse all new measurements since last time'''
 
         if not self.db_timestamp:
-            #drop and recreate stuff
-            self.client.query("drop measurement events; drop measurement weights;", database="meowton", stream=True, chunked=True, chunk_size=1)
+            #drop and recalculate everything
+            print("Delete all calculated data")
+            self.client.query("drop measurement events; drop measurement weights; drop measurement cats;", database="meowton")
 
         doc=0
 
