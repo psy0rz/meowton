@@ -55,10 +55,12 @@ class Scale:
         self.stable_wait=50
 
         # number of measurements averaging after which to auto tarre
-        self.stable_auto_tarre=500
+        self.stable_auto_tarre=100
+
+        #max weight to tarre away (initial values will always be tarred)
+        self.stable_auto_tarre_max=1000
 
         # #stable measurements and tarring only below this weight
-        # self.stable_below=1000
 
 
         self.sensor_count=len(calibrate_factors)
@@ -112,8 +114,8 @@ class Scale:
 
         self.state['current']=sensors
 
-        #calculate weight, without offsetting since we're only using it for stability determination
-        weight=self.calibrated_weight(sensors)
+        #calculate weight,
+        weight=self.calibrated_weight(self.offset(sensors))
 
 
         # store stability statistics
@@ -146,8 +148,12 @@ class Scale:
 
             self.state['stable_totals_count']=self.state['stable_totals_count']+1
 
-        # do auto tarring (quick the first time, after that it takes stable_auto_tarre measurements)
-        if (self.state['stable_totals_count'] == self.stable_auto_tarre)  or (self.state['no_tarre'] and self.state['stable_totals_count'] == 10):
+        # do auto tarring:
+        # only under a certain weight and for a long stability period, or if its the first time do it quickly to get started
+        if (
+            (abs(weight)<self.stable_auto_tarre_max and (self.state['stable_totals_count'] == self.stable_auto_tarre)) or
+            (self.state['no_tarre'] and self.state['stable_totals_count'] == 10)
+        ):
             self.state['offsets']=self.get_average()
             self.state['no_tarre']=False
 
@@ -221,40 +227,41 @@ class Catalyser():
         '''scale() detected a stable measurement. timestamp in ms, weight in grams. '''
         # cat on scale?
         if weight>self.min_cat_weight:
-            # just entered scale?
-            if self.state['enter_time']==0:
-                # start new measurement period
-                self.state['enter_time']=timestamp
-                self.state['enter_weight']=weight
-                self.state['valid_weights']=[weight]
-
-            # was already on scale?
-            else:
-                #cat changed too much during this period?
-                if abs(self.state['enter_weight']-weight)>self.on_scale_max_change:
-                    self.callback(timestamp, None, weight, "Cat changed too much, ignored measurements")
-                    self.state['enter_time']=0
-                else:
-                    self.state['valid_weights'].append(weight)
-        # cat off scale?
-        else:
-            # just left scale?
-            if self.state['enter_time']:
-                # end measurement
-                self.state['enter_time']=0
-                if len(self.state['valid_weights'])<2:
-                    self.callback(timestamp, None, weight, "Not enough valid measurements")
-                else:
-                    avg_weight=0
-                    for w in self.state['valid_weights']:
-                        avg_weight=avg_weight+w
-                    avg_weight=int(avg_weight/len(self.state['valid_weights']))
-
-
-                    self.callback(timestamp, self.__find_cat(avg_weight), avg_weight, None)
-            # was already off scale?
-            else:
-                pass
+            self.callback(timestamp, self.__find_cat(weight), weight, None)
+        #     # just entered scale?
+        #     if self.state['enter_time']==0:
+        #         # start new measurement period
+        #         self.state['enter_time']=timestamp
+        #         self.state['enter_weight']=weight
+        #         self.state['valid_weights']=[weight]
+        #
+        #     # was already on scale?
+        #     else:
+        #         #cat changed too much during this period?
+        #         if abs(self.state['enter_weight']-weight)>self.on_scale_max_change:
+        #             self.callback(timestamp, None, weight, "Cat changed too much, ignored measurements")
+        #             self.state['enter_time']=0
+        #         else:
+        #             self.state['valid_weights'].append(weight)
+        # # cat off scale?
+        # else:
+        #     # just left scale?
+        #     if self.state['enter_time']:
+        #         # end measurement
+        #         self.state['enter_time']=0
+        #         if len(self.state['valid_weights'])<0:
+        #             self.callback(timestamp, None, weight, "Not enough valid measurements")
+        #         else:
+        #             avg_weight=0
+        #             for w in self.state['valid_weights']:
+        #                 avg_weight=avg_weight+w
+        #             avg_weight=int(avg_weight/len(self.state['valid_weights']))
+        #
+        #
+        #             self.callback(timestamp, self.__find_cat(avg_weight), avg_weight, None)
+        #     # was already off scale?
+        #     else:
+        #         pass
 
 
 
@@ -330,7 +337,7 @@ class Catalyser():
         best_match=None
         for cat in self.state['cats']:
             #max differnce gram for now
-            if abs(cat['weight']-weight)<200:
+            if abs(cat['weight']-weight)<300:
                 if not best_match or cat['count']>best_match['count']:
                     best_match=cat
 
@@ -423,6 +430,16 @@ class Meowton:
                             'weight': weight,
                         }
             })
+        else:
+            self.points_batch.append({
+                "measurement": "annotations",
+                "time": timestamp,
+                "fields":{
+                            'title': message,
+                            'tags': "error"
+                        }
+            })
+
 
 
     def housekeeping(self,force=False):
@@ -444,7 +461,7 @@ class Meowton:
         if not self.db_timestamp:
             #drop and recalculate everything
             print("Delete all calculated data")
-            self.client.query("drop measurement events; drop measurement weights; drop measurement cats;", database="meowton")
+            self.client.query("drop measurement events; drop measurement weights; drop measurement cats; drop measurement annotations", database="meowton")
 
         doc=0
 
