@@ -24,7 +24,27 @@
 #define IDLE_NOISE 10000
 
 
+//dutycycle function to make stuff blink without using memory
+//returns true during 'on' ms, with total periode time 'total' ms.
+bool duty_cycle(unsigned long on, unsigned long total, unsigned long starttime=0)
+{
+  if (!starttime)
+    return((millis()%total)<on);
+  else
+    return(((millis()-starttime)%total)<on);
+}
 
+
+
+void led_on()
+{
+  digitalWrite(D8,LOW);
+}
+
+void led_off()
+{
+  digitalWrite(D8,HIGH);
+}
 
 void OTA_config()
 {
@@ -125,6 +145,8 @@ void setup() {
     {
         scale[s]->set_scale();
     }
+
+    pinMode(D8,OUTPUT);
 }
 
 
@@ -137,6 +159,7 @@ void send()
     return;
 
   Serial.printf("[HTTP] Sending data...\n");
+  led_off();
 
   //remove final , :
   measurements.remove(measurements.length()-1);
@@ -155,6 +178,7 @@ void send()
           String payload = http.getString();
           Serial.println(payload);
       }
+      led_on();
   } else {
       Serial.printf("[HTTP] failed, error: %s\n", http.errorToString(httpCode).c_str());
   }
@@ -192,9 +216,13 @@ void loop() {
     {
         if (millis()-idle_start_time > IDLE_STOP)
         {
-            //idle, return and do nothing
+            //idle, send remaining buffer and dont fill it
             send();
             Serial.println("idle");
+            if (duty_cycle(100,5000))
+              led_on();
+            else
+              led_off();
             return;
         }
         else
