@@ -12,14 +12,15 @@ import sys
 import os.path
 import time
 
-import influxdb
-import collections
-import matplotlib
-matplotlib.use('Agg')
-from scipy.interpolate import interp1d
-import matplotlib.pyplot as plt
+import config
+
+# import collections
+# import matplotlib
+# matplotlib.use('Agg')
+# from scipy.interpolate import interp1d
+# import matplotlib.pyplot as plt
 import shelve
-import scipy
+# import scipy
 
 
 
@@ -368,7 +369,7 @@ class Catalyser():
 class Meowton:
 
 
-    def __init__(self):
+    def __init__(self,db):
         self.scale=Scale(
             calibrate_weight=1074 *1534/ 1645,
             calibrate_factors=[
@@ -388,8 +389,7 @@ class Meowton:
         self.load_state()
 
         #db shizzle
-        self.client = influxdb.InfluxDBClient('localhost', 8086, database="meowton")
-        self.client.create_database("meowton")
+        self.client=db
 
         self.points_batch=[]
 
@@ -524,5 +524,5 @@ class Meowton:
 # global_graphs()
 
 
-meowton=Meowton()
+meowton=Meowton(config.db)
 meowton.run()

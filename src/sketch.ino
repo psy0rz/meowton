@@ -8,11 +8,6 @@
 // #include <String>
 #include <ESP8266HTTPClient.h>
 
-//moving average smoothing number
-
-//we're trying to measure a moving cat while eating
-//assume that it stays on the scale for 20-30 seconds at least, so we take a lot of values to average out movements and noise
-// #define AVERAGE 100
 
 //send all raw measurement data to this server in json format
 //(for analyses or debugging and tuning)
@@ -21,32 +16,14 @@
 //max buffer size: ESP8266HTTPClient has small buffer sizes
 #define RAW_SIZE 2000
 
-// //auto tarre if measurement didnt change by more than TARRE_MAX_DIFF for TARRE_COUNT measurements
-// //this is needed because the scale will be running 24/7 and might drift by temperature or other factors
-// #define TARRE_COUNT 3000
-// #define TARRE_MAX_DIFF 1
-//
-// //actual weight you used to calibrate each individual sensor
-// #define CALIBRATED_WEIGHT 1074 //i use grams
-//
-// //raw calibration values during measurement of above weight (raw values are always shown in serial output)
-// #define CALIBRATE_FACTOR0 402600
-// #define CALIBRATE_FACTOR1 428500
-// #define CALIBRATE_FACTOR2 443400
-// #define CALIBRATE_FACTOR3 439700
+
+// stop sending data after scale is idle this many mS
+#define IDLE_STOP 60000
+
+//amount of noise to ignore for idle detection
+#define IDLE_NOISE 10000
 
 
-
-
-
-//// test measurements
-
-/*
-2016-12-03
-5970 midden
-5995 rechts voor zeer stabiel. tijdens liggen
-t
-*/
 
 
 void OTA_config()
@@ -137,10 +114,6 @@ void setup() {
 
     //actual meowton stuff
 
-    // factor[0]=CALIBRATE_FACTOR0;
-    // factor[1]=CALIBRATE_FACTOR1;
-    // factor[2]=CALIBRATE_FACTOR2;
-    // factor[3]=CALIBRATE_FACTOR3;
 
     scale[0]=new HX711(D6,D7);
     scale[1]=new HX711(D4,D5);
@@ -151,28 +124,48 @@ void setup() {
     for (int s=0; s<4; s++)
     {
         scale[s]->set_scale();
-        // Serial.println(s);
-        // scale[s]->tare(1);	//Reset the scale to 0
     }
 }
 
 
-
-// int tarre_countdown=10;
-// float prev_total=0;
-//
-// void tarre()
-// {
-//     Serial.println("TARRE");
-//     for (int s=0; s<4; s++)
-//     {
-//         scale[s]->set_offset(scale[s]->get_offset()+average[s]);
-//         average[s]=0;
-//     }
-// }
-
 long count=1;
 String measurements="[";
+
+void send()
+{
+  if (measurements=="[")
+    return;
+
+  Serial.printf("[HTTP] Sending data...\n");
+
+  //remove final , :
+  measurements.remove(measurements.length()-1);
+  measurements=measurements+"]";
+  HTTPClient http;
+  http.begin(RAW_URL);
+  http.addHeader("Content-Type", "application/json");
+  int httpCode=http.POST(measurements);
+  if(httpCode > 0)
+  {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] succeeded, code: %d\n", httpCode);
+
+      // file found at server
+      if(httpCode == HTTP_CODE_OK) {
+          String payload = http.getString();
+          Serial.println(payload);
+      }
+  } else {
+      Serial.printf("[HTTP] failed, error: %s\n", http.errorToString(httpCode).c_str());
+  }
+  http.end();
+  measurements="[";
+
+}
+
+
+long idle_measurement=0;
+unsigned long idle_start_time=0;
 
 void loop() {
     wifi_status();
@@ -183,91 +176,49 @@ void loop() {
     String line;
     // line=line+"["+count;
     line=line+"[";
+    long measurement=0;
     for (int s=0; s<4; s++)
     {
         long current=scale[s]->read();
+        measurement=measurement+current;
         line=line+current+",";
     }
     line.remove(line.length()-1);
     line=line+"],";
     Serial.println(line);
-    measurements=measurements+line;
 
-    if (measurements.length()>=RAW_SIZE)
+    //idle detection
+    if (abs(idle_measurement-measurement)<IDLE_NOISE)
     {
-        //remove final , :
-        measurements.remove(measurements.length()-1);
-        measurements=measurements+"]";
-        HTTPClient http;
-        http.begin(RAW_URL);
-        http.addHeader("Content-Type", "application/json");
-        int httpCode=http.POST(measurements);
-        if(httpCode > 0)
+        if (millis()-idle_start_time > IDLE_STOP)
         {
-            // HTTP header has been send and Server response header has been handled
-            Serial.printf("[HTTP] succeeded, code: %d\n", httpCode);
-
-            // file found at server
-            if(httpCode == HTTP_CODE_OK) {
-                String payload = http.getString();
-                Serial.println(payload);
-            }
-        } else {
-            Serial.printf("[HTTP] failed, error: %s\n", http.errorToString(httpCode).c_str());
+            //idle, return and do nothing
+            send();
+            Serial.println("idle");
+            return;
         }
-        http.end();
-        measurements="[";
-    }
-
-
-/*
-    //we MIGHT use this again in the future, but probably not since collecting data on the server is easier.
-
-
-    //read all modules and calculate moving average, print raw data needed to calibrate
-    float total=0;
-    for (int s=0; s<4; s++)
-    {
-        long current=scale[s]->get_units();
-        average[s]-=average[s]/AVERAGE;
-        average[s]+=current/AVERAGE;
-        Serial.print(average[s]);
-        Serial.print("\t\t");
-        total=total+(average[s]*CALIBRATED_WEIGHT/factor[s]);
-    }
-
-
-    //if weight doesnt change much, count down for auto tarre
-    if (abs(prev_total-total)<TARRE_MAX_DIFF)
-    {
-        tarre_countdown--;
-        //auto tarre
-        if (tarre_countdown==0)
+        else
         {
-            tarre();
-            tarre_countdown=TARRE_COUNT;
+            Serial.print("idle noise:");
+            Serial.println(abs(idle_measurement-measurement));
+
         }
     }
+    //not idle anymore
     else
     {
-        tarre_countdown=TARRE_COUNT;
+      idle_measurement=measurement;
+      idle_start_time=millis();
+      Serial.println("idle reset");
+
     }
-    prev_total=total;
 
-
-    Serial.print("t=");
-    Serial.print(tarre_countdown);
-
-
-    Serial.print("\t\tg=");
-    Serial.println(total,0);
-
-    if (Serial.available())
+    // collect measurement data
+    measurements=measurements+line;
+    if (measurements.length()>=RAW_SIZE)
     {
-        if (Serial.read()=='t')
-        {
-            tarre();
-        }
+      send();
     }
-*/
+
+
 }

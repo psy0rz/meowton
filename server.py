@@ -10,8 +10,8 @@ import sys
 import os.path
 import time
 
-import pymongo
-import bson.objectid
+# import pymongo
+# import bson.objectid
 
 
 from config import db
@@ -37,14 +37,24 @@ def post_raw():
         if bottle.request.headers["content-type"].find("application/json")==0:
             measurements = bottle.request.json
             timestamp=int(time.time())
-            doc={
-                    'timestamp':    timestamp,
-                    'measurements': measurements
-                }
-            db.measurements.insert_one(doc)
+            points=[]
+            measurement_nr=0
+            for measurement in measurements:
+                points.append(
+                    {
+                        "measurement": "raw_sensors",
+                        "time": int ((timestamp+measurement_nr*0.1)*1000000000),
+                        "fields":{
+                                    'sensor0': measurement[0],
+                                    'sensor1': measurement[1],
+                                    'sensor2': measurement[2],
+                                    'sensor3': measurement[3]
+                                }
+                    }
+                )
+                measurement_nr=measurement_nr+1
 
-
-
+            db.write_points(points)
 
     except Exception as e:
         print("Error: "+str(e)+"\n")
