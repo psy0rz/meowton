@@ -227,7 +227,7 @@ class Catalyser():
         '''scale() detected a stable measurement. timestamp in ms, weight in grams. '''
         # cat on scale?
         if weight>self.min_cat_weight:
-            self.callback(timestamp, self.__find_cat(weight), weight, None)
+            self.callback(timestamp, self.find_cat(weight), weight, None)
         #     # just entered scale?
         #     if self.state['enter_time']==0:
         #         # start new measurement period
@@ -331,7 +331,7 @@ class Catalyser():
 
 
 
-    def __find_cat(self, weight):
+    def find_cat(self, weight, new=True):
         '''try to find a cat by weight'''
 
         best_match=None
@@ -348,15 +348,19 @@ class Catalyser():
 
             return(best_match)
 
-        #new cat
-        cat={
-            'weight': weight,
-            'name': "Cat "+str(len(self.state['cats'])),
-            'count': 0
-        }
-        self.state['cats'].append(cat)
+        if new:
 
-        return(cat)
+            #new cat
+            cat={
+                'weight': weight,
+                'name': "Cat "+str(len(self.state['cats'])),
+                'count': 0
+            }
+            self.state['cats'].append(cat)
+
+            return(cat)
+        else:
+            return(None)
 
 
 
@@ -405,6 +409,8 @@ class Meowton:
                 self.db_timestamp=shelve_db['db_timestamp']
 
     def measurement_event(self,timestamp, weight):
+        """stable measurement detected"""
+
         self.points_batch.append({
             "measurement": "events",
             "time": timestamp,
@@ -415,8 +421,24 @@ class Meowton:
 
         self.catalyser.measurement_event(timestamp, weight)
 
+        #store all stable measurements per cat for debugging
+        cat=self.catalyser.find_cat(weight, new=False)
+        if cat:
+            self.points_batch.append({
+                "measurement": "cats_debug",
+                "tags":{
+                    "cat": cat['name']
+                },
+                "time": timestamp,
+                "fields":{
+                            'weight': weight,
+                        }
+            })
+
+
 
     def catalyser_event(self, timestamp, cat, weight, message):
+        """cat weighing event detected"""
         # print("Cat event", cat, weight, message)
 
         if not message:
@@ -461,7 +483,7 @@ class Meowton:
         if not self.db_timestamp:
             #drop and recalculate everything
             print("Delete all calculated data")
-            self.client.query("drop measurement events; drop measurement weights; drop measurement cats; drop measurement annotations", database="meowton")
+            self.client.query("drop measurement events; drop measurement weights; drop measurement cats; drop measurement cats_debug; drop measurement annotations", database="meowton")
 
         doc=0
 
