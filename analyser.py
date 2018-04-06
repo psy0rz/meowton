@@ -24,6 +24,7 @@ import shelve
 import bottle
 import re
 
+import urllib.request
 
 
 class Scale:
@@ -399,6 +400,7 @@ class Meowton:
 
         self.points_batch=[]
 
+        self.last_feed_time=0
 
 
     def save_state(self):
@@ -466,6 +468,9 @@ class Meowton:
         """cat weighing event detected"""
         print("{}: {} detected at {} gram".format(time.ctime(self.db_timestamp/1000), cat['name'], int(weight)))
 
+
+
+
         self.points_batch.append({
             "measurement": "cats",
             "tags":{
@@ -478,13 +483,22 @@ class Meowton:
         })
 
 
+        # feed tracy as much as she wants :P
+        if cat['name']=='Cat 0' and time.time()-self.last_feed_time>=60:
+            print("Feeding tracy")
+            self.last_feed_time=time.time()
+            try:
+                urllib.request.urlopen('http://192.168.13.58/control?cmd=feed,1')
+            except Exception as e:
+                pass
+
 
     def housekeeping(self,force=False):
         """regular saves and batched writing"""
 
-        if force or time.time()-self.last_save>1:
+        if force or time.time()-self.last_save>10:
             if self.points_batch:
-                print("Writing to influxdb, processed up to: ", time.ctime(self.db_timestamp/1000))
+                # print("Writing to influxdb, processed up to: ", time.ctime(self.db_timestamp/1000))
                 self.client.write_points(points=self.points_batch, time_precision="ms")
                 self.points_batch=[]
 
@@ -517,6 +531,7 @@ class Meowton:
                     }
         })
 
+        self.housekeeping()
 
     def analyse_all(self):
         '''analyse all existing measurements, in a resumable way.'''
@@ -543,7 +558,6 @@ class Meowton:
                 self.analyse_measurement(point['time'], measurement)
 
 
-            self.housekeeping()
 
         #flush/save last stuff
         self.housekeeping(force=True)
@@ -558,6 +572,8 @@ if len(sys.argv)==2:
     timestamp=int(sys.argv[1])
     print("Restarting from timestamp "+str(timestamp))
     meowton.db_timestamp=timestamp
+
+
 
 
 meowton.analyse_all()
@@ -606,16 +622,15 @@ def post_raw():
                 measurement_nr=measurement_nr+1
 
 
-            meowton.housekeeping(force=True)
 
     except Exception as e:
         print("Error: "+str(e)+"\n")
         print(bottle.request.body.getvalue())
 
 
+
 application=bottle.default_app()
 
 #standalone/debug mode:
 if __name__ == '__main__':
-    bottle.debug(True)
-    bottle.run(reloader=True, app=application, host='0.0.0.0', port=8080)
+    bottle.run(quiet=True,reloader=False, app=application, host='0.0.0.0', port=8080)
