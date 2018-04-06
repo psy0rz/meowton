@@ -30,7 +30,7 @@ class Scale:
     generates events for every stable measurement via measurement_callback
     '''
 
-    def __init__(self, calibrate_weight, calibrate_factors, callback):
+    def __init__(self, calibrate_weight, calibrate_factors, callback, annotation_callback):
 
         self.state={}
 
@@ -38,10 +38,11 @@ class Scale:
         self.calibrate_weight=calibrate_weight
         self.calibrate_factors=calibrate_factors
         self.callback=callback
+        self.annotation_callback=annotation_callback
 
 
         # range in grams in which the scale should stay to be considered "stable"
-        self.stable_range=25
+        self.stable_range=50
 
         # max timegap between two measurements (ms)
         self.stable_max_timegap=5000
@@ -66,7 +67,7 @@ class Scale:
 
         self.sensor_count=len(calibrate_factors)
 
-        self.__stable_reset()
+        self.__stable_reset(0)
 
 
         #tarre offsets
@@ -78,9 +79,9 @@ class Scale:
         #last sensor readings
         self.state['current']=[]
 
-    def __stable_reset(self):
-        self.state['stable_min']=100000000
-        self.state['stable_max']=-100000000
+    def __stable_reset(self, weight):
+        self.state['stable_min']=weight
+        self.state['stable_max']=weight
         self.state['stable_count']=0
         self.state['stable_totals']=[]
         self.state['stable_totals_count']=0
@@ -123,7 +124,7 @@ class Scale:
 
         # reset stable measurement if there is a too big timegap
         if timestamp-self.state['last_timestamp']>self.stable_max_timegap:
-            self.__stable_reset()
+            self.__stable_reset(weight)
         self.state['last_timestamp']=timestamp
 
         # keep min/max values
@@ -137,7 +138,7 @@ class Scale:
         if (self.state['stable_max'] - self.state['stable_min']) < self.stable_range:
             self.state['stable_count']=self.state['stable_count']+1
         else:
-            self.__stable_reset()
+            self.__stable_reset(weight)
 
         # do averaging, but skip the first measurements because of scale drifting and recovery
         # note that we average the raw data for better accuracy
@@ -228,7 +229,7 @@ class Catalyser():
         '''scale() detected a stable measurement. timestamp in ms, weight in grams. '''
         # cat on scale?
         if weight>self.min_cat_weight:
-            self.callback(timestamp, self.find_cat(weight), weight, None)
+            self.callback(timestamp, self.find_cat(weight), weight)
         #     # just entered scale?
         #     if self.state['enter_time']==0:
         #         # start new measurement period
@@ -338,7 +339,7 @@ class Catalyser():
         best_match=None
         for cat in self.state['cats']:
             #max differnce gram for now
-            if abs(cat['weight']-weight)<300:
+            if abs(cat['weight']-weight)<500:
                 if not best_match or cat['count']>best_match['count']:
                     best_match=cat
 
@@ -370,6 +371,8 @@ class Meowton:
 
 
     def __init__(self,db):
+
+        self.previous_annotation=""
         self.scale=Scale(
             calibrate_weight=1074 *1534/ 1645,
             calibrate_factors=[
@@ -378,7 +381,8 @@ class Meowton:
                 443400,
                 439700,
             ],
-            callback=self.measurement_event
+            callback=self.measurement_event,
+            annotation_callback=self.annotation_event
         )
 
         self.catalyser=Catalyser(callback=self.catalyser_event)
@@ -407,6 +411,23 @@ class Meowton:
                 self.scale.state=shelve_db['scale_state']
                 self.catalyser.state=shelve_db['catalyser_state']
                 self.db_timestamp=shelve_db['db_timestamp']
+
+
+    def annotation_event(self,timestamp,message):
+        # if message==self.previous_annotation:
+        #     return
+        # self.previous_annotation=message
+
+        print(timestamp, message)
+        self.points_batch.append({
+            "measurement": "annotations",
+            "time": timestamp,
+            "fields":{
+                        'title': message,
+                        'tags': "error"
+                    }
+        })
+
 
     def measurement_event(self,timestamp, weight):
         """stable measurement detected"""
@@ -437,30 +458,20 @@ class Meowton:
 
 
 
-    def catalyser_event(self, timestamp, cat, weight, message):
+    def catalyser_event(self, timestamp, cat, weight):
         """cat weighing event detected"""
         # print("Cat event", cat, weight, message)
 
-        if not message:
-            self.points_batch.append({
-                "measurement": "cats",
-                "tags":{
-                    "cat": cat['name']
-                },
-                "time": timestamp,
-                "fields":{
-                            'weight': weight,
-                        }
-            })
-        else:
-            self.points_batch.append({
-                "measurement": "annotations",
-                "time": timestamp,
-                "fields":{
-                            'title': message,
-                            'tags': "error"
-                        }
-            })
+        self.points_batch.append({
+            "measurement": "cats",
+            "tags":{
+                "cat": cat['name']
+            },
+            "time": timestamp,
+            "fields":{
+                        'weight': weight,
+                    }
+        })
 
 
 
@@ -483,7 +494,7 @@ class Meowton:
         if not self.db_timestamp:
             #drop and recalculate everything
             print("Delete all calculated data")
-            self.client.query("drop measurement events; drop measurement weights; drop measurement cats; drop measurement cats_debug; drop measurement annotations", database="meowton")
+            self.client.query("drop measurement events; drop measurement weights; drop measurement cats; drop measurement cats_debug; drop measurement annotations; drop measurement stable_count", database="meowton")
 
         doc=0
 
@@ -509,6 +520,14 @@ class Meowton:
                     "time": point['time'],
                     "fields":{
                                 'weight': self.scale.calibrated_weight(self.scale.offset(measurement))
+                            }
+                })
+
+                self.points_batch.append({
+                    "measurement": "stable_count",
+                    "time": point['time'],
+                    "fields":{
+                                'stable_count': self.scale.state['stable_count']
                             }
                 })
 
