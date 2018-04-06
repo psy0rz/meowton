@@ -21,6 +21,8 @@ import config
 # import matplotlib.pyplot as plt
 import shelve
 # import scipy
+import bottle
+import re
 
 
 
@@ -159,8 +161,8 @@ class Scale:
             self.state['offsets']=self.get_average()
             self.state['no_tarre']=False
 
-        # generate measuring event
-        if self.state['stable_count'] == self.stable_wait:
+        # generate measuring event, every stable_wait measurements
+        if self.state['stable_count']>0 and self.state['stable_count'] % self.stable_wait == 0:
             self.callback(timestamp, self.calibrated_weight(self.offset(self.get_average())) )
 
 
@@ -397,6 +399,8 @@ class Meowton:
 
         self.points_batch=[]
 
+
+
     def save_state(self):
         '''save current state so we can resume later when new measurements have arrived'''
         with shelve.open("analyser.state") as shelve_db:
@@ -460,7 +464,7 @@ class Meowton:
 
     def catalyser_event(self, timestamp, cat, weight):
         """cat weighing event detected"""
-        # print("Cat event", cat, weight, message)
+        print("{}: {} detected at {} gram".format(time.ctime(self.db_timestamp/1000), cat['name'], int(weight)))
 
         self.points_batch.append({
             "measurement": "cats",
@@ -488,8 +492,34 @@ class Meowton:
             self.last_save=time.time()
 
 
-    def run(self):
-        '''analyse all new measurements since last time'''
+    def analyse_measurement(self, timestamp, measurement):
+        '''analyse one measurement and store results (time in mS)'''
+
+        self.db_timestamp=timestamp
+
+        self.scale.measurement(timestamp,measurement)
+        # catalyser.update(scale, time["timestamp"])
+
+        # store all calculated weights (for analyses and debugging with grafana)
+        self.points_batch.append({
+            "measurement": "weights",
+            "time": timestamp,
+            "fields":{
+                        'weight': self.scale.calibrated_weight(self.scale.offset(measurement))
+                    }
+        })
+
+        self.points_batch.append({
+            "measurement": "stable_count",
+            "time": timestamp,
+            "fields":{
+                        'stable_count': self.scale.state['stable_count']
+                    }
+        })
+
+
+    def analyse_all(self):
+        '''analyse all existing measurements, in a resumable way.'''
 
         if not self.db_timestamp:
             #drop and recalculate everything
@@ -502,8 +532,7 @@ class Meowton:
 
         for result in self.client.query("select * from raw_sensors where time>"+str(self.db_timestamp*1000000), database="meowton", stream=True, chunked=True, chunk_size=10000, epoch='ms'):
             for point in result.get_points():
-                self.db_timestamp=point['time']
-                # print(point)
+
                 measurement=[
                     point['sensor0'],
                     point['sensor1'],
@@ -511,25 +540,7 @@ class Meowton:
                     point['sensor3'],
                 ]
 
-                self.scale.measurement(point['time'],measurement)
-                # catalyser.update(scale, time["timestamp"])
-
-                # store all calculated weights (for analyses and debugging with grafana)
-                self.points_batch.append({
-                    "measurement": "weights",
-                    "time": point['time'],
-                    "fields":{
-                                'weight': self.scale.calibrated_weight(self.scale.offset(measurement))
-                            }
-                })
-
-                self.points_batch.append({
-                    "measurement": "stable_count",
-                    "time": point['time'],
-                    "fields":{
-                                'stable_count': self.scale.state['stable_count']
-                            }
-                })
+                self.analyse_measurement(point['time'], measurement)
 
 
             self.housekeeping()
@@ -537,11 +548,74 @@ class Meowton:
         #flush/save last stuff
         self.housekeeping(force=True)
 
+        print("Analyses complete, waiting for new measurement")
 
 
-# analyse_measurements()
-# global_graphs()
-
-
+# initialize
 meowton=Meowton(config.db)
-meowton.run()
+
+if len(sys.argv)==2:
+    timestamp=int(sys.argv[1])
+    print("Restarting from timestamp "+str(timestamp))
+    meowton.db_timestamp=timestamp
+
+
+meowton.analyse_all()
+
+
+
+
+# handle new measurement data
+@bottle.post('/raw')
+def post_raw():
+
+    # session = bottle.request.environ.get('beaker.session')
+
+    #result will be stored here:
+    result = {}
+
+    try:
+        #to see what kind of body the server receives, for debugging purposes:
+        # print ("HEADERS: ", dict(bottle.request.headers))
+        # print ("BODY: ", bottle.request.body.getvalue())
+        # print ("FILES: ", dict(bottle.request.files))
+        # print ("FORMS:", dict(bottle.request.forms))
+        # print ("CONTENTTYPE", request.content-type)
+
+
+        if bottle.request.headers["content-type"].find("application/json")==0:
+            measurements = bottle.request.json
+            current_timestamp=time.time() # in S
+            measurement_nr=0
+            for measurement in measurements:
+                timestamp=current_timestamp+measurement_nr*0.1
+                # store raw data so we can reanalyse if we change our algo.
+                meowton.points_batch.append(
+                    {
+                        "measurement": "raw_sensors",
+                        "time": int(timestamp*1000), # in mS
+                        "fields":{
+                                    'sensor0': measurement[0],
+                                    'sensor1': measurement[1],
+                                    'sensor2': measurement[2],
+                                    'sensor3': measurement[3]
+                                }
+                    }
+                )
+                meowton.analyse_measurement(int(timestamp*1000), measurement) # in mS
+                measurement_nr=measurement_nr+1
+
+
+            meowton.housekeeping(force=True)
+
+    except Exception as e:
+        print("Error: "+str(e)+"\n")
+        print(bottle.request.body.getvalue())
+
+
+application=bottle.default_app()
+
+#standalone/debug mode:
+if __name__ == '__main__':
+    bottle.debug(True)
+    bottle.run(reloader=True, app=application, host='0.0.0.0', port=8080)

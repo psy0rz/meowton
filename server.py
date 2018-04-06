@@ -39,6 +39,7 @@ def post_raw():
             timestamp=int(time.time())
             points=[]
             measurement_nr=0
+            print(int ((timestamp+measurement_nr*0.1)*1000000000))
             for measurement in measurements:
                 points.append(
                     {
