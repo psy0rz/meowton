@@ -51,7 +51,7 @@ The raw data is collected from the scale 24/7:
  * With these events it will determine which cat is on the scale and create a sepearte Influxdb entry for that. (Measurement 'cats', field 'weight' and the tag contains the cat-name)
  
  * If you build a seperate cat-feeder, it can send http events to give each cat a certain number of portions per day, depending on the configured feed-rate. (look in the sourcecode how to do this, it basicaly involves adding a bunch of fields to each cat in the analyser.yaml file)
- * I created a simple ESPEasy plugin to operate a simple worm-wheel based feeder, like the ones you find on thingy verse. (altough i'm currently using parts of a coffee machine to do it) You can that plugin here: https://github.com/letscontrolit/ESPEasyPluginPlayground/blob/master/_P203_Feeder.ino 
+ * I created a simple ESPEasy plugin to operate a simple worm-wheel based feeder, like the ones you find on thingiverse. (altough i'm currently using parts of a coffee machine to do it) You can that plugin here: https://github.com/letscontrolit/ESPEasyPluginPlayground/blob/master/_P203_Feeder.ino 
  
  
  
