@@ -23,9 +23,9 @@ Electronics on prototype board:
 
 ![electronics](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015321.jpg?raw=true)
 
-Tracy eating food while she automagically is getting weighed:
+Mogwai eating food from the dispenser while he automagically is getting weighed:
 
-![cataction](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015539.jpg?raw=true)
+![cataction](https://github.com/psy0rz/meowton/blob/master/examples/20180408_210341.jpg?raw=true)
 
 # Parts
 
