@@ -20,6 +20,7 @@ import re
 import urllib.request
 import argparse
 import yaml
+import os
 
 class Scale:
     '''to calculate weights from raw data and do stuff like auto tarring and averaging
@@ -407,16 +408,20 @@ class Meowton:
             'catalyser_state' : self.catalyser.state,
             'db_timestamp'    : self.db_timestamp
         }
-        with open("analyser.yaml","w") as fh:
+
+        with open("analyser.yaml.tmp","w") as fh:
             fh.write(yaml.dump(state, default_flow_style=False))
+
+        os.rename("analyser.yaml.tmp", "analyser.yaml")
 
 
     def load_state(self):
-        with open("analyser.yaml") as fh:
-            state=yaml.load(fh.read())
-            self.scale.state=state['scale_state']
-            self.catalyser.state=state['catalyser_state']
-            self.db_timestamp=state['db_timestamp']
+        if os.path.isfile("analyser.yaml"):
+            with open("analyser.yaml") as fh:
+                state=yaml.load(fh.read())
+                self.scale.state=state['scale_state']
+                self.catalyser.state=state['catalyser_state']
+                self.db_timestamp=state['db_timestamp']
 
 
     def annotation_event(self,timestamp,message):
@@ -519,7 +524,7 @@ class Meowton:
             # feed next portion?
             if cat['feed_quota'] > 0:
                 last_feed_delta=int((timestamp-cat['feed_portion_timestamp'])/1000)
-                if last_feed_delta> cat['feed_delay']:
+                if last_feed_delta>= cat['feed_delay']:
                     cat['feed_quota']=cat['feed_quota']-1
                     cat['feed_portion_timestamp']=timestamp
                     self.feed()
@@ -536,14 +541,13 @@ class Meowton:
     def housekeeping(self,force=False):
         """regular saves and batched writing"""
 
-        if force or time.time()-self.last_save>10:
+        if force or len(self.points_batch)>10000:
             if self.points_batch:
                 # print("Writing to influxdb, processed up to: ", time.ctime(self.db_timestamp/1000))
                 self.client.write_points(points=self.points_batch, time_precision="ms")
                 self.points_batch=[]
 
             self.save_state()
-            self.last_save=time.time()
 
 
     def analyse_measurement(self, timestamp, measurement):
@@ -584,9 +588,9 @@ class Meowton:
 
         if reanalyse_days!=None:
             print("Deleting last {} days of analysed data".format(reanalyse_days))
-            self.db_timestamp=int((time.time()-reanalyse_days*24*3600)*1000) # mS
+            self.db_timestamp=int((time.time()-(reanalyse_days*24*3600))*1000) # mS
             for analysed_measurement_name in analysed_measurement_names:
-                self.client.query("delete from  {} WHERE time > {}".format(analysed_measurement_name, self.db_timestamp))
+                self.client.query("delete from  {} WHERE time > {}".format(analysed_measurement_name, self.db_timestamp*1000000), epoch="ms")
 
 
         print("Resuming from: ", time.ctime(self.db_timestamp/1000))
@@ -651,6 +655,8 @@ def post_raw():
                 )
                 meowton.analyse_measurement(int(timestamp*1000), measurement) # in mS
                 measurement_nr=measurement_nr+1
+
+            meowton.housekeeping(True)
 
 
 
