@@ -489,9 +489,16 @@ class Meowton:
         })
 
 
-        # autofeed this cat?
+        # Autofeed this cat
+
+        # feed_rate: time (in minutes) between each quota-increase
+        # feed_delay: time (in seconds) between individual portions.
+        # feed_quota_max: maximum quota a cat can collect: we will never feed more than this amound of portions in one sessoin.
+
+        # As long as the cat is on the scale, and there is quota left, it will feed a portion every 'feed_delay' seconds.
+
+
         if  'feed_rate' in cat:
-            # feed_rate is the time (in minutes) between each quota-increase
 
             # set defaults if we just enabled it, or went back in time
             if not 'feed_quota_timestamp' in cat or cat['feed_quota_timestamp']>timestamp:
@@ -505,7 +512,8 @@ class Meowton:
                 cat['feed_quota']=cat['feed_quota'] + quota_add
                 # instead of using the current timestamp, we calculate the timestamp based on the rounded quota_add number
                 cat['feed_quota_timestamp']=cat['feed_quota_timestamp']+(quota_add * (cat['feed_rate']*60*1000))
-                # log=log+" (added {})".format(quota_add)
+                if cat['feed_quota'] > cat['feed_max_quota']:
+                    cat['feed_quota']=cat['feed_max_quota']
 
 
             # feed next portion?
