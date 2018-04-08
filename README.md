@@ -11,14 +11,11 @@ goals of the project:
 
 # Examples
 
-(example graphs of Tracy, she has a healthy weight currently)
+Example of graphs:
 
-Every measurement creates a graph for analysys and debugging:
-
-![cat 0](https://github.com/psy0rz/meowton/blob/master/examples/1481594272.png?raw=true)
-
-Example of a global graph (we need more data and tuning of curvefitting/smooting):
 ![global](https://github.com/psy0rz/meowton/blob/master/examples/Cat%200.png?raw=true)
+
+![global](https://github.com/psy0rz/meowton/blob/master/examples/Cat%201.png?raw=true)
 
 # Hardware overview
 
