@@ -21,7 +21,7 @@ Example of graphs:
 
 Electronics on prototype board:
 
-![electronics](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015321.jpg?raw=true)
+![electronics](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015539.jpg?raw=true)
 
 Mogwai eating food from the dispenser while he automagically is getting weighed:
 
