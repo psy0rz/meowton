@@ -14,13 +14,6 @@ import time
 
 import config
 
-# import collections
-# import matplotlib
-# matplotlib.use('Agg')
-# from scipy.interpolate import interp1d
-# import matplotlib.pyplot as plt
-import shelve
-# import scipy
 import bottle
 import re
 
@@ -408,11 +401,6 @@ class Meowton:
 
     def save_state(self):
         '''save current state so we can resume later when new measurements have arrived'''
-        with shelve.open("analyser.state") as shelve_db:
-            shelve_db['scale_state']=self.scale.state
-            shelve_db['catalyser_state']=self.catalyser.state
-            shelve_db['db_timestamp']=self.db_timestamp
-
 
         state={
             'scale_state'    : self.scale.state,
@@ -424,11 +412,11 @@ class Meowton:
 
 
     def load_state(self):
-        with shelve.open("analyser.state") as shelve_db:
-            if 'db_timestamp' in shelve_db:
-                self.scale.state=shelve_db['scale_state']
-                self.catalyser.state=shelve_db['catalyser_state']
-                self.db_timestamp=shelve_db['db_timestamp']
+        with open("analyser.yaml") as fh:
+            state=yaml.load(fh.read())
+            self.scale.state=state['scale_state']
+            self.catalyser.state=state['catalyser_state']
+            self.db_timestamp=state['db_timestamp']
 
 
     def annotation_event(self,timestamp,message):
@@ -476,8 +464,8 @@ class Meowton:
 
 
 
-    def feed(self, amount):
-        """despend amount of food"""
+    def feed(self):
+        """dispend one portion of food"""
         if self.realtime:
             try:
                 urllib.request.urlopen('http://192.168.13.58/control?cmd=feed,1')
@@ -486,11 +474,8 @@ class Meowton:
 
 
     def catalyser_event(self, timestamp, cat, weight):
-        """cat weighing event detected"""
-        print("{}: {} detected at {} gram".format(time.ctime(self.db_timestamp/1000), cat['name'], int(weight)))
-
-
-
+        """cat weighing event detected (timestamp in mS)"""
+        log="[ {} ] {} detected at {} gram: ".format(time.ctime(timestamp/1000), cat['name'], int(weight))
 
         self.points_batch.append({
             "measurement": "cats",
@@ -504,12 +489,41 @@ class Meowton:
         })
 
 
-        # feed tracy as much as she wants :P
-        if cat['name']=='Cat 0' and time.time()-self.last_feed_time>=60:
-            print("Feeding tracy")
-            self.last_feed_time=time.time()
-            # self.feed(1)
+        # autofeed this cat?
+        if  'feed_rate' in cat:
+            # feed_rate is the time (in minutes) between each quota-increase
 
+            # set defaults if we just enabled it, or went back in time
+            if not 'feed_quota_timestamp' in cat or cat['feed_quota_timestamp']>timestamp:
+                cat['feed_quota_timestamp']=timestamp
+                cat['feed_portion_timestamp']=timestamp
+                cat['feed_quota']=1
+
+            # update food quota (in a way that prevents rounding errors)
+            quota_add=int((timestamp-cat['feed_quota_timestamp'])/(cat['feed_rate']*60*1000))
+            if quota_add:
+                cat['feed_quota']=cat['feed_quota'] + quota_add
+                # instead of using the current timestamp, we calculate the timestamp based on the rounded quota_add number
+                cat['feed_quota_timestamp']=cat['feed_quota_timestamp']+(quota_add * (cat['feed_rate']*60*1000))
+                # log=log+" (added {})".format(quota_add)
+
+
+            # feed next portion?
+            if cat['feed_quota'] > 0:
+                last_feed_delta=int((timestamp-cat['feed_portion_timestamp'])/1000)
+                if last_feed_delta> cat['feed_delay']:
+                    cat['feed_quota']=cat['feed_quota']-1
+                    cat['feed_portion_timestamp']=timestamp
+                    self.feed()
+                    log=log+("Feeding next portion ({} portions left)".format(cat['feed_quota']))
+                else:
+                    log=log+("Next portion in {} seconds. ({} portions left)".format(cat['feed_delay']-last_feed_delta, cat['feed_quota']))
+
+            else:
+                next_portion= int (cat['feed_rate'] - ((timestamp-cat['feed_portion_timestamp'])/(60*1000)))
+                log=log+("Feed quota empty, next portion in {} minutes.".format(next_portion))
+
+        print(log)
 
     def housekeeping(self,force=False):
         """regular saves and batched writing"""
