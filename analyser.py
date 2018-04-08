@@ -25,7 +25,8 @@ import bottle
 import re
 
 import urllib.request
-
+import argparse
+import yaml
 
 class Scale:
     '''to calculate weights from raw data and do stuff like auto tarring and averaging
@@ -206,11 +207,11 @@ class Catalyser():
         # self.state['graph_averages']=collections.deque([],3000)
 
         #measure enter and exist weights and eating time
-        self.state['enter_weight']=0
-        self.state['enter_time']=0
+        # self.state['enter_weight']=0
+        # self.state['enter_time']=0
 
         #all valid weights of this on-scale period
-        self.state['valid_weights']=[];
+        # self.state['valid_weights']=[];
 
         # self.state['exit_weight']=0
 
@@ -402,6 +403,8 @@ class Meowton:
 
         self.last_feed_time=0
 
+        self.realtime=False
+
 
     def save_state(self):
         '''save current state so we can resume later when new measurements have arrived'''
@@ -409,6 +412,15 @@ class Meowton:
             shelve_db['scale_state']=self.scale.state
             shelve_db['catalyser_state']=self.catalyser.state
             shelve_db['db_timestamp']=self.db_timestamp
+
+
+        state={
+            'scale_state'    : self.scale.state,
+            'catalyser_state' : self.catalyser.state,
+            'db_timestamp'    : self.db_timestamp
+        }
+        with open("analyser.yaml","w") as fh:
+            fh.write(yaml.dump(state, default_flow_style=False))
 
 
     def load_state(self):
@@ -464,6 +476,15 @@ class Meowton:
 
 
 
+    def feed(self, amount):
+        """despend amount of food"""
+        if self.realtime:
+            try:
+                urllib.request.urlopen('http://192.168.13.58/control?cmd=feed,1')
+            except Exception as e:
+                pass
+
+
     def catalyser_event(self, timestamp, cat, weight):
         """cat weighing event detected"""
         print("{}: {} detected at {} gram".format(time.ctime(self.db_timestamp/1000), cat['name'], int(weight)))
@@ -487,10 +508,7 @@ class Meowton:
         if cat['name']=='Cat 0' and time.time()-self.last_feed_time>=60:
             print("Feeding tracy")
             self.last_feed_time=time.time()
-            try:
-                urllib.request.urlopen('http://192.168.13.58/control?cmd=feed,1')
-            except Exception as e:
-                pass
+            # self.feed(1)
 
 
     def housekeeping(self,force=False):
@@ -533,15 +551,21 @@ class Meowton:
 
         self.housekeeping()
 
-    def analyse_all(self):
+    def analyse_all(self, reanalyse_days=None):
         '''analyse all existing measurements, in a resumable way.'''
-
+        analysed_measurement_names=["events", "weights", "cats", "cats_debug", "annotations",  "stable_count" ]
         if not self.db_timestamp:
             #drop and recalculate everything
-            print("Delete all calculated data")
-            self.client.query("drop measurement events; drop measurement weights; drop measurement cats; drop measurement cats_debug; drop measurement annotations; drop measurement stable_count", database="meowton")
+            print("Deleting all analysed data")
+            for analysed_measurement_name in analysed_measurement_names:
+                self.client.query("drop measurement {}".format(analysed_measurement_name))
 
-        doc=0
+        if reanalyse_days!=None:
+            print("Deleting last {} days of analysed data".format(reanalyse_days))
+            self.db_timestamp=int((time.time()-reanalyse_days*24*3600)*1000) # mS
+            for analysed_measurement_name in analysed_measurement_names:
+                self.client.query("delete from  {} WHERE time > {}".format(analysed_measurement_name, self.db_timestamp))
+
 
         print("Resuming from: ", time.ctime(self.db_timestamp/1000))
 
@@ -563,22 +587,7 @@ class Meowton:
         self.housekeeping(force=True)
 
         print("Analyses complete, waiting for new measurement")
-
-
-# initialize
-meowton=Meowton(config.db)
-
-if len(sys.argv)==2:
-    timestamp=int(sys.argv[1])
-    print("Restarting from timestamp "+str(timestamp))
-    meowton.db_timestamp=timestamp
-
-
-
-
-meowton.analyse_all()
-
-
+        self.realtime=True
 
 
 # handle new measurement data
@@ -628,9 +637,46 @@ def post_raw():
         print(bottle.request.body.getvalue())
 
 
+### parse args
 
+parser = argparse.ArgumentParser(description='Meowton v1.0')
+# parser.add_argument('--ssh-source', default="local", help='Source host to get backup from. (user@hostname) Default %(default)s.')
+# parser.add_argument('--ssh-target', default="local", help='Target host to push backup to. (user@hostname) Default  %(default)s.')
+# parser.add_argument('--ssh-cipher', default=None, help='SSH cipher to use (default  %(default)s)')
+# parser.add_argument('--keep-source', type=int, default=30, help='Number of days to keep old snapshots on source. Default %(default)s.')
+# parser.add_argument('--keep-target', type=int, default=30, help='Number of days to keep old snapshots on target. Default %(default)s.')
+# parser.add_argument('backup_name',    help='Name of the backup (you should set the zfs property "autobackup:backup-name" to true on filesystems you want to backup')
+# parser.add_argument('target_fs',    help='Target filesystem')
+#
+# parser.add_argument('--no-snapshot', action='store_true', help='dont create new snapshot (usefull for finishing uncompleted backups, or cleanups)')
+# parser.add_argument('--no-send', action='store_true', help='dont send snapshots (usefull to only do a cleanup)')
+# parser.add_argument('--resume', action='store_true', help='support resuming of interrupted transfers by using the zfs extensible_dataset feature (both zpools should have it enabled)')
+#
+# parser.add_argument('--strip-path', default=0, type=int, help='number of directory to strip from path (use 1 when cloning zones between 2 SmartOS machines)')
+#
+#
+# parser.add_argument('--destroy-stale', action='store_true', help='Destroy stale backups that have no more snapshots. Be sure to verify the output before using this! ')
+# parser.add_argument('--clear-refreservation', action='store_true', help='Set refreservation property to none for new filesystems. Usefull when backupping SmartOS volumes. (recommended)')
+# parser.add_argument('--clear-mountpoint', action='store_true', help='Sets canmount=noauto property, to prevent the received filesystem from mounting over existing filesystems. (recommended)')
+# parser.add_argument('--rollback', action='store_true', help='Rollback changes on the target before starting a backup. (normally you can prevent changes by setting the readonly property on the target_fs to on)')
+#
+#
+# parser.add_argument('--compress', action='store_true', help='use compression during zfs send/recv')
+parser.add_argument('--reanalyse', help='Reanalyse last X days.', type=int)
+# parser.add_argument('--test', action='store_true', help='dont change anything, just show what would be done (still does all read-only operations)')
+# parser.add_argument('--verbose', action='store_true', help='verbose output')
+# parser.add_argument('--debug', action='store_true', help='debug output (shows commands that are executed)')
+
+#note args is the only global variable we use, since its a global readonly setting anyway
+args = parser.parse_args()
+
+
+# initialize
+meowton=Meowton(config.db)
+
+# make sure we're uptodate with the analyser
+meowton.analyse_all(args.reanalyse)
+
+# start server
 application=bottle.default_app()
-
-#standalone/debug mode:
-if __name__ == '__main__':
-    bottle.run(quiet=True,reloader=False, app=application, host='0.0.0.0', port=8080)
+bottle.run(quiet=True,reloader=False, app=application, host='0.0.0.0', port=8080)
