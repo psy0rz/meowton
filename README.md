@@ -7,15 +7,7 @@ goals of the project:
 * Automaticly weigh a cat with high accuracy while its eating
 * Create graphs so you can see if your cat is getting heavier/lighter or becomes sick for example.
 * Track weight of multiple cats by recognizing them by weight.
-
-version 2 goals:
-* Track how much the cat is eating and drinking (by weighing the food/water with a seperate scales)
-
-version 3 goals:
-* Limit the maximum amount of food each cat can eat in a given time period. (by closing the food bowl with a servo for example)
-
-final goal: 
-* ensuring Mogwai gets a healty weight. :)
+* Operate a cat feeder and making sure each cat get a certain amount of food per day. (Mogwai needs to loose weight)
 
 # Examples
 
@@ -32,11 +24,11 @@ Example of a global graph (we need more data and tuning of curvefitting/smooting
 
 Electronics on prototype board:
 
-![electronics](https://github.com/psy0rz/meowton/blob/master/examples/Cat 0.png?raw=true)
+![electronics](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015321.jpg?raw=true)
 
 Tracy eating food while she automagically is getting weighed:
 
-![cataction](https://github.com/psy0rz/meowton/blob/master/examples/Cat 1.png?raw=true)
+![cataction](https://github.com/psy0rz/meowton/blob/master/examples/20170104_015539.jpg?raw=true)
 
 # Parts
 
