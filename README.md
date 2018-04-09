@@ -11,7 +11,7 @@ goals of the project:
 
 # Examples
 
-Example of graphs:
+Example of graphs (Created with Grafana):
 
 ![global](https://github.com/psy0rz/meowton/blob/master/examples/Cat%200.png?raw=true)
 
