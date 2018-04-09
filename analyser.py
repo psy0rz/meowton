@@ -48,11 +48,11 @@ class Scale:
 
         # number of measurement to allow scale sensors to recover before starting to average
         # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
-        self.stable_skip_measurements=10
+        self.stable_skip_measurements=0
 
         # for how many measurements should the scale be in the stable_range to be considered stable?
         # at this point it will generate a measurement event by calling the callback
-        self.stable_wait=50
+        self.stable_wait=25
 
         # number of measurements averaging after which to auto tarre
         self.stable_auto_tarre=100
@@ -158,7 +158,7 @@ class Scale:
             self.state['no_tarre']=False
 
         # generate measuring event, every stable_wait measurements
-        if self.state['stable_count']>0 and self.state['stable_count'] % self.stable_wait == 0:
+        if self.state['stable_totals_count']>0 and self.state['stable_totals_count'] % self.stable_wait == 0:
             self.callback(timestamp, self.calibrated_weight(self.offset(self.get_average())) )
 
 

@@ -13,8 +13,8 @@
 //(for analyses or debugging and tuning)
 #define RAW_URL "http://192.168.13.22:8080/raw"
 // #define RAW_URL "http://192.168.13.236:8080/raw"
-//max buffer size: ESP8266HTTPClient has small buffer sizes
-#define RAW_SIZE 2000
+//send batches of this many measurements (normally there are 10/s)
+#define RAW_COUNT 50
 
 
 // stop sending data after scale is idle this many mS
@@ -150,8 +150,9 @@ void setup() {
 }
 
 
-long count=1;
+long count=0;
 String measurements="[";
+
 
 void send()
 {
@@ -184,6 +185,8 @@ void send()
   }
   http.end();
   measurements="[";
+
+  count=0;
 
 }
 
@@ -243,7 +246,7 @@ void loop() {
 
     // collect measurement data
     measurements=measurements+line;
-    if (measurements.length()>=RAW_SIZE)
+    if (count>=RAW_COUNT)
     {
       send();
     }
