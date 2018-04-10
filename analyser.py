@@ -529,7 +529,18 @@ class Meowton:
                     cat['feed_portion_timestamp']=timestamp
                     self.feed()
                     log=log+("Feeding next portion ({} portions left)".format(cat['feed_quota']))
-                    self.annotation_event(timestamp, "Feeding ({} left)".format(cat['feed_quota']))
+                    # self.annotation_event(timestamp, "Feeding ({} left)".format(cat['feed_quota']))
+                    self.points_batch.append({
+                        "measurement": "food",
+                        "tags":{
+                            "cat": cat['name']
+                        },
+                        "time": timestamp,
+                        "fields":{
+                                    'amount': 1,
+                                }
+                    })
+
                 else:
                     log=log+("Next portion in {} seconds. ({} portions left)".format(cat['feed_delay']-last_feed_delta, cat['feed_quota']))
 
@@ -580,7 +591,7 @@ class Meowton:
 
     def analyse_all(self, reanalyse_days=None):
         '''analyse all existing measurements, in a resumable way.'''
-        analysed_measurement_names=["events", "weights", "cats", "cats_debug", "annotations",  "stable_count" ]
+        analysed_measurement_names=["events", "weights", "cats", "cats_debug", "annotations",  "stable_count", "food" ]
         if not self.db_timestamp:
             #drop and recalculate everything
             print("Deleting all analysed data")
