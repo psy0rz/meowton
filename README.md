@@ -11,6 +11,9 @@ goals of the project:
 
 # Examples
 
+Note: old graphs from before the feeder. Mogwai has been losing weight slowly but steady for the past 6 weeks. Its amazing how much weight he gained in a couple days of over feeding. It takes weeks to lose it.
+
+
 Example of graphs (Created with Grafana):
 
 ![global](https://github.com/psy0rz/meowton/blob/master/examples/Cat%200.png?raw=true)
