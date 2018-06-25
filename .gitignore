@@ -3,3 +3,4 @@
 .gcc-flags.json
 .piolibdeps
 data/wifi.txt
+__pycache__

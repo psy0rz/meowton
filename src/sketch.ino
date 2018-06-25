@@ -21,8 +21,13 @@
 #define IDLE_STOP 60000
 
 //amount of noise to ignore for idle detection
+#ifdef BOWL
+#define IDLE_NOISE 300
+int sensors=1;
+#else
+int sensors=4;
 #define IDLE_NOISE 10000
-
+#endif
 
 //dutycycle function to make stuff blink without using memory
 //returns true during 'on' ms, with total periode time 'total' ms.
@@ -133,20 +138,23 @@ void setup() {
     OTA_config();
 
     //actual meowton stuff
-
-
+    Serial.println("init sensors");
     scale[0]=new HX711(D6,D7);
-    scale[1]=new HX711(D4,D5);
-    scale[2]=new HX711(D2,D3);
-    scale[3]=new HX711(D0,D1);
+    if (sensors==4)
+    {
+      scale[1]=new HX711(D4,D5);
+      scale[2]=new HX711(D2,D3);
+      scale[3]=new HX711(D0,D1);
+    }
 
 
-    for (int s=0; s<4; s++)
+    for (int s=0; s<sensors; s++)
     {
         scale[s]->set_scale();
     }
 
     pinMode(D8,OUTPUT);
+    Serial.println("init done");
 }
 
 
@@ -204,9 +212,11 @@ void loop() {
     // line=line+"["+count;
     line=line+"[";
     long measurement=0;
-    for (int s=0; s<4; s++)
+    for (int s=0; s<sensors; s++)
     {
+        Serial.println("read start");
         long current=scale[s]->read();
+        Serial.println("read done");
         measurement=measurement+current;
         line=line+current+",";
     }
@@ -232,6 +242,9 @@ void loop() {
         {
             Serial.print("idle noise:");
             Serial.println(abs(idle_measurement-measurement));
+            Serial.print("idle time:");
+            Serial.println(millis()-idle_start_time);
+
 
         }
     }
