@@ -42,6 +42,7 @@ class Meowton:
         )
         self.scale['food'].stable_range=1
         self.scale['food'].stable_auto_tarre_max=1
+        self.scale['food'].stable_auto_tarre=400 #make sure nothing is happening. dont make longer then idle-timeout in actual scale.
 
 
         self.catalyser=Catalyser(callback=self.catalyser_event)
@@ -215,7 +216,7 @@ class Meowton:
 
             # feed next portion?
             if self.food_weight>1:
-                log=log="Not feeding,still food {}g food in bowl.".format(self.food_weight)
+                log=log+"Not feeding,still food {}g food in bowl.".format(self.food_weight)
             else:
                 if cat['feed_quota'] > 0:
                     last_feed_delta=int((timestamp-cat['feed_portion_timestamp'])/1000)
@@ -310,7 +311,8 @@ class Meowton:
         for result in self.client.query("select * from raw_sensors where time>"+str(self.db_timestamp*1000000), database="meowton", stream=True, chunked=True, chunk_size=10000, epoch='ms'):
             for point in result.get_points():
 
-                if 'scale' in point:
+
+                if 'scale' in point and point['scale']:
                     scale=point['scale']
                 else:
                     scale='cat'

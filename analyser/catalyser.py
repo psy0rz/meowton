@@ -16,7 +16,7 @@ class Catalyser():
         self.min_cat_weight=2000
 
         # if cat changes by this much while on scale, invalidate measurement
-        self.on_scale_max_change=100
+        # self.on_scale_max_change=100
 
         pass
 

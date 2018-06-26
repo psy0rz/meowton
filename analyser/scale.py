@@ -24,13 +24,12 @@ class Scale:
         self.stable_max_timegap=5000
         self.state['last_timestamp']=0
 
-        # number of measurement to allow scale sensors to recover before starting to average
-        # after a heavy weight is removed from a scale, it takes some times for the weight-modules to "bend back"
-        self.stable_skip_measurements=0
-
         # for how many measurements should the scale be in the stable_range to be considered stable?
         # at this point it will generate a measurement event by calling the callback
         self.stable_wait=25
+
+        #number of measurements to skip when a new stable period is just entered. this is because the scale is still drifting
+        self.stable_skip_measurements=10
 
         # number of measurements averaging after which to auto tarre
         self.stable_auto_tarre=100
