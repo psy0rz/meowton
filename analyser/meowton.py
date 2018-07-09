@@ -241,8 +241,8 @@ class Meowton:
                         log=log+("Next portion in {} seconds. ({} portions left)".format(cat['feed_delay']-last_feed_delta, cat['feed_quota']))
 
                 else:
-                    next_portion= int (cat['feed_rate'] - ((timestamp-cat['feed_portion_timestamp'])/(60*1000)))
-                    log=log+("Feed quota empty, next portion in {} minutes.".format(next_portion))
+                    next_portion= int (cat['feed_rate'] - ((timestamp-cat['feed_quota_timestamp'])/(60*1000)))
+                    log=log+("Feed quota empty, next quota point in {} minutes.".format(next_portion))
 
         print(log)
 
