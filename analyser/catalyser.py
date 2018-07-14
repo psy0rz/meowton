@@ -35,9 +35,8 @@ class Catalyser():
 
         best_match=None
         for cat in self.state['cats']:
-            #max differnce gram for now
             if abs(cat['weight']-weight)<500:
-                if not best_match or cat['count']>best_match['count']:
+                if not best_match or abs(cat['weight']-weight)<abs(best_match['weight']-weight):
                     best_match=cat
 
         if best_match:
@@ -47,16 +46,17 @@ class Catalyser():
 
             return(best_match)
 
-        if new:
-
-            #new cat
-            cat={
-                'weight': weight,
-                'name': "Cat "+str(len(self.state['cats'])),
-                'count': 0
-            }
-            self.state['cats'].append(cat)
-
-            return(cat)
-        else:
-            return(None)
+        return (None)
+        # if new:
+        #
+        #     #new cat
+        #     cat={
+        #         'weight': weight,
+        #         'name': "Cat "+str(len(self.state['cats'])),
+        #         'count': 0
+        #     }
+        #     self.state['cats'].append(cat)
+        #
+        #     return(cat)
+        # else:
+        #     return(None)

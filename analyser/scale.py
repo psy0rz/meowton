@@ -35,7 +35,7 @@ class Scale:
         self.stable_auto_tarre=100
 
         #max weight to tarre away (initial values will always be tarred)
-        self.stable_auto_tarre_max=1000
+        self.stable_auto_tarre_max=1500
 
         # #stable measurements and tarring only below this weight
 

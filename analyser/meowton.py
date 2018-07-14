@@ -48,9 +48,18 @@ class Meowton:
         self.catalyser=Catalyser(callback=self.catalyser_event)
 
         self.last_save=time.time()
-        self.db_timestamp=0
+        self.state={
+            'db_timestamp': 0,
+            #current food weight
+            'food_weight': 0,
+            #eaten food weight
+            'food_sum': 0,
+            'last_cat': None,
+        }
+
 
         self.load_state()
+
         #TODO: tarring away positive food-scale offsets is a problem, since we need to measure very small amounts
         self.scale['food'].tarre()
 
@@ -62,17 +71,19 @@ class Meowton:
         self.last_feed_time=0
 
         self.realtime=False
-        self.food_weight=0
+
+
+
 
 
     def save_state(self):
         '''save current state so we can resume later when new measurements have arrived'''
 
         state={
-            'scale_state'    : self.scale['cat'].state,
-            'food_scale_state'    : self.scale['food'].state,
-            'catalyser_state' : self.catalyser.state,
-            'db_timestamp'    : self.db_timestamp
+            'scale_state'       : self.scale['cat'].state,
+            'food_scale_state'  : self.scale['food'].state,
+            'catalyser_state'   : self.catalyser.state,
+            'meowton_state'     : self.state,
         }
 
         with open("analyser.yaml.tmp","w") as fh:
@@ -90,7 +101,7 @@ class Meowton:
                     self.scale['food'].state=state['food_scale_state']
 
                 self.catalyser.state=state['catalyser_state']
-                self.db_timestamp=state['db_timestamp']
+                self.state.update(state.get('meowton_state', {}))
 
     #
     # def annotation_event(self,timestamp,message):
@@ -141,6 +152,19 @@ class Meowton:
                         }
             })
 
+        #cat changed:
+        if self.state['last_cat']!=cat:
+            #there was a cat?
+            if self.state['last_cat']:
+                #then that one ate all the food
+                print("{} ate {}g".format(self.state['last_cat']['name'], self.state['food_sum']))
+            else:
+                print("food change without :{}g".format(self.state['food_sum']))
+
+            self.state['food_sum']=0
+            self.state['last_cat']=cat
+
+
 
 
     def food_measurement_event(self,timestamp, weight, new):
@@ -159,7 +183,13 @@ class Meowton:
             })
 
             print("Food weight changed: "+str(weight))
-            self.food_weight=weight
+
+            #sudden increase means there is new food in the bowl
+            diff=weight-self.state['food_weight']
+            if diff<=2:
+                self.state['food_sum']=self.state['food_sum']+diff
+
+            self.state['food_weight']=weight
 
 
     def feed(self):
@@ -173,78 +203,81 @@ class Meowton:
 
     def catalyser_event(self, timestamp, cat, weight):
         """cat weighing event detected (timestamp in mS)"""
-        log="[ {} ] {} detected at {} gram: ".format(time.ctime(timestamp/1000), cat['name'], int(weight))
 
-        self.points_batch.append({
-            "measurement": "cats",
-            "tags":{
-                "cat": cat['name']
-            },
-            "time": timestamp,
-            "fields":{
-                        'weight': weight,
-                    }
-        })
+        if cat:
 
+            log="[ {} ] {} detected at {} gram: ".format(time.ctime(timestamp/1000), cat['name'], int(weight))
 
-        # Autofeed this cat
-
-        # feed_rate: time (in minutes) between each quota-increase
-        # feed_delay: time (in seconds) between individual portions.
-        # feed_quota_max: maximum quota a cat can collect: we will never feed more than this amound of portions in one sessoin.
-
-        # As long as the cat is on the scale, and there is quota left, it will feed a portion every 'feed_delay' seconds.
+            self.points_batch.append({
+                "measurement": "cats",
+                "tags":{
+                    "cat": cat['name']
+                },
+                "time": timestamp,
+                "fields":{
+                            'weight': weight,
+                        }
+            })
 
 
-        if  'feed_rate' in cat:
+            # Autofeed this cat
 
-            # set defaults if we just enabled it, or went back in time
-            if not 'feed_quota_timestamp' in cat or cat['feed_quota_timestamp']>timestamp:
-                cat['feed_quota_timestamp']=timestamp
-                cat['feed_portion_timestamp']=timestamp
-                cat['feed_quota']=1
+            # feed_rate: time (in minutes) between each quota-increase
+            # feed_delay: time (in seconds) between individual portions.
+            # feed_quota_max: maximum quota a cat can collect: we will never feed more than this amound of portions in one sessoin.
 
-            # update food quota (in a way that prevents rounding errors)
-            quota_add=int((timestamp-cat['feed_quota_timestamp'])/(cat['feed_rate']*60*1000))
-            if quota_add:
-                cat['feed_quota']=cat['feed_quota'] + quota_add
-                # instead of using the current timestamp, we calculate the timestamp based on the rounded quota_add number
-                cat['feed_quota_timestamp']=cat['feed_quota_timestamp']+(quota_add * (cat['feed_rate']*60*1000))
-                if cat['feed_quota'] > cat['feed_max_quota']:
-                    cat['feed_quota']=cat['feed_max_quota']
+            # As long as the cat is on the scale, and there is quota left, it will feed a portion every 'feed_delay' seconds.
 
 
-            # feed next portion?
-            if self.food_weight>1:
-                log=log+"Not feeding,still food {}g food in bowl.".format(self.food_weight)
-            else:
-                if cat['feed_quota'] > 0:
-                    last_feed_delta=int((timestamp-cat['feed_portion_timestamp'])/1000)
-                    if last_feed_delta>= cat['feed_delay']:
-                        cat['feed_quota']=cat['feed_quota']-1
-                        cat['feed_portion_timestamp']=timestamp
-                        self.feed()
-                        log=log+("Feeding next portion ({} portions left)".format(cat['feed_quota']))
-                        # self.annotation_event(timestamp, "Feeding ({} left)".format(cat['feed_quota']))
-                        self.points_batch.append({
-                            "measurement": "food",
-                            "tags":{
-                                "cat": cat['name']
-                            },
-                            "time": timestamp,
-                            "fields":{
-                                        'amount': 1,
-                                    }
-                        })
+            if  'feed_rate' in cat:
+
+                # set defaults if we just enabled it, or went back in time
+                if not 'feed_quota_timestamp' in cat or cat['feed_quota_timestamp']>timestamp:
+                    cat['feed_quota_timestamp']=timestamp
+                    cat['feed_portion_timestamp']=timestamp
+                    cat['feed_quota']=1
+
+                # update food quota (in a way that prevents rounding errors)
+                quota_add=int((timestamp-cat['feed_quota_timestamp'])/(cat['feed_rate']*60*1000))
+                if quota_add:
+                    cat['feed_quota']=cat['feed_quota'] + quota_add
+                    # instead of using the current timestamp, we calculate the timestamp based on the rounded quota_add number
+                    cat['feed_quota_timestamp']=cat['feed_quota_timestamp']+(quota_add * (cat['feed_rate']*60*1000))
+                    if cat['feed_quota'] > cat['feed_max_quota']:
+                        cat['feed_quota']=cat['feed_max_quota']
+
+
+                # feed next portion?
+                if self.state['food_weight']>1:
+                    log=log+"Not feeding,still food {}g food in bowl.".format(self.state['food_weight'])
+                else:
+                    if cat['feed_quota'] > 0:
+                        last_feed_delta=int((timestamp-cat['feed_portion_timestamp'])/1000)
+                        if last_feed_delta>= cat['feed_delay']:
+                            cat['feed_quota']=cat['feed_quota']-1
+                            cat['feed_portion_timestamp']=timestamp
+                            self.feed()
+                            log=log+("Feeding next portion ({} portions left)".format(cat['feed_quota']))
+                            # self.annotation_event(timestamp, "Feeding ({} left)".format(cat['feed_quota']))
+                            self.points_batch.append({
+                                "measurement": "food",
+                                "tags":{
+                                    "cat": cat['name']
+                                },
+                                "time": timestamp,
+                                "fields":{
+                                            'amount': 1,
+                                        }
+                            })
+
+                        else:
+                            log=log+("Next portion in {} seconds. ({} portions left)".format(cat['feed_delay']-last_feed_delta, cat['feed_quota']))
 
                     else:
-                        log=log+("Next portion in {} seconds. ({} portions left)".format(cat['feed_delay']-last_feed_delta, cat['feed_quota']))
+                        next_portion= int (cat['feed_rate'] - ((timestamp-cat['feed_quota_timestamp'])/(60*1000)))
+                        log=log+("Feed quota empty, next quota point in {} minutes.".format(next_portion))
 
-                else:
-                    next_portion= int (cat['feed_rate'] - ((timestamp-cat['feed_quota_timestamp'])/(60*1000)))
-                    log=log+("Feed quota empty, next quota point in {} minutes.".format(next_portion))
-
-        print(log)
+            print(log)
 
     def housekeeping(self,force=False):
         """regular saves and batched writing"""
@@ -261,7 +294,7 @@ class Meowton:
     def analyse_measurement(self, timestamp, measurement, scale):
         '''analyse one measurement and store results (time in mS)'''
 
-        self.db_timestamp=timestamp
+        self.state['db_timestamp']=timestamp
 
         self.scale[scale].measurement(timestamp,measurement)
 
@@ -293,22 +326,22 @@ class Meowton:
     def analyse_all(self, reanalyse_days=None):
         '''analyse all existing measurements, in a resumable way.'''
         analysed_measurement_names=["events", "weights", "cats", "cats_debug", "annotations",  "stable_count", "food" ]
-        if not self.db_timestamp:
+        if not self.state['db_timestamp']:
             #drop and recalculate everything
             print("Deleting all analysed data")
             for analysed_measurement_name in analysed_measurement_names:
                 self.client.query("drop measurement {}".format(analysed_measurement_name))
 
-        if reanalyse_days!=None:
+        elif reanalyse_days!=None:
             print("Deleting last {} days of analysed data".format(reanalyse_days))
-            self.db_timestamp=int((time.time()-(reanalyse_days*24*3600))*1000) # mS
+            self.state['db_timestamp']=int((time.time()-(reanalyse_days*24*3600))*1000) # mS
             for analysed_measurement_name in analysed_measurement_names:
-                self.client.query("delete from  {} WHERE time > {}".format(analysed_measurement_name, self.db_timestamp*1000000), epoch="ms")
+                self.client.query("delete from  {} WHERE time > {}".format(analysed_measurement_name, self.state['db_timestamp']*1000000), epoch="ms")
 
 
-        print("Resuming from: ", time.ctime(self.db_timestamp/1000))
+        print("Resuming from: ", time.ctime(self.state['db_timestamp']/1000))
 
-        for result in self.client.query("select * from raw_sensors where time>"+str(self.db_timestamp*1000000), database="meowton", stream=True, chunked=True, chunk_size=10000, epoch='ms'):
+        for result in self.client.query("select * from raw_sensors where time>"+str(self.state['db_timestamp']*1000000), database="meowton", stream=True, chunked=True, chunk_size=10000, epoch='ms'):
             for point in result.get_points():
 
 
