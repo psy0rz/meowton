@@ -25,8 +25,8 @@ class Catalyser():
     def measurement_event(self, timestamp, weight):
         '''scale() detected a stable measurement. timestamp in ms, weight in grams. '''
         # cat on scale?
-        if weight>self.min_cat_weight:
-            self.callback(timestamp, self.find_cat(weight), weight)
+        # if weight>self.min_cat_weight:
+        self.callback(timestamp, self.find_cat(weight), weight)
 
 
 
@@ -35,7 +35,7 @@ class Catalyser():
 
         best_match=None
         for cat in self.state['cats']:
-            if abs(cat['weight']-weight)<500:
+            if abs(cat['weight']-weight)<800:
                 if not best_match or abs(cat['weight']-weight)<abs(best_match['weight']-weight):
                     best_match=cat
 
