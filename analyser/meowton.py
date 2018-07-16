@@ -56,6 +56,7 @@ class Meowton:
             #eaten food weight
             # 'food_sum': 0,
             'last_cat': None,
+            'food_unknown': 0
         }
 
 
@@ -178,7 +179,12 @@ class Meowton:
                 #no sudden increase, store diff as eaten food
 
                 if self.state['last_cat']:
-                    #update quota
+                    #some food aten by unknown cat?
+                    if self.state['food_unknown']:
+                        diff=diff+self.state['food_unknown']
+                        self.state['food_unknown']=0
+
+                    #substrace eaten food from quota
                     self.state['last_cat']['feed_quota']=self.state['last_cat']['feed_quota']-diff
 
                     #if someone feeds manual, make sure it doesnt go too low
@@ -196,10 +202,17 @@ class Meowton:
                                 }
                     })
 
+                    print("Food weight {:.2f}g ({} ate {:.2f}g)".format(weight, self.state['last_cat']['name'],diff))
+                else:
+                    self.state['food_unknown']=self.state['food_unknown']+diff
+                    print("Food weight {:.2f}g (unknown cat ate {:.2f}g)".format(weight, diff))
+
+            else:
+                print("Food weight {:.2f}g (changed {:.2f}g)".format(weight, diff))
+
 
             self.state['food_weight']=weight
 
-            print("Food weight {:.2f}g (ate {:.2f}g)".format(weight, diff))
 
 
     def feed(self):
@@ -279,6 +292,12 @@ class Meowton:
 
                 # update food quota
                 quota_add=(timestamp-cat['feed_quota_timestamp'])*cat['feed_daily']/(24*3600*1000)
+
+                #time travelled
+                if quota_add<0:
+                    quota_add=0
+
+
                 # print("timediff {}, quotadd {}".format(timestamp-cat['feed_quota_timestamp'],quota_add ))
                 cat['feed_quota']=cat['feed_quota'] + quota_add
                     # instead of using the current timestamp, we calculate the timestamp based on the rounded quota_add number
