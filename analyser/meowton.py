@@ -6,6 +6,7 @@ import os.path
 import time
 import re
 import re
+import threading
 
 from catalyser import Catalyser
 from scale import Scale
@@ -75,7 +76,25 @@ class Meowton:
         self.realtime=False
 
 
+        #periodic tasks
+        self.housekeeper()
 
+
+    def housekeeper(self):
+        '''runs every minute'''
+
+        #If all gets should have food, make sure there is some food in the bowl
+        #This prevents that the cat stays on the scale, hoping for food, and falls a sleep :)
+        if self.realtime:
+            timestamp=time.time()*1000
+            if self.should_feed_all(timestamp):
+                self.feed(timestamp)
+
+        #save unsaved stuff
+        self.flush()
+
+        #reschedule ourselfs
+        threading.Timer(60, self.housekeeper, ()).start()
 
 
     def save_state(self):
@@ -155,7 +174,6 @@ class Meowton:
             })
 
 
-
     def food_measurement_event(self,timestamp, weight, new):
         """stable food measurement detected"""
 
@@ -215,13 +233,94 @@ class Meowton:
 
 
 
-    def feed(self):
-        """dispend one portion of food"""
+    def feed(self, timestamp):
+        """dispense one portion of food"""
         if self.realtime:
+            print("FEEDING")
             try:
                 urllib.request.urlopen('http://192.168.13.58/control?cmd=feed,1')
             except Exception as e:
+                print("FEED url call failed?")
                 pass
+
+            self.last_feed_time=timestamp
+
+
+    #TODO: need to refactor catalyser and create an actual Cat class to handle this stuff
+    def update_quota(self, cat, timestamp):
+        '''increase feeding quota based on the time that has passed'''
+
+        if  'feed_daily' in cat:
+
+            # set defaults if we just enabled it, or went back in time
+            if not 'feed_quota_timestamp' in cat or cat['feed_quota_timestamp']>timestamp:
+                cat['feed_quota_timestamp']=timestamp
+                cat['feed_quota']=1
+
+            # update food quota
+            quota_add=(timestamp-cat['feed_quota_timestamp'])*cat['feed_daily']/(24*3600*1000)
+
+            #time travelled
+            if quota_add<0:
+                quota_add=0
+
+            # print("timediff {}, quotadd {}".format(timestamp-cat['feed_quota_timestamp'],quota_add ))
+            cat['feed_quota']=cat['feed_quota'] + quota_add
+            cat['feed_quota_timestamp']=timestamp
+            if cat['feed_quota'] > cat['feed_max_quota']:
+                cat['feed_quota']=cat['feed_max_quota']
+
+
+    def should_feed(self, cat, timestamp):
+        '''is it time to feed this cat'''
+
+        # feed:quota: current quota (when cat eats food it decreases. it increases with following parameters)
+        # feed_daily: amount of food per day in gram (portions will be divided over the whole day)
+        # feed_delay: time (in seconds) between individual portions from dispenser
+        # feed_quota_max: maximum quota a cat can collect: we will never feed more than this amound of portions in one sessoin.
+
+        # As long as the cat is on the scale, and there is quota left, it will feed a portion every 'feed_delay' seconds.
+
+        if  'feed_daily' in cat:
+            self.update_quota(cat, timestamp)
+
+            # feed next portion?
+            if self.state['food_weight']>1:
+                print("Still food in bowl. ({:0.2f}g quota left)".format(cat['feed_quota']))
+            else:
+                if cat['feed_quota'] > 0:
+                    last_feed_delta=int((timestamp-self.last_feed_time)/1000)
+                    if last_feed_delta>= cat['feed_delay']:
+                        print("May have next portion now. ({:0.2f}g left)".format(cat['feed_quota']))
+                        return(True)
+
+                    else:
+                        print("May have portion in {} seconds. ({:0.2f}g left)".format(cat['feed_delay']-last_feed_delta, cat['feed_quota']))
+
+                else:
+                    # next_portion= int (cat['feed_rate'] - ((timestamp-cat['feed_quota_timestamp'])/(60*1000)))
+                    print("Feed quota empty ({:0.2f}g)".format(cat['feed_quota']))
+
+
+        return(False)
+
+
+    def should_feed_all(self, timestamp):
+        '''is it time to feed all cats?'''
+
+
+        feed=None
+        for cat in self.catalyser.state['cats']:
+            if  'feed_daily' in cat:
+                print("Housekeeper checking {}".format(cat['name']))
+                if not self.should_feed(cat, timestamp):
+                    feed=False
+                else:
+                    #we need at least one cat that has feed_daily on
+                    if feed==None:
+                        feed=True
+
+        return feed
 
 
     def catalyser_event(self, timestamp, cat, weight):
@@ -271,74 +370,21 @@ class Meowton:
                         }
             })
 
+            if self.should_feed(cat, timestamp):
+                self.feed(timestamp)
 
-            # Autofeed this cat
-
-            # feed:quota: current quota (when cat eats food it decreases. it increases with following parameters)
-            # feed_daily: amount of food per day in gram (portions will be divided over the whole day)
-            # feed_delay: time (in seconds) between individual portions from dispenser
-            # feed_quota_max: maximum quota a cat can collect: we will never feed more than this amound of portions in one sessoin.
-
-            # As long as the cat is on the scale, and there is quota left, it will feed a portion every 'feed_delay' seconds.
-
-
-            if  'feed_daily' in cat:
-
-                # set defaults if we just enabled it, or went back in time
-                if not 'feed_quota_timestamp' in cat or cat['feed_quota_timestamp']>timestamp:
-                    cat['feed_quota_timestamp']=timestamp
-                    cat['feed_portion_timestamp']=timestamp
-                    cat['feed_quota']=1
-
-                # update food quota
-                quota_add=(timestamp-cat['feed_quota_timestamp'])*cat['feed_daily']/(24*3600*1000)
-
-                #time travelled
-                if quota_add<0:
-                    quota_add=0
-
-
-                # print("timediff {}, quotadd {}".format(timestamp-cat['feed_quota_timestamp'],quota_add ))
-                cat['feed_quota']=cat['feed_quota'] + quota_add
-                    # instead of using the current timestamp, we calculate the timestamp based on the rounded quota_add number
-                    # cat['feed_quota_timestamp']=cat['feed_quota_timestamp']+(quota_add * (cat['feed_rate']*60*1000))
-                cat['feed_quota_timestamp']=timestamp
-                if cat['feed_quota'] > cat['feed_max_quota']:
-                    cat['feed_quota']=cat['feed_max_quota']
-
-
-                # feed next portion?
-                if self.state['food_weight']>1:
-                    log=log+"Not feeding, still food in bowl. ({:0.2f}g quota left)".format(cat['feed_quota'])
-                else:
-                    if cat['feed_quota'] > 0:
-                        last_feed_delta=int((timestamp-cat['feed_portion_timestamp'])/1000)
-                        if last_feed_delta>= cat['feed_delay']:
-                            # cat['feed_quota']=cat['feed_quota']-1
-                            cat['feed_portion_timestamp']=timestamp
-                            self.feed()
-                            log=log+("Feeding next portion ({:0.2f}g left)".format(cat['feed_quota']))
-                            # self.annotation_event(timestamp, "Feeding ({} left)".format(cat['feed_quota']))
-
-                        else:
-                            log=log+("Next portion in {} seconds. ({:0.2f}g left)".format(cat['feed_delay']-last_feed_delta, cat['feed_quota']))
-
-                    else:
-                        # next_portion= int (cat['feed_rate'] - ((timestamp-cat['feed_quota_timestamp'])/(60*1000)))
-                        log=log+("Feed quota empty ({:0.2f}g)".format(cat['feed_quota']))
 
             print(log)
 
-    def housekeeping(self,force=False):
-        """regular saves and batched writing"""
+    def flush(self):
+        """saves writebatch and state"""
 
-        if force or len(self.points_batch)>10000:
-            if self.points_batch:
-                # print("Writing to influxdb, processed up to: ", time.ctime(self.db_timestamp/1000))
-                self.client.write_points(points=self.points_batch, time_precision="ms")
-                self.points_batch=[]
+        if self.points_batch:
+            # print("Writing to influxdb, processed up to: ", time.ctime(self.db_timestamp/1000))
+            self.client.write_points(points=self.points_batch, time_precision="ms")
+            self.points_batch=[]
 
-            self.save_state()
+        self.save_state()
 
 
     def analyse_measurement(self, timestamp, measurement, scale):
@@ -371,7 +417,6 @@ class Meowton:
                     }
         })
 
-        self.housekeeping()
 
     def analyse_all(self, reanalyse_days=None):
         '''analyse all existing measurements, in a resumable way.'''
@@ -418,7 +463,7 @@ class Meowton:
 
 
         #flush/save last stuff
-        self.housekeeping(force=True)
+        self.flush()
 
         print("Analyses complete, waiting for new measurement")
         self.realtime=True

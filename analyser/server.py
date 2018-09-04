@@ -7,11 +7,15 @@
 
 # import json
 
+
+
 import config
 import bottle
 import argparse
 import traceback
 import time
+
+
 
 from meowton import Meowton
 
@@ -82,7 +86,6 @@ def post_raw():
                     measurement_nr=measurement_nr+1
 
 
-            meowton.housekeeping(True)
 
 
 
