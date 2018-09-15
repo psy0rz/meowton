@@ -5,42 +5,63 @@ import machine
 import time
 import config
 
+led=machine.Pin(5,machine.Pin.OUT)
+
+### network stuff
 import network
 from network import WLAN
 wlan = WLAN(network.STA_IF) # get current object, without changing the mode
-
-# if machine.reset_cause() != machine.SOFT_RESET:
-# wlan.init(WLAN.STA)
 wlan.active(True)
-# configuration below MUST match your home router settings!!
 wlan.ifconfig(config.network)
-
-# if not wlan.isconnected():
-# change the line below to match your network ssid, security and password
 wlan.connect(config.wifi_essid, config.wifi_password)
 
+while not wlan.isconnected():
+    print("waiting for wifi..")
+    led.value(1)
+    time.sleep_ms(50)
+    led.value(0)
+    time.sleep_ms(50)
+print("BAM")
+network.telnet.start()
 
 
-# if machine.reset_cause() != machine.SOFT_RESET:
-# # if True:
-#     print("Configuring network")
-#     #connect wifi
-#     import network
-#     sta_if = network.WLAN(network.STA_IF)
-#     sta_if.ifconfig(config.network)
-#     sta_if.active(True)
-#     sta_if.connect(config.wifi_essid, config.wifi_password)
+### servo stuff
+servo = machine.PWM(machine.Pin(17), freq=50)
 
-#init servo
-servo = machine.PWM(machine.Pin(5), freq=50)
+left_duty=8.5
+middle_duty=7.5
+right_duty=6
+servo.duty(0)
 
-left_duty=50
-off_duty=77
-right_duty=84
-servo.duty(off_duty)
+def fade(pwm, start_duty, end_duty, fade_time):
+    '''pwm duty-cycle fader'''
+    start_time=time.time()
+    passed_time=0
+    while passed_time<fade_time:
+        value=start_duty + (end_duty-start_duty)*(passed_time/fade_time)
+        pwm.duty(value)
+        passed_time=time.time()-start_time;
+
+    pwm.duty(end_duty)
 
 
-#configure webhandlers
+def feed(amount):
+    #feed
+    fade(servo, middle_duty, right_duty, 0.2)
+    time.sleep(amount/1000)
+    fade(servo, right_duty, middle_duty, 0.2)
+
+
+    # ### retract
+    fade(servo, middle_duty, left_duty, 0.1)
+    fade(servo, left_duty, middle_duty, 0.1)
+
+    #disable
+    servo.duty(0)
+
+
+
+### webserver
 from microWebSrv import MicroWebSrv
 
 @MicroWebSrv.route('/feed/<amount>')
@@ -48,32 +69,12 @@ def handlerFeed(httpClient, httpResponse, routeArgs) :
     try:
         print("Handling feed request, amount=%s" % routeArgs['amount'])
 
-        ### feed
-        for duty in range(off_duty, left_duty,-1):
-            servo.duty(duty)
-            time.sleep_ms(20)
-
-        time.sleep_ms(int(routeArgs['amount']))
-
-        for duty in range(left_duty, off_duty,1):
-            servo.duty(duty)
-            time.sleep_ms(20)
-
-
-        ### retract
-        for duty in range(off_duty, right_duty,1):
-            servo.duty(duty)
-            time.sleep_ms(20)
-
-        for duty in range(right_duty, off_duty,-1):
-            servo.duty(duty)
-            time.sleep_ms(20)
-
+        feed(int(routeArgs['amount']))
 
     except Exception as e:
         print("FAILED: " + str(e))
 
-    servo.duty(off_duty)
+    servo.duty(0)
 
 # start webserver
 mws = MicroWebSrv() # TCP port 80 and files in /flash/www
