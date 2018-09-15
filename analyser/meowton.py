@@ -238,7 +238,8 @@ class Meowton:
         if self.realtime:
             print("FEEDING")
             try:
-                urllib.request.urlopen('http://192.168.13.58/control?cmd=feed,1')
+                # urllib.request.urlopen('http://192.168.13.58/control?cmd=feed,1')
+                urllib.request.urlopen('http://192.168.13.70/feed/500')
             except Exception as e:
                 print("FEED url call failed?")
                 pass
@@ -252,10 +253,23 @@ class Meowton:
 
         if  'feed_daily' in cat:
 
-            # set defaults if we just enabled it, or went back in time
-            if not 'feed_quota_timestamp' in cat or cat['feed_quota_timestamp']>timestamp:
+            # set defaults if we just enabled it
+            if not 'feed_quota_timestamp':
                 cat['feed_quota_timestamp']=timestamp
                 cat['feed_quota']=1
+                return
+
+
+            #time traveled into the past by more than an hour?
+            if timestamp-cat['feed_quota_timestamp']<-3600000:
+                #reset
+                cat['feed_quota_timestamp']=timestamp
+                return
+
+
+            #prevent rounding errors and issues with batch timestamp calulations that can be in the future
+            if timestamp-cat['feed_quota_timestamp']<60000:
+                return
 
             # update food quota
             quota_add=(timestamp-cat['feed_quota_timestamp'])*cat['feed_daily']/(24*3600*1000)
