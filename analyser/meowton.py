@@ -44,7 +44,7 @@ class Meowton:
         self.scale['food'].stable_range=1
         self.scale['food'].stable_auto_tarre_max=1
         self.scale['food'].stable_wait=10
-        self.scale['food'].stable_auto_tarre=400 #make sure nothing is happening. dont make longer then idle-timeout in actual scale.
+        self.scale['food'].stable_auto_tarre=300 #make sure nothing is happening. dont make longer then idle-timeout in actual scale.
 
 
         self.catalyser=Catalyser(callback=self.catalyser_event)
@@ -200,6 +200,7 @@ class Meowton:
                     #some food aten by unknown cat?
                     if self.state['food_unknown']:
                         diff=diff+self.state['food_unknown']
+                        print("Adding unkown food to cat, {:.2f}g".format(self.state['food_unknown']))
                         self.state['food_unknown']=0
 
                     #substrace eaten food from quota
@@ -223,7 +224,7 @@ class Meowton:
                     print("Food weight {:.2f}g ({} ate {:.2f}g)".format(weight, self.state['last_cat']['name'],diff))
                 else:
                     self.state['food_unknown']=self.state['food_unknown']+diff
-                    print("Food weight {:.2f}g (unknown cat ate {:.2f}g)".format(weight, diff))
+                    print("Food weight {:.2f}g (unknown cat totally at {:.2f}g)".format(weight, self.state['food_unknown']))
 
             else:
                 print("Food weight {:.2f}g (changed {:.2f}g)".format(weight, diff))
@@ -403,6 +404,12 @@ class Meowton:
 
     def analyse_measurement(self, timestamp, measurement, scale):
         '''analyse one measurement and store results (time in mS)'''
+
+        if scale=='cat':
+            #reset unknown food eaten if there was no activity for a while
+            if timestamp-self.scale[scale].state['last_timestamp']>60000:
+                print("Last activity long ago, resetting unknown food")
+                self.state['food_unknown']=0
 
         self.state['db_timestamp']=timestamp
 
