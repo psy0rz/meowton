@@ -11,7 +11,7 @@ DEFAULT_I2C_ADDR = 0x27
 # Defines shifts or masks for the various LCD line attached to the PCF8574
 
 MASK_RS = 0x01
-MASK_RW = 0x02
+MASK_RW = 0x02 
 MASK_E = 0x04
 SHIFT_BACKLIGHT = 3
 SHIFT_DATA = 4

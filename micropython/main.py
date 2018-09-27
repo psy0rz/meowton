@@ -1,9 +1,34 @@
 import machine
+import time
+import utime
+from hx711 import HX711
 
-# i = machine.I2C(0, sda=21, scl=22, freq=100000)
-# while True:
-#     print(i.scan())
+import scale
 
+def measurement(timestamp, weight, changed):
+    # print(weight, changed, s.offset(s.get_average()))
+    lcd.move_to(0,0)
+    lcd.putstr("%s   \n" % int(weight))
+    if changed:
+        lcd.putstr("*")
+    else:
+        lcd.putstr(" ")
+
+
+def cal():
+    s.calibrate_factors=s.offset(s.get_average())
+
+#44000 lijkt goede default
+s=scale.Scale(calibrate_weight=100, calibrate_factors=[47604], callback=measurement)
+s.stable_auto_tarre_max=10
+s.stable_wait=1
+s.stable_skip_measurements=1
+s.stable_range=5
+
+#hx
+hx=HX711(d_out=34, pd_sck=32)
+
+#lcd
 DEFAULT_I2C_ADDR = 0x27
 
 from machine import I2C, Pin
@@ -11,13 +36,29 @@ from esp8266_i2c_lcd import I2cLcd
 
 i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
 lcd = I2cLcd(i2c, DEFAULT_I2C_ADDR, 2, 16)
-lcd.putstr("It Works!\nSecond Line")
+
+import micropython
+
+prev=0
+def jannify(timer):
+    global prev
+    timestamp=int(time.time()*1000)
+    s.measurement(timestamp, [hx.read()])
+    prev=timestamp
+
+    micropython.schedule(jannify,None)
+
+# from machine import Timer
+# tim = Timer(1)
+# tim.init(period=100, mode=Timer.PERIODIC, callback=jannify)
+micropython.schedule(jannify,None)
 
 
-# from hx711 import HX711
-# driver=HX711(d_out=33, pd_sck=32)
+
+
+# i = machine.I2C(0, sda=21, scl=22, freq=100000)
 # while True:
-#     print(driver.read())
+#     print(i.scan())
 
 
 # #hackety hack..will rewrite later
