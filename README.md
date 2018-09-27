@@ -7,7 +7,7 @@ goals of the project:
 * Automaticly weigh a cat with high accuracy while its eating
 * Create graphs so you can see if your cat is getting heavier/lighter or becomes sick for example.
 * Track weight of multiple cats by recognizing them by weight.
-* Operate a cat feeder and making sure each cat get a certain amount of food per day. (Mogwai needs to loose weight)
+* Operate a cat feeder and making sure each cat get a certain amount of food per day. (Mogwai needs to lose weight)
 
 # Examples
 
