@@ -11,7 +11,7 @@ DEFAULT_I2C_ADDR = 0x27
 # Defines shifts or masks for the various LCD line attached to the PCF8574
 
 MASK_RS = 0x01
-MASK_RW = 0x02 
+MASK_RW = 0x02
 MASK_E = 0x04
 SHIFT_BACKLIGHT = 3
 SHIFT_DATA = 4
@@ -60,7 +60,7 @@ class I2cLcd(LcdApi):
 
     def hal_write_command(self, cmd):
         """Writes a command to the LCD.
-
+ 
         Data is latched on the falling edge of E.
         """
         byte = ((self.backlight << SHIFT_BACKLIGHT) | (((cmd >> 4) & 0x0f) << SHIFT_DATA))

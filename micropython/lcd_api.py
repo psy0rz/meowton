@@ -130,7 +130,7 @@ class LcdApi:
         if cursor_y & 2:
             addr += 0x14    # Lines 2 & 3 add 0x14
         self.hal_write_command(self.LCD_DDRAM | addr)
-
+ 
     def putchar(self, char):
         """Writes the indicated character to the LCD at the current cursor
         position, and advances the cursor by one position.

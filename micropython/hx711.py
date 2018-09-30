@@ -6,7 +6,7 @@ from micropython import const
 class HX711Exception(Exception):
     pass
 
-
+ 
 class InvalidMode(HX711Exception):
     pass
 
@@ -143,7 +143,7 @@ class HX711(object):
             self.pd_sck_pin.value(0)
             raw_data = raw_data << 1 | self.d_out_pin.value()
         self._set_channel()
- 
+
         if raw:
             return raw_data
         else:

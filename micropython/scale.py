@@ -6,12 +6,12 @@ class Scale:
     keeps state in self.state
     '''
 
-    def __init__(self, calibrate_weight, calibrate_factors, callback):
+    def __init__(self, calibrate_factors, callback):
 
         self.state={}
 
 
-        self.calibrate_weight=calibrate_weight
+        # self.calibrate_weight=calibrate_weight
         self.calibrate_factors=calibrate_factors
         self.callback=callback
         # self.annotation_callback=annotation_callback
@@ -162,7 +162,7 @@ class Scale:
         weight=0
         sensor_nr=0
         for sensor in sensors:
-            weight=weight+sensor*self.calibrate_weight/self.calibrate_factors[sensor_nr]
+            weight=weight+sensor*self.calibrate_factors[sensor_nr]
             sensor_nr=sensor_nr+1
 
         return(weight)
