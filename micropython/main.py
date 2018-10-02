@@ -20,18 +20,18 @@ def measurement(timestamp, weight, changed):
     lcd.putstr("%s   \n" % int(weight))
     if changed:
         lcd.putstr("*")
-        print(weight)
+        # print(weight)
 
         cals=8
-        if weight>20 and not s.state['no_tarre']:
+        if weight>20 and not s.state.no_tarre:
             if cal_count<cals:
                 raw=s.offset(s.get_average())
 
                 if weight<1000:
-                    print("Calibrate light {}".format(cal_count))
+                    # print("Calibrate light {}".format(cal_count))
                     raw.append(100) #light weight
                 else:
-                    print("Calibrate heavy {}".format(cal_count))
+                    # print("Calibrate heavy {}".format(cal_count))
                     raw.append(2988) #heavy weight
 
                 for i in range(4):
