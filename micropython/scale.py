@@ -83,7 +83,7 @@ class Scale:
         print("Added calibration {}".format(weight))
 
         # enough data?
-        if (len(self.state.calibrations)>self.sensor_count+1):
+        if (len(self.state.calibrations)>=self.sensor_count+1):
             #prepare matrix
             M = [ [0] * (self.sensor_count+1) for i in range(self.sensor_count) ]
 

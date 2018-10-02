@@ -6,13 +6,11 @@ import linear_least_squares
 import scale
 
 
-M = [ [0] * 5 for i in range(4) ]
-cal_count=0
 
+
+cals=[100, 146, 288 ]
 
 def measurement(timestamp, weight, changed):
-    global M
-    global cal_count
     global s
 
     # print(weight, changed, s.offset(s.get_average()))
@@ -23,30 +21,13 @@ def measurement(timestamp, weight, changed):
         # print(weight)
 
         # cals=8
-        if weight>80 and weight<120 and not s.state.no_tarre:
-            s.add_calibration(100)
-            # if cal_count<cals:
-            #     raw=s.offset(s.get_average())
-            #
-            #     if weight<1000:
-            #         # print("Calibrate light {}".format(cal_count))
-            #         raw.append(100) #light weight
-            #     else:
-            #         # print("Calibrate heavy {}".format(cal_count))
-            #         raw.append(2988) #heavy weight
-            #
-            #     for i in range(4):
-            #          linear_least_squares.vec_addsv( M[i], raw[i], raw )
-            #     cal_count=cal_count+1
-            # elif cal_count==cals:
-            #     print("CALC")
-            #     cal_count=cal_count+1
-            #     linear_least_squares.gaussian_elimination( M )
-            #     K = [ M[i][4] for i in range(4) ]
-            #     print(K)
-            #     print("CALIBRATED")
-
-
+        #calibration weight detected?
+        if not s.state.no_tarre:
+            for cal in cals:
+                diff=abs(weight-cal)
+                if diff< (cal*0.1):
+                    print("Call diff {}g".format(diff))
+                    s.add_calibration(cal)
 
     else:
         lcd.putstr(" ")
@@ -71,13 +52,14 @@ c=[0.0021941514217544, 0.00218897609921167, 0.0021661151841795, 0.00216198636842
 
 #light+heavy 8
 c=[0.00221163928750856, 0.00220575015516021, 0.00217667088292277, 0.00217572827244]
-#avg=0.002192447149507885
+avg=0.002192447149507885
+c=[avg] * 4
 
 s=scale.Scale(calibrate_factors=c  , callback=measurement)
 
-s.stable_auto_tarre_max=10
-s.stable_wait=1
-s.stable_skip_measurements=1
+s.stable_auto_tarre_max=20
+s.stable_wait=5
+s.stable_skip_measurements=5
 s.stable_range=10
 s.stable_auto_tarre=10
 
