@@ -1,5 +1,5 @@
 import state
-
+import linear_least_squares
 
 
 class Scale:
@@ -60,6 +60,8 @@ class Scale:
         #last sensor readings
         self.state.current=[]
 
+        self.state.calibrations=[]
+
     def __stable_reset(self, weight):
         self.state.stable_min=weight
         self.state.stable_max=weight
@@ -70,6 +72,32 @@ class Scale:
 
         for i in range(0, self.sensor_count):
             self.state.stable_totals.append(0)
+
+
+    def add_calibration(self,weight):
+        '''add current raw measurement to calbration data, with specified weight. will automaticly recalibreate if there is enough data'''
+
+        cal=self.offset(self.get_average())
+        cal.append(weight)
+        self.state.calibrations.append(cal)
+        print("Added calibration {}".format(weight))
+
+        # enough data?
+        if (len(self.state.calibrations)>self.sensor_count+1):
+            #prepare matrix
+            M = [ [0] * (self.sensor_count+1) for i in range(self.sensor_count) ]
+
+            #add all measurements
+            for cal in self.state.calibrations:
+                for i in range(self.sensor_count):
+                     linear_least_squares.vec_addsv( M[i], cal[i], cal )
+
+            #do some more zmatt magic
+            linear_least_squares.gaussian_elimination( M )
+
+            self.calibrate_factors = [ M[i][4] for i in range(4) ]
+            print("Recalibrated {}".format(self.calibrate_factors))
+
 
 
     def tarre(self):

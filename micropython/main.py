@@ -22,28 +22,29 @@ def measurement(timestamp, weight, changed):
         lcd.putstr("*")
         # print(weight)
 
-        cals=8
-        if weight>20 and not s.state.no_tarre:
-            if cal_count<cals:
-                raw=s.offset(s.get_average())
-
-                if weight<1000:
-                    # print("Calibrate light {}".format(cal_count))
-                    raw.append(100) #light weight
-                else:
-                    # print("Calibrate heavy {}".format(cal_count))
-                    raw.append(2988) #heavy weight
-
-                for i in range(4):
-                     linear_least_squares.vec_addsv( M[i], raw[i], raw )
-                cal_count=cal_count+1
-            elif cal_count==cals:
-                print("CALC")
-                cal_count=cal_count+1
-                linear_least_squares.gaussian_elimination( M )
-                K = [ M[i][4] for i in range(4) ]
-                print(K)
-                print("CALIBRATED")
+        # cals=8
+        if weight>80 and weight<120 and not s.state.no_tarre:
+            s.add_calibration(100)
+            # if cal_count<cals:
+            #     raw=s.offset(s.get_average())
+            #
+            #     if weight<1000:
+            #         # print("Calibrate light {}".format(cal_count))
+            #         raw.append(100) #light weight
+            #     else:
+            #         # print("Calibrate heavy {}".format(cal_count))
+            #         raw.append(2988) #heavy weight
+            #
+            #     for i in range(4):
+            #          linear_least_squares.vec_addsv( M[i], raw[i], raw )
+            #     cal_count=cal_count+1
+            # elif cal_count==cals:
+            #     print("CALC")
+            #     cal_count=cal_count+1
+            #     linear_least_squares.gaussian_elimination( M )
+            #     K = [ M[i][4] for i in range(4) ]
+            #     print(K)
+            #     print("CALIBRATED")
 
 
 
@@ -74,11 +75,11 @@ c=[0.00221163928750856, 0.00220575015516021, 0.00217667088292277, 0.002175728272
 
 s=scale.Scale(calibrate_factors=c  , callback=measurement)
 
-s.stable_auto_tarre_max=1000
+s.stable_auto_tarre_max=10
 s.stable_wait=1
 s.stable_skip_measurements=1
 s.stable_range=10
-s.stable_auto_tarre=100
+s.stable_auto_tarre=10
 
 #hx
 cells=[
