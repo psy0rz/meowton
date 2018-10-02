@@ -22,15 +22,22 @@ def measurement(timestamp, weight, changed):
         lcd.putstr("*")
         print(weight)
 
+        cals=8
         if weight>20 and not s.state['no_tarre']:
-            if cal_count<4:
-                print("Calibrate {}".format(cal_count))
+            if cal_count<cals:
                 raw=s.offset(s.get_average())
-                raw.append(2988) #calibrate weight
+
+                if weight<1000:
+                    print("Calibrate light {}".format(cal_count))
+                    raw.append(100) #light weight
+                else:
+                    print("Calibrate heavy {}".format(cal_count))
+                    raw.append(2988) #heavy weight
+
                 for i in range(4):
                      linear_least_squares.vec_addsv( M[i], raw[i], raw )
                 cal_count=cal_count+1
-            elif cal_count==4:
+            elif cal_count==cals:
                 print("CALC")
                 cal_count=cal_count+1
                 linear_least_squares.gaussian_elimination( M )
@@ -48,20 +55,30 @@ def cal():
     s.calibrate_factors=s.offset(s.get_average())
 
 #44000 lijkt goede default
-s=scale.Scale(calibrate_factors=
     # 4stuks
     # [0.0128931987830166, 0.000264813001603831, 0.00427765204759359, -0.001953125]
     # 5stuks 100g
     # [0.00214620581609728, 0.00208298308729234, 0.00208458315164178, 0.00207632560760407]
     #2988g
-    [0.00222479813131911, 0.00221998565648258, 0.00217477510101383, 0.00217539021034517]
+    # [0.00222479813131911, 0.00221998565648258, 0.00217477510101383, 0.00217539021034517]
+    # [0.00220972717648679, 0.0022622285441247, 0.00215095809341364, 0.00217704175238537],
+    # [0.00220906755943467, 0.00228430436231214, 0.002176687127307, 0.00217088009246745]
+    # [0.00219813777170196, 0.00228887881929506, 0.00217398195523495, 0.00217199745507122]
+c=[0.00221357925767506, 0.00220807260906328, 0.00217914086524251, 0.00217401971844616]
+#per stuk met 288
+c=[0.0021941514217544, 0.00218897609921167, 0.0021661151841795, 0.00216198636842856]
 
-    , callback=measurement)
-s.stable_auto_tarre_max=10
-s.stable_wait=10
-s.stable_skip_measurements=5
+#light+heavy 8
+c=[0.00221163928750856, 0.00220575015516021, 0.00217667088292277, 0.00217572827244]
+#avg=0.002192447149507885
+
+s=scale.Scale(calibrate_factors=c  , callback=measurement)
+
+s.stable_auto_tarre_max=1000
+s.stable_wait=1
+s.stable_skip_measurements=1
 s.stable_range=10
-s.stable_auto_tarre=30
+s.stable_auto_tarre=100
 
 #hx
 cells=[
