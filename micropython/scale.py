@@ -5,12 +5,27 @@ import linear_least_squares
 class Scale:
     '''to calculate weights from raw data and do stuff like auto tarring and averaging
 
-    generates events for every stable measurement via callback
+    Subclass this to actually do stuff (otherwise it will just print data)
 
     keeps state in self.state
     '''
 
-    def __init__(self, calibrate_factors, callback):
+    #subclass thesse event classes:
+
+    def event_stable(self, timestamp, weight):
+        """called once after scale has been stable according to specified stable_ parameters"""
+        print("Stable averaged weight: {}g".format(weight))
+
+    def event_realtime(self, timestamp, weight):
+        """called on every measurement with actual value (non averaged)"""
+        print("Weight: {}g".format(weight))
+
+    def event_unstable(self, timestamp):
+        """called once when scale leaves stable measurement"""
+        print("Unstable")
+
+
+    def __init__(self, calibrate_factors):
 
         self.state=state.State()
 
@@ -19,8 +34,6 @@ class Scale:
 
         # self.calibrate_weight=calibrate_weight
         self.calibrate_factors=calibrate_factors
-        self.callback=callback
-        # self.annotation_callback=annotation_callback
 
 
         # range in grams in which the scale should stay to be considered "stable"
@@ -31,7 +44,6 @@ class Scale:
         self.state.last_timestamp=0
 
         # for how many measurements should the scale be in the stable_range to be considered stable?
-        # at this point it will generate a measurement event by calling the callback
         self.stable_wait=25
 
         #number of measurements to skip when a new stable period is just entered. this is because the scale is still drifting
@@ -133,6 +145,7 @@ class Scale:
         #calculate weight,
         weight=self.calibrated_weight(self.offset(sensors))
 
+        self.event_realtime(timestamp, weight)
 
         # store stability statistics
 
@@ -152,6 +165,9 @@ class Scale:
         if (self.state.stable_max - self.state.stable_min) <= self.stable_range:
             self.state.stable_count=self.state.stable_count+1
         else:
+            #just became unstable?
+            if self.state.stable_count>0:
+                self.event_unstable(timestamp)
             self.__stable_reset(weight)
 
         # do averaging, but skip the first measurements because of scale drifting and recovery
@@ -176,7 +192,8 @@ class Scale:
 
         # generate measuring event, every stable_wait measurements
         if self.state.stable_totals_count>0 and self.state.stable_totals_count % self.stable_wait == 0:
-            self.callback(timestamp, self.calibrated_weight(self.offset(self.get_average())), self.state.stable_totals_count == self.stable_wait  )
+            if self.state.stable_totals_count == self.stable_wait:
+                self.event_stable(timestamp, self.calibrated_weight(self.offset(self.get_average())))
 
 
 

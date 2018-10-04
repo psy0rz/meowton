@@ -6,35 +6,54 @@ import linear_least_squares
 import scale
 
 
+class CatScale(scale.Scale):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def event_stable(self, timestamp, weight):
+        """called once after scale has been stable according to specified stable_ parameters"""
+        # print("Stable averaged weight: {}g".format(weight))
+
+        # print(weight, changed, s.offset(s.get_average()))
+        lcd.move_to(0,0)
+        lcd.putstr("%sg   \n" % int(weight))
+        # if changed:
+        #     lcd.putstr("*")
+        #     # print(weight)
+        #
+        #     # cals=8
+        #     #calibration weight detected?
+        #     if not s.state.no_tarre:
+        #         for cal in cals:
+        #             diff=abs(weight-cal)
+        #             if diff< (cal*0.1):
+        #                 print("Call diff {}g".format(diff))
+        #                 s.add_calibration(cal)
+        #
+        # else:
+        #     lcd.putstr(" ")
+
+
+    def event_realtime(self, timestamp, weight):
+        """called on every measurement with actual value (non averaged)"""
+        # print("Weight: {}g".format(weight))
+        lcd.move_to(0,1)
+        lcd.putstr("(%sg)    \n" % int(weight))
+
+    def event_unstable(self, timestamp):
+        """called once when scale leaves stable measurement"""
+        # print("Unstable")
+        lcd.move_to(0,0)
+        lcd.putstr("          \n")
+
 
 
 cals=[100, 146, 288 ]
 
-def measurement(timestamp, weight, changed):
-    global s
-
-    # print(weight, changed, s.offset(s.get_average()))
-    lcd.move_to(0,0)
-    lcd.putstr("%s   \n" % int(weight))
-    if changed:
-        lcd.putstr("*")
-        # print(weight)
-
-        # cals=8
-        #calibration weight detected?
-        if not s.state.no_tarre:
-            for cal in cals:
-                diff=abs(weight-cal)
-                if diff< (cal*0.1):
-                    print("Call diff {}g".format(diff))
-                    s.add_calibration(cal)
-
-    else:
-        lcd.putstr(" ")
 
 
-def cal():
-    s.calibrate_factors=s.offset(s.get_average())
+
 
 #44000 lijkt goede default
     # 4stuks
@@ -52,10 +71,10 @@ c=[0.0021941514217544, 0.00218897609921167, 0.0021661151841795, 0.00216198636842
 
 #light+heavy 8
 c=[0.00221163928750856, 0.00220575015516021, 0.00217667088292277, 0.00217572827244]
-avg=0.002192447149507885
-c=[avg] * 4
+# avg=0.002192447149507885
+# c=[avg] * 4
 
-s=scale.Scale(calibrate_factors=c  , callback=measurement)
+s=CatScale(calibrate_factors=c )
 
 s.stable_auto_tarre_max=20
 s.stable_wait=5
