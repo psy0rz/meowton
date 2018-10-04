@@ -2,6 +2,32 @@ import state
 import linear_least_squares
 
 
+"""
+(weight)   |*
+           | *
+           |__*__________________________
+           |  | **                       }
+           |  |   ***                    } stable_range
+           |  |      *****************   }
+           |__|__________________________}
+           |  |      |
+           |  |      |
+           |  |      |
+           |  |      v
+           |  |      stable_skip_measurements
+              v
+              (entered new stable range)
+
+            ------------------------
+
+
+    (measurement nr)
+
+
+
+"""
+
+
 class Scale:
     '''to calculate weights from raw data and do stuff like auto tarring and averaging
 

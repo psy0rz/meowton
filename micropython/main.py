@@ -75,6 +75,7 @@ c=[0.00221163928750856, 0.00220575015516021, 0.00217667088292277, 0.002175728272
 # c=[avg] * 4
 
 s=CatScale(calibrate_factors=c )
+s.state.load('s')
 
 s.stable_auto_tarre_max=20
 s.stable_wait=5

@@ -13,9 +13,11 @@ class State():
 
 
     def save(self, file_name):
-        with open('w',file_name) as fh:
+        with open(file_name,'w') as fh:
             json.dump(self.__dict__, fh)
 
     def load(self, file_name):
-        with open('r',file_name) as fh:
-            self.__dict__=json.load(fp)
+        with open(file_name,'r') as fh:
+            d=dict(json.load(fh))
+            for (key,value) in d.items():
+                setattr(self,key,value)
