@@ -193,7 +193,7 @@ class Meowton:
             diff=self.state['food_weight']-weight
 
             #filter sudden increases, which are caused by dispencing a food portion
-            if diff>-2:
+            if diff>-1:
                 #no sudden increase, store diff as eaten food
 
                 if self.state['last_cat']:
