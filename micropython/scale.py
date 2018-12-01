@@ -20,8 +20,7 @@ import linear_least_squares
 
             ------------------------
 
-
-    (measurement nr)
+            (measurement nr)
 
 
 
@@ -121,7 +120,7 @@ class Scale:
         print("Added calibration {}".format(weight))
 
         # enough data?
-        if (len(self.state.calibrations)>=self.sensor_count+1):
+        if (len(self.state.calibrations)>=self.sensor_count):
             #prepare matrix
             M = [ [0] * (self.sensor_count+1) for i in range(self.sensor_count) ]
 
@@ -133,7 +132,7 @@ class Scale:
             #do some more zmatt magic
             linear_least_squares.gaussian_elimination( M )
 
-            self.calibrate_factors = [ M[i][4] for i in range(4) ]
+            self.calibrate_factors = [ M[i][self.sensor_count] for i in range(self.sensor_count) ]
             print("Recalibrated {}".format(self.calibrate_factors))
 
 

@@ -6,10 +6,15 @@ import linear_least_squares
 import scale
 
 
-class CatScale(scale.Scale):
+class ScaleCat(scale.Scale):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.stable_auto_tarre_max=50
+        self.stable_wait=5
+        self.stable_skip_measurements=5
+        self.stable_range=10
+        self.stable_auto_tarre=50
 
     def event_stable(self, timestamp, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
@@ -26,11 +31,11 @@ class CatScale(scale.Scale):
         #         if diff< (cal*0.1):
         #             print("Call diff {}g".format(diff))
         #             s.add_calibration(cal)
-        if weight>10:
-            print("-----")
-            weights=self.calibrated_weights(self.offset(self.get_average()))
-            for w in weights:
-                print(int(w*100/weight))
+        # if weight>10:
+        #     print("-----")
+        #     weights=self.calibrated_weights(self.offset(self.get_average()))
+        #     for w in weights:
+        #         print(int(w*100/weight))
 
 
     def event_realtime(self, timestamp, weight):
@@ -46,13 +51,54 @@ class CatScale(scale.Scale):
         lcd.putstr("          \n")
 
 
+class ScaleFood(scale.Scale):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stable_auto_tarre_max=0.1
+        self.stable_wait=5
+        self.stable_skip_measurements=5
+        self.stable_range=1
+        self.stable_auto_tarre=50
+
+    def event_stable(self, timestamp, weight):
+        """called once after scale has been stable according to specified stable_ parameters"""
+        # print("Stable averaged weight: {}g".format(weight))
+
+        # print(weight, changed, s.offset(s.get_average()))
+        lcd.move_to(0,0)
+        lcd.putstr("{:0.1f}g   \n".format(weight))
+
+        #calibration weight detected?
+        # if not self.state.no_tarre:
+        #     for cal in cals:
+        #         diff=abs(weight-cal)
+        #         if diff< (cal*0.1):
+        #             print("Call diff {}g".format(diff))
+        #             s.add_calibration(cal)
+        # if weight>10:
+        #     print("-----")
+        #     weights=self.calibrated_weights(self.offset(self.get_average()))
+        #     for w in weights:
+        #         print(int(w*100/weight))
+
+
+    def event_realtime(self, timestamp, weight):
+        """called on every measurement with actual value (non averaged)"""
+        # print("Weight: {}g".format(weight))
+        lcd.move_to(0,1)
+        lcd.putstr("({:0.1f}g)    \n".format(weight))
+
+    def event_unstable(self, timestamp):
+        """called once when scale leaves stable measurement"""
+        # print("Unstable")
+        lcd.move_to(0,0)
+        lcd.putstr("          \n")
 
 cals=[200 ]
 
 
-
-
-
+#### cat scale init
 #44000 lijkt goede default
     # 4stuks
     # [0.0128931987830166, 0.000264813001603831, 0.00427765204759359, -0.001953125]
@@ -72,17 +118,13 @@ c=[0.00221163928750856, 0.00220575015516021, 0.00217667088292277, 0.002175728272
 # avg=0.002192447149507885
 # c=[avg] * 4
 
-s=CatScale(calibrate_factors=c )
-s.state.load('s')
+scale_cat=ScaleCat(calibrate_factors=c )
+try:
+    scale_cat.state.load("scale_cat.state")
+except Exception as e:
+    print("Error loading scale cat:"+str(e))
 
-s.stable_auto_tarre_max=50
-s.stable_wait=5
-s.stable_skip_measurements=5
-s.stable_range=10
-s.stable_auto_tarre=50
-
-#hx
-cells=[
+cells_cat=[
     HX711(d_out=34, pd_sck=32), #1
     HX711(d_out=25, pd_sck=33), #2
     HX711(d_out=27, pd_sck=26), #3
@@ -90,38 +132,67 @@ cells=[
 ]
 
 
-#lcd
-DEFAULT_I2C_ADDR = 0x27
+### food scale init
 
+cells_food=[ HX711(d_out=14, pd_sck=12) ]
+c=[0.00221163928750856]
+scale_food=ScaleFood(calibrate_factors=c )
+try:
+    scale_food.state.load("scale_food.state")
+except Exception as e:
+    print("Error loading scale food:"+str(e))
+
+
+#### lcd init
+DEFAULT_I2C_ADDR = 0x27
 from machine import I2C, Pin
 from esp8266_i2c_lcd import I2cLcd
-
 i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
 lcd = I2cLcd(i2c, DEFAULT_I2C_ADDR, 2, 16)
 
+
+
+
 import micropython
+
+def s():
+    """save"""
+    print("saving stuff")
+    scale_cat.state.save()
+    scale_food.state.save()
+
+def food_cal():
+    scale_food.state.calibrations=[]
+    scale_food.add_calibration(10)
+    print("Recalibrated food with 10g")
+    s()
 
 prev=0
 def loop(timer):
     global prev
     timestamp=int(time.time()*1000)
-    # s.measurement(timestamp, [hx.read()])
     prev=timestamp
-    s.measurement(timestamp,
-    [
-        cells[0].read(),
-        cells[1].read(),
-        cells[2].read(),
-        cells[3].read(),
 
+    # scale_cat.measurement(timestamp,
+    # [
+    #     cells_cat[0].read(),
+    #     cells_cat[1].read(),
+    #     cells_cat[2].read(),
+    #     cells_cat[3].read(),
+    #
+    # ])
+
+    scale_food.measurement(timestamp,
+    [
+        cells_food[0].read(),
     ])
 
 
     # print("{}\t{}\t{}\t{}".format(
-    #     cells[0].read(),
-    #     cells[1].read(),
-    #     cells[2].read(),
-    #     cells[3].read()
+    #     cells_cat[0].read(),
+    #     cells_cat[1].read(),
+    #     cells_cat[2].read(),
+    #     cells_cat[3].read()
     # ))
 
 
