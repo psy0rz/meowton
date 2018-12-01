@@ -234,12 +234,22 @@ class Scale:
         return(ret)
 
 
-    def calibrated_weight(self, sensors):
-        '''return calibrated weight value of specified raw sensor values (dont forget to offset first)'''
-        weight=0
+    def calibrated_weights(self, sensors):
+        '''return calibrated weight values of specified raw sensor values (dont forget to offset first)'''
+        weights=[]
         sensor_nr=0
         for sensor in sensors:
-            weight=weight+sensor*self.calibrate_factors[sensor_nr]
+            weights.append(sensor*self.calibrate_factors[sensor_nr])
             sensor_nr=sensor_nr+1
 
-        return(weight)
+        return(weights)
+
+
+    def calibrated_weight(self, sensors):
+        '''return total calibrated weight value of specified raw sensor values (dont forget to offset first)'''
+        weights=self.calibrated_weights(sensors)
+        total=0
+        for weight in weights:
+            total=total+weight
+
+        return(total)

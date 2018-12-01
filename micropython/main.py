@@ -17,29 +17,27 @@ class CatScale(scale.Scale):
 
         # print(weight, changed, s.offset(s.get_average()))
         lcd.move_to(0,0)
-        lcd.putstr("%sg   \n" % int(weight))
-        # if changed:
-        #     lcd.putstr("*")
-        #     # print(weight)
-        #
-        #     # cals=8
-        #     #calibration weight detected?
-        #     if not s.state.no_tarre:
-        #         for cal in cals:
-        #             diff=abs(weight-cal)
-        #             if diff< (cal*0.1):
-        #                 print("Call diff {}g".format(diff))
-        #                 s.add_calibration(cal)
-        #
-        # else:
-        #     lcd.putstr(" ")
+        lcd.putstr("{:0.1f}g   \n".format(weight))
+
+        #calibration weight detected?
+        # if not self.state.no_tarre:
+        #     for cal in cals:
+        #         diff=abs(weight-cal)
+        #         if diff< (cal*0.1):
+        #             print("Call diff {}g".format(diff))
+        #             s.add_calibration(cal)
+        if weight>10:
+            print("-----")
+            weights=self.calibrated_weights(self.offset(self.get_average()))
+            for w in weights:
+                print(int(w*100/weight))
 
 
     def event_realtime(self, timestamp, weight):
         """called on every measurement with actual value (non averaged)"""
         # print("Weight: {}g".format(weight))
         lcd.move_to(0,1)
-        lcd.putstr("(%sg)    \n" % int(weight))
+        lcd.putstr("({:0.1f}g)    \n".format(weight))
 
     def event_unstable(self, timestamp):
         """called once when scale leaves stable measurement"""
@@ -49,7 +47,7 @@ class CatScale(scale.Scale):
 
 
 
-cals=[100, 146, 288 ]
+cals=[200 ]
 
 
 
@@ -77,11 +75,11 @@ c=[0.00221163928750856, 0.00220575015516021, 0.00217667088292277, 0.002175728272
 s=CatScale(calibrate_factors=c )
 s.state.load('s')
 
-s.stable_auto_tarre_max=20
+s.stable_auto_tarre_max=50
 s.stable_wait=5
 s.stable_skip_measurements=5
 s.stable_range=10
-s.stable_auto_tarre=10
+s.stable_auto_tarre=50
 
 #hx
 cells=[
