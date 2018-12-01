@@ -58,7 +58,7 @@ class Scale:
 
 
         # self.calibrate_weight=calibrate_weight
-        self.calibrate_factors=calibrate_factors
+        self.state.calibrate_factors=calibrate_factors
 
 
         # range in grams in which the scale should stay to be considered "stable"
@@ -132,8 +132,8 @@ class Scale:
             #do some more zmatt magic
             linear_least_squares.gaussian_elimination( M )
 
-            self.calibrate_factors = [ M[i][self.sensor_count] for i in range(self.sensor_count) ]
-            print("Recalibrated {}".format(self.calibrate_factors))
+            self.state.calibrate_factors = [ M[i][self.sensor_count] for i in range(self.sensor_count) ]
+            # print("Recalibrated {}".format(self.state.calibrate_factors))
 
 
 
@@ -238,7 +238,7 @@ class Scale:
         weights=[]
         sensor_nr=0
         for sensor in sensors:
-            weights.append(sensor*self.calibrate_factors[sensor_nr])
+            weights.append(sensor*self.state.calibrate_factors[sensor_nr])
             sensor_nr=sensor_nr+1
 
         return(weights)

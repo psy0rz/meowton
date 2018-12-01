@@ -121,6 +121,7 @@ c=[0.00221163928750856, 0.00220575015516021, 0.00217667088292277, 0.002175728272
 scale_cat=ScaleCat(calibrate_factors=c )
 try:
     scale_cat.state.load("scale_cat.state")
+    print("Loaded scale cat")
 except Exception as e:
     print("Error loading scale cat:"+str(e))
 
@@ -139,6 +140,7 @@ c=[0.00221163928750856]
 scale_food=ScaleFood(calibrate_factors=c )
 try:
     scale_food.state.load("scale_food.state")
+    print("Loaded scale food")
 except Exception as e:
     print("Error loading scale food:"+str(e))
 
