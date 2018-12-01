@@ -208,7 +208,7 @@ class Scale:
         # do auto tarring:
         # only under a certain weight and for a long stability period, or if its the first time do it quickly to get started
         if (
-            (weight<=self.stable_auto_tarre_max and (self.state.stable_totals_count == self.stable_auto_tarre)) or
+            (abs(weight)<=self.stable_auto_tarre_max and (self.state.stable_totals_count == self.stable_auto_tarre)) or
             (self.state.no_tarre and self.state.stable_totals_count == 10)
         ):
             # print("TARRE")

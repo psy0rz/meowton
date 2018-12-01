@@ -56,9 +56,9 @@ class ScaleFood(scale.Scale):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stable_auto_tarre_max=0.1
-        self.stable_wait=5
-        self.stable_skip_measurements=5
-        self.stable_range=1
+        self.stable_wait=2
+        self.stable_skip_measurements=2
+        self.stable_range=0.1
         self.stable_auto_tarre=50
 
     def event_stable(self, timestamp, weight):
@@ -67,7 +67,7 @@ class ScaleFood(scale.Scale):
 
         # print(weight, changed, s.offset(s.get_average()))
         lcd.move_to(0,0)
-        lcd.putstr("{:0.1f}g   \n".format(weight))
+        lcd.putstr("{:0.2f}g   \n".format(weight))
 
         #calibration weight detected?
         # if not self.state.no_tarre:
@@ -87,7 +87,7 @@ class ScaleFood(scale.Scale):
         """called on every measurement with actual value (non averaged)"""
         # print("Weight: {}g".format(weight))
         lcd.move_to(0,1)
-        lcd.putstr("({:0.1f}g)    \n".format(weight))
+        lcd.putstr("({:0.3f}g)    \n".format(weight))
 
     def event_unstable(self, timestamp):
         """called once when scale leaves stable measurement"""
@@ -136,7 +136,7 @@ cells_cat=[
 ### food scale init
 
 cells_food=[ HX711(d_out=14, pd_sck=12) ]
-c=[0.00221163928750856]
+c=[7.61904761904762e-05]
 scale_food=ScaleFood(calibrate_factors=c )
 try:
     scale_food.state.load("scale_food.state")
