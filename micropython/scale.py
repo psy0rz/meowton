@@ -40,6 +40,7 @@ class Scale:
     def event_stable(self, timestamp, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
         print("Stable averaged weight: {}g".format(weight))
+        self.debug()
 
     def event_realtime(self, timestamp, weight):
         """called on every measurement with actual value (non averaged)"""
@@ -105,6 +106,7 @@ class Scale:
         self.state.stable_count=0
         self.state.stable_totals=[]
         self.state.stable_totals_count=0
+        self.debug=[]
 
 
         for i in range(0, self.sensor_count):
@@ -195,6 +197,10 @@ class Scale:
                 self.event_unstable(timestamp)
             self.__stable_reset(weight)
 
+        #debug: store the measurements that happend between unstable and stable
+        if self.state.stable_totals_count <= self.stable_measurements:
+            self.debug.append(weight)
+
         # do averaging, but skip the first measurements because of scale drifting and recovery
         # note that we average the raw data for better accuracy
         if self.state.stable_count>=self.stable_skip_measurements:
@@ -217,7 +223,9 @@ class Scale:
 
         # generate measuring event
         if self.state.stable_totals_count == self.stable_measurements:
-            self.event_stable(timestamp, self.calibrated_weight(self.offset(self.get_average())))
+            average_weight=self.calibrated_weight(self.offset(self.get_average()))
+            self.debug.append(average_weight)
+            self.event_stable(timestamp, average_weight)
 
 
 
@@ -251,3 +259,10 @@ class Scale:
             total=total+weight
 
         return(total)
+
+    def print_debug(self):
+        weight=self.debug.pop()
+        s="Measured {:0.2f}g: ".format(weight)
+        for m in self.debug:
+            s=s+"{:0.2f}g ".format(m-weight)
+        print(s)
