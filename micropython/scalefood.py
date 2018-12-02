@@ -1,4 +1,5 @@
 import scale
+#we want to keep this class independent of IO and display, so we can use it for simulations as well
 
 class ScaleFood(scale.Scale):
 
@@ -43,7 +44,6 @@ class ScaleFood(scale.Scale):
         #     weights=self.calibrated_weights(self.offset(self.get_average()))
         #     for w in weights:
         #         print(int(w*100/weight))
-
 
     def event_realtime(self, timestamp, weight):
         """called on every measurement with actual value (non averaged)"""

@@ -1,5 +1,7 @@
 import scale
 
+#we want to keep this class independent of IO and display, so we can use it for simulations as well
+
 class ScaleCat(scale.Scale):
 
     def __init__(self):
@@ -27,9 +29,9 @@ class ScaleCat(scale.Scale):
         # print("Stable averaged weight: {}g".format(weight))
 
         # print(weight, changed, s.offset(s.get_average()))
-        lcd.move_to(0,0)
-        lcd.putstr("{:0.1f}g   \n".format(weight))
-
+        # lcd.move_to(0,0)
+        # lcd.putstr("{:0.1f}g   \n".format(weight))
+        pass
         #calibration weight detected?
         # if not self.state.no_tarre:
         #     for cal in cals:
@@ -47,11 +49,14 @@ class ScaleCat(scale.Scale):
     def event_realtime(self, timestamp, weight):
         """called on every measurement with actual value (non averaged)"""
         # print("Weight: {}g".format(weight))
-        lcd.move_to(0,1)
-        lcd.putstr("({:0.1f}g)    \n".format(weight))
+        # lcd.move_to(0,1)
+        # lcd.putstr("({:0.1f}g)    \n".format(weight))
+        pass
+
 
     def event_unstable(self, timestamp):
         """called once when scale leaves stable measurement"""
         # print("Unstable")
-        lcd.move_to(0,0)
-        lcd.putstr("          \n")
+        # lcd.move_to(0,0)
+        # lcd.putstr("          \n")
+        pass

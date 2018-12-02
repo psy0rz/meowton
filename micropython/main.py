@@ -17,6 +17,10 @@ display=displayio.DisplayIO()
 
 import micropython
 
+def clear():
+     os.remove("scale_food.state")
+     os.remove("scale_cat.state")
+
 def s():
     """save"""
     print("saving stuff")
@@ -36,7 +40,10 @@ def loop(timer):
     prev=timestamp
 
     scale_food.measurement(timestamp, scale_io.read_food())
+    scale_cat.measurement(timestamp, scale_io.read_cat())
 
+    display.cat_weight(scale_cat.state.last_stable_weight, scale_cat.state.stable)
+    display.food_weight(scale_food.state.last_stable_weight, scale_food.state.stable)
 
     micropython.schedule(loop,None)
 

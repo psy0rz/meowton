@@ -86,8 +86,12 @@ class Scale:
 
         self.sensor_count=len(calibrate_factors)
 
-        self.__stable_reset(0)
+        #may also be used as API to get lastet weights/status:
+        self.state.last_stable_weight=0
+        self.state.last_realtime_weight=0
+        self.state.stable=False
 
+        self.__stable_reset(0,0)
 
         #tarre offsets
         self.state.no_tarre=True
@@ -98,15 +102,23 @@ class Scale:
         #last sensor readings
         self.state.current=[]
 
+        #calibration measurements (you can add more on the fly)
         self.state.calibrations=[]
 
-    def __stable_reset(self, weight):
+
+
+    def __stable_reset(self, weight, timestamp):
         self.state.stable_min=weight
         self.state.stable_max=weight
         self.state.stable_count=0
         self.state.stable_totals=[]
         self.state.stable_totals_count=0
         self.debug=[]
+
+        if self.state.stable:
+            self.event_unstable(timestamp)
+
+        self.state.stable=False
 
 
         for i in range(0, self.sensor_count):
@@ -139,9 +151,9 @@ class Scale:
 
 
 
-    def tarre(self):
+    def tarre(self, timestamp):
         '''re-tarre scale as soon as possible (takes 10 measurements)'''
-        self.__stable_reset(0)
+        self.__stable_reset(0, timestamp)
         self.state.no_tarre=True
 
     def get_average(self):
@@ -172,13 +184,15 @@ class Scale:
         #calculate weight,
         weight=self.calibrated_weight(self.offset(sensors))
 
+        self.state.last_realtime_weight=weight
         self.event_realtime(timestamp, weight)
+
 
         # store stability statistics
 
         # reset stable measurement if there is a too big timegap
         if timestamp-self.state.last_timestamp>self.stable_max_timegap:
-            self.__stable_reset(weight)
+            self.__stable_reset(weight, timestamp)
         self.state.last_timestamp=timestamp
 
         # keep min/max values
@@ -192,10 +206,7 @@ class Scale:
         if (self.state.stable_max - self.state.stable_min) <= self.stable_range:
             self.state.stable_count=self.state.stable_count+1
         else:
-            #just became unstable?
-            if self.state.stable_count>0:
-                self.event_unstable(timestamp)
-            self.__stable_reset(weight)
+            self.__stable_reset(weight, timestamp)
 
         #debug: store the measurements that happend between unstable and stable
         if self.state.stable_totals_count <= self.stable_measurements:
@@ -225,7 +236,9 @@ class Scale:
         if self.state.stable_totals_count == self.stable_measurements:
             average_weight=self.calibrated_weight(self.offset(self.get_average()))
             self.debug.append(average_weight)
+            self.state.last_stable_weight=average_weight
             self.event_stable(timestamp, average_weight)
+            self.state.stable=True
 
 
 
