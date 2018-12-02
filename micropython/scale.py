@@ -12,7 +12,7 @@ import linear_least_squares
            |__|__________________________}
            |  |      |      |
            |  |      |      v
-           |  |      |      stable_wait
+           |  |      |      stable_measurements
            |  |      v
            |  |      stable_skip_measurements
               v
@@ -69,7 +69,7 @@ class Scale:
         self.state.last_timestamp=0
 
         # for how many measurements should the scale be in the stable_range to be considered stable?
-        self.stable_wait=25
+        self.stable_measurements=25
 
         #number of measurements to skip when a new stable period is just entered. this is because the scale is still drifting
         self.stable_skip_measurements=10
@@ -216,7 +216,7 @@ class Scale:
             self.state.no_tarre=False
 
         # generate measuring event
-        if self.state.stable_totals_count == self.stable_wait:
+        if self.state.stable_totals_count == self.stable_measurements:
             self.event_stable(timestamp, self.calibrated_weight(self.offset(self.get_average())))
 
 

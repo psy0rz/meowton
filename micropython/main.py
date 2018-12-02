@@ -11,7 +11,7 @@ class ScaleCat(scale.Scale):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stable_auto_tarre_max=50
-        self.stable_wait=5
+        self.stable_measurements=5
         self.stable_skip_measurements=5
         self.stable_range=10
         self.stable_auto_tarre=50
@@ -56,7 +56,7 @@ class ScaleFood(scale.Scale):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stable_auto_tarre_max=0.3
-        self.stable_wait=2
+        self.stable_measurements=2
         self.stable_skip_measurements=10
         self.stable_range=0.1
         self.stable_auto_tarre=600
