@@ -55,11 +55,11 @@ class ScaleFood(scale.Scale):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.stable_auto_tarre_max=0.1
+        self.stable_auto_tarre_max=0.3
         self.stable_wait=2
-        self.stable_skip_measurements=2
+        self.stable_skip_measurements=10
         self.stable_range=0.1
-        self.stable_auto_tarre=50
+        self.stable_auto_tarre=600
 
     def event_stable(self, timestamp, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
@@ -183,6 +183,12 @@ def loop(timer):
     #     cells_cat[3].read(),
     #
     # ])
+
+
+    cells_cat[0].read()
+    cells_cat[1].read()
+    cells_cat[2].read()
+    cells_cat[3].read()
 
     scale_food.measurement(timestamp,
     [

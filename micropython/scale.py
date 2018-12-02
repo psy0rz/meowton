@@ -8,11 +8,11 @@ import linear_least_squares
            |__*__________________________
            |  | **                       }
            |  |   ***                    } stable_range
-           |  |      *****************   }
+           |  |      *#######*********   }
            |__|__________________________}
-           |  |      |
-           |  |      |
-           |  |      |
+           |  |      |      |
+           |  |      |      v
+           |  |      |      stable_wait
            |  |      v
            |  |      stable_skip_measurements
               v
@@ -215,10 +215,9 @@ class Scale:
             self.state.offsets=self.get_average()
             self.state.no_tarre=False
 
-        # generate measuring event, every stable_wait measurements
-        if self.state.stable_totals_count>0 and self.state.stable_totals_count % self.stable_wait == 0:
-            if self.state.stable_totals_count == self.stable_wait:
-                self.event_stable(timestamp, self.calibrated_weight(self.offset(self.get_average())))
+        # generate measuring event
+        if self.state.stable_totals_count == self.stable_wait:
+            self.event_stable(timestamp, self.calibrated_weight(self.offset(self.get_average())))
 
 
 
