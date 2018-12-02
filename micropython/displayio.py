@@ -8,11 +8,13 @@ class DisplayIO():
         DEFAULT_I2C_ADDR = 0x27
         self.i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
 
+        self.cols=16
+        self.rows=4
         # 2x16
         # self.lcd = I2cLcd(self.i2c, DEFAULT_I2C_ADDR, 2, 16)
 
         # 4x16
-        self.lcd = I2cLcd(self.i2c, DEFAULT_I2C_ADDR, 4, 16)
+        self.lcd = I2cLcd(self.i2c, DEFAULT_I2C_ADDR, self.rows, self.cols)
 
 
     def cat_weight(self, weight):
@@ -33,3 +35,7 @@ class DisplayIO():
     def food_weight_unstable(self):
         self.lcd.move_to(0,1)
         self.lcd.putstr("*")
+
+    def msg(self, txt):
+        self.lcd.move_to(0,3)
+        self.lcd.putstr(txt+"  ")

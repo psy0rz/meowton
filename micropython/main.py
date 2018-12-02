@@ -27,11 +27,17 @@ def s():
     scale_cat.state.save()
     scale_food.state.save()
 
-def food_cal():
-    scale_food.state.calibrations=[]
-    scale_food.add_calibration(10)
-    print("Recalibrated food with 10g")
-    s()
+# def food_cal():
+#     scale_food.state.calibrations=[]
+#     scale_food.add_calibration(10)
+#     print("Recalibrated food with 10g")
+#     s()
+#
+#
+
+def c():
+    scale_cat.recalibrate()
+
 
 prev=0
 def loop(timer):

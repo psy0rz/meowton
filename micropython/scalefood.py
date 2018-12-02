@@ -14,7 +14,7 @@ class ScaleFood(scale.Scale):
         self.stable_auto_tarre_max=0.3
         self.stable_measurements=3
         self.stable_skip_measurements=3
-        self.stable_range=0.5
+        self.stable_range=0.1
         self.stable_auto_tarre=600
 
         try:
