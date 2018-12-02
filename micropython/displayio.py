@@ -15,18 +15,21 @@ class DisplayIO():
         self.lcd = I2cLcd(self.i2c, DEFAULT_I2C_ADDR, 4, 16)
 
 
-    def cat_weight(self, weight, stable):
+    def cat_weight(self, weight):
         self.lcd.move_to(0,0)
-        s="Scale: {:0.0f}g ".format(weight)
-        if not stable:
-            s=s+"*"
-        s=s+"     "
+        s="  Scale: {:0.0f}g    ".format(weight)
         self.lcd.putstr(s)
 
-    def food_weight(self, weight, stable):
+    def cat_weight_unstable(self):
+        self.lcd.move_to(0,0)
+        self.lcd.putstr("*")
+
+
+    def food_weight(self, weight):
         self.lcd.move_to(0,1)
-        s="Food : {:0.2f}g ".format(weight)
-        if not stable:
-            s=s+"*"
-        s=s+"     "
+        s="  Food : {:0.2f}g    ".format(weight)
         self.lcd.putstr(s)
+
+    def food_weight_unstable(self):
+        self.lcd.move_to(0,1)
+        self.lcd.putstr("*")

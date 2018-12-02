@@ -3,7 +3,9 @@ import scale
 
 class ScaleFood(scale.Scale):
 
-    def __init__(self):
+    def __init__(self, display=None):
+
+        self.display=display
 
         #init with course default calibration
         c=[7.61904761904762e-05]
@@ -31,7 +33,11 @@ class ScaleFood(scale.Scale):
         # lcd.move_to(0,0)
         # lcd.putstr("{:0.2f}g   \n".format(weight))
 
-        self.print_debug()
+        # self.print_debug()
+        if self.display:
+            self.display.food_weight(weight)
+
+        pass
         #calibration weight detected?
         # if not self.state.no_tarre:
         #     for cal in cals:
@@ -57,4 +63,6 @@ class ScaleFood(scale.Scale):
         # print("Unstable")
         # lcd.move_to(0,0)
         # lcd.putstr("          \n")
+        if self.display:
+            self.display.food_weight_unstable()
         pass

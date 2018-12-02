@@ -7,10 +7,10 @@ import scaleio
 import displayio
 
 ### init
-scale_cat=scalecat.ScaleCat()
-scale_food=scalefood.ScaleFood()
-scale_io=scaleio.ScaleIO()
 display=displayio.DisplayIO()
+scale_cat=scalecat.ScaleCat(display)
+scale_food=scalefood.ScaleFood(display)
+scale_io=scaleio.ScaleIO()
 
 
 
@@ -42,8 +42,6 @@ def loop(timer):
     scale_food.measurement(timestamp, scale_io.read_food())
     scale_cat.measurement(timestamp, scale_io.read_cat())
 
-    display.cat_weight(scale_cat.state.last_stable_weight, scale_cat.state.stable)
-    display.food_weight(scale_food.state.last_stable_weight, scale_food.state.stable)
 
     micropython.schedule(loop,None)
 

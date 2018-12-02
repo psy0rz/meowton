@@ -4,18 +4,20 @@ import scale
 
 class ScaleCat(scale.Scale):
 
-    def __init__(self):
+    def __init__(self, display=None):
+
+        self.display=display
 
         #init with default course calibration
         avg=0.002192447149507885
         c=[avg] * 4
         super().__init__(calibrate_factors=c)
 
-        self.stable_auto_tarre_max=50
-        self.stable_measurements=5
-        self.stable_skip_measurements=5
-        self.stable_range=10
-        self.stable_auto_tarre=50
+        self.stable_auto_tarre_max=1000
+        self.stable_measurements=25
+        self.stable_skip_measurements=10
+        self.stable_range=50
+        self.stable_auto_tarre=100
 
         try:
             scale_cat.state.load("scale_cat.state")
@@ -31,6 +33,10 @@ class ScaleCat(scale.Scale):
         # print(weight, changed, s.offset(s.get_average()))
         # lcd.move_to(0,0)
         # lcd.putstr("{:0.1f}g   \n".format(weight))
+        if self.display:
+            self.display.cat_weight(weight)
+
+        self.print_debug()
         pass
         #calibration weight detected?
         # if not self.state.no_tarre:
@@ -59,4 +65,6 @@ class ScaleCat(scale.Scale):
         # print("Unstable")
         # lcd.move_to(0,0)
         # lcd.putstr("          \n")
+        if self.display:
+            self.display.cat_weight_unstable()
         pass
