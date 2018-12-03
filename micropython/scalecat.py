@@ -28,10 +28,11 @@ class ScaleCat(scale.Scale):
         self.stable_range=10
 
         try:
-            scale_cat.state.load("scale_cat.state")
+            self.state.load("scale_cat.state")
             print("Loaded scale cat")
         except Exception as e:
             print("Error loading scale cat:"+str(e))
+            self.recalibrate()
 
 
     def event_stable(self, timestamp, weight):
@@ -98,7 +99,7 @@ class ScaleCat(scale.Scale):
         c=[self.default_factor] * 4
         self.state.calibrate_factors=c
         self.tarre(0)
-        self.display.msg("Place {}g ".format(self.calibrate_weight))
+        self.display.msg("Cal. place {}g ".format(self.calibrate_weight))
 
 
 

@@ -18,6 +18,7 @@ scale_io=scaleio.ScaleIO()
 import micropython
 
 def clear():
+     import os
      os.remove("scale_food.state")
      os.remove("scale_cat.state")
 
@@ -35,8 +36,8 @@ def s():
 #
 #
 
-def c():
-    scale_cat.recalibrate()
+# def c():
+#     scale_cat.recalibrate()
 
 
 prev=0

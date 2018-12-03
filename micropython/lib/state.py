@@ -2,7 +2,7 @@ import json
 
 class State():
     def __init__(self):
-        self._file_name=None
+        self._file_name=""
         pass
 
 
@@ -29,3 +29,5 @@ class State():
             d=dict(json.load(fh))
             for (key,value) in d.items():
                 setattr(self,key,value)
+
+        self._file_name=file_name
