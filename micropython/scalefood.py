@@ -11,7 +11,7 @@ class ScaleFood(scale.Scale):
         c=[7.61904761904762e-05]
         super().__init__(calibrate_factors=c)
 
-        self.stable_auto_tarre_max=0.3
+        self.stable_auto_tarre_max=0.1
         self.stable_measurements=3
         self.stable_skip_measurements=3
         self.stable_range=0.1
@@ -24,6 +24,8 @@ class ScaleFood(scale.Scale):
             print("Error loading scale food:"+str(e))
 
 
+        self.ate=0
+        self.prev_weight=0
 
     def event_stable(self, timestamp, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
@@ -36,6 +38,14 @@ class ScaleFood(scale.Scale):
         # self.print_debug()
         if self.display:
             self.display.food_weight(weight)
+
+            diff=self.prev_weight-weight
+            self.prev_weight=weight
+            if abs(diff)<2:
+                self.ate=self.ate+diff
+                self.display.msg("Ate {:0.2f}g  ".format(self.ate))
+
+
 
         pass
         #calibration weight detected?
