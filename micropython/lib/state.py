@@ -6,16 +6,20 @@ class State():
         pass
 
 
-    def get(self):
-        return(self.__dict__)
-
-    def put(self, data):
-        self.__dict__=data
+    # def get(self):
+    #     return(self.__dict__)
+    #
+    # def put(self, data):
+    #     self.__dict__=data
 
 
     def save(self, file_name=None):
         if file_name:
             self._file_name=file_name
+
+        cpy={}
+        for (key,value) in d.items():
+            
 
         with open(self._file_name,'w') as fh:
             json.dump(self.__dict__, fh)
