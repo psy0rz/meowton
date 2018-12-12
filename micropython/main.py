@@ -25,8 +25,14 @@ def clear():
 def s():
     """save"""
     print("saving stuff")
-    scale_cat.state.save()
-    scale_food.state.save()
+    scale_cat.save("c")
+    scale_food.save("f")
+
+def l():
+    """loda"""
+    print("loading stuff")
+    scale_cat.load("c")
+    scale_food.load("f")
 
 # def food_cal():
 #     scale_food.state.calibrations=[]

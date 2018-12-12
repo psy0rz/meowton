@@ -17,11 +17,11 @@ class ScaleFood(scale.Scale):
         self.stable_range=0.1
         self.stable_auto_tarre=600
 
-        try:
-            self.state.load("scale_food.state")
-            print("Loaded scale food")
-        except Exception as e:
-            print("Error loading scale food:"+str(e))
+        # try:
+        #     self.load("scale_food.pstate")
+        #     print("Loaded scale food")
+        # except Exception as e:
+        #     print("Error loading scale food:"+str(e))
 
 
         self.ate=0

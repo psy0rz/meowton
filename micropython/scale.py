@@ -1,4 +1,4 @@
-import state
+from lib.state import State
 import linear_least_squares
 
 
@@ -27,7 +27,7 @@ import linear_least_squares
 """
 
 
-class Scale:
+class Scale(State):
     '''to calculate weights from raw data and do stuff like auto tarring and averaging
 
     Subclass this to actually do stuff (otherwise it will just print data)
@@ -53,10 +53,7 @@ class Scale:
 
     def __init__(self, calibrate_factors):
 
-        self.state=state.State()
-
-
-
+        super().__init__()
 
         # self.calibrate_weight=calibrate_weight
         self.state.calibrate_factors=calibrate_factors
