@@ -47,18 +47,28 @@ def l():
 
 
 prev=0
-def loop(timer):
-    global prev
-    timestamp=int(time.time()*1000)
-    prev=timestamp
 
-    scale_food.measurement(timestamp, scale_io.read_food())
-    scale_cat.measurement(timestamp, scale_io.read_cat())
+
+# led=machine.Pin(5,machine.Pin.OUT)
+# oldvalue=True
+
+def loop(timer=None):
+
+
+    if scale_io.scales_ready():
+        timestamp=int(time.time()*1000)
+        state=machine.disable_irq()
+        c=scale_io.read_cat()
+        f=scale_io.read_food()
+        machine.enable_irq(state)
+        scale_cat.measurement(timestamp, c)
+        scale_food.measurement(timestamp, f)
+
+
 
 
     micropython.schedule(loop,None)
 
-micropython.schedule(loop,None)
 
 # while True:
 #     loop(0)
@@ -75,26 +85,30 @@ micropython.schedule(loop,None)
 # print("Booting feeder")
 # import machine
 # import time
-# import config
+import config
 #
-# led=machine.Pin(5,machine.Pin.OUT)
 #
-# ### network stuff
-# import network
-# from network import WLAN
-# wlan = WLAN(network.STA_IF) # get current object, without changing the mode
-# wlan.active(True)
-# wlan.ifconfig(config.network)
-# wlan.connect(config.wifi_essid, config.wifi_password)
-#
-# while not wlan.isconnected():
-#     print("waiting for wifi..")
-#     led.value(1)
-#     time.sleep_ms(50)
-#     led.value(0)
-#     time.sleep_ms(50)
-# print("BAM")
-# network.telnet.start()
+
+
+
+### network stuff
+import network
+from network import WLAN
+wlan = WLAN(network.STA_IF) # get current object, without changing the mode
+wlan.active(True)
+wlan.ifconfig(config.network)
+wlan.connect(config.wifi_essid, config.wifi_password)
+
+#wait for connect before starting telnet
+led=machine.Pin(5,machine.Pin.OUT)
+while not wlan.isconnected():
+    led.value(1)
+    time.sleep_ms(100)
+    led.value(0)
+    time.sleep_ms(100)
+
+
+#network.telnet.start()
 #
 #
 # ### servo stuff
@@ -151,3 +165,10 @@ micropython.schedule(loop,None)
 # # start webserver
 # mws = MicroWebSrv() # TCP port 80 and files in /flash/www
 # mws.Start()         # Starts server in a new thread
+
+
+
+
+
+
+loop()

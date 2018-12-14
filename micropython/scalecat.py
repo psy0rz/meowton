@@ -44,6 +44,7 @@ class ScaleCat(scale.Scale):
         # print(weight, changed, s.offset(s.get_average()))
         # lcd.move_to(0,0)
         # lcd.putstr("{:0.1f}g   \n".format(weight))
+
         if self.display:
             self.display.cat_weight(weight)
 
@@ -53,7 +54,7 @@ class ScaleCat(scale.Scale):
             self.calibrate(weight)
             return
 
-        self.print_debug()
+        # self.print_debug()
         pass
         #calibration weight detected?
         # if not self.state.no_tarre:
@@ -110,6 +111,7 @@ class ScaleCat(scale.Scale):
         # print("Weight: {}g".format(weight))
         # lcd.move_to(0,1)
         # lcd.putstr("({:0.1f}g)    \n".format(weight))
+        self.display.cat_weight(weight)
         pass
 
 

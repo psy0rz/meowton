@@ -6,7 +6,7 @@ from micropython import const
 class HX711Exception(Exception):
     pass
 
- 
+
 class InvalidMode(HX711Exception):
     pass
 
@@ -114,7 +114,7 @@ class HX711(object):
         """
         When PD_SCK pin changes from low to high
         and stays at high for longer than 60 us ,
-        HX711 enters power down mode.
+        HX711 enters power down mode. 
         """
         self.pd_sck_pin.value(0)
         self.pd_sck_pin.value(1)

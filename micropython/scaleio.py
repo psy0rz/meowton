@@ -9,11 +9,24 @@ class ScaleIO():
             HX711(d_out=34, pd_sck=32), #1
             HX711(d_out=25, pd_sck=33), #2
             HX711(d_out=27, pd_sck=26), #3
-            HX711(d_out=17, pd_sck=5), #4
+            # HX711(d_out=4, pd_sck=5), #4
+            # HX711(d_out=23, pd_sck=5), #4
+            # HX711(d_out=18, pd_sck=5,), #4
+            # HX711(d_out=18, pd_sck=23), #4
+            HX711(d_out=23, pd_sck=18), #4
         ]
 
         self.cells_food=[ HX711(d_out=14, pd_sck=12) ]
 
+    def scales_ready(self):
+        if not self.cells_food[0].is_ready():
+            return False
+
+        for cell in self.cells_cat:
+            if not cell.is_ready():
+                return False
+
+        return True
 
     def read_cat(self):
         return([
