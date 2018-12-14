@@ -49,8 +49,8 @@ def l():
 prev=0
 
 
-# led=machine.Pin(5,machine.Pin.OUT)
-# oldvalue=True
+led=machine.Pin(5,machine.Pin.OUT)
+oldvalue=True
 
 def loop(timer=None):
 
@@ -65,6 +65,12 @@ def loop(timer=None):
         scale_food.measurement(timestamp, f)
 
 
+        if not wlan.isconnected():
+            global oldvalue
+            led.value(oldvalue)
+            oldvalue=not oldvalue
+        else:
+            led.value(0)
 
 
     micropython.schedule(loop,None)
@@ -99,13 +105,6 @@ wlan.active(True)
 wlan.ifconfig(config.network)
 wlan.connect(config.wifi_essid, config.wifi_password)
 
-#wait for connect before starting telnet
-led=machine.Pin(5,machine.Pin.OUT)
-while not wlan.isconnected():
-    led.value(1)
-    time.sleep_ms(100)
-    led.value(0)
-    time.sleep_ms(100)
 
 
 #network.telnet.start()

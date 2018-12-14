@@ -111,7 +111,7 @@ class ScaleCat(scale.Scale):
         # print("Weight: {}g".format(weight))
         # lcd.move_to(0,1)
         # lcd.putstr("({:0.1f}g)    \n".format(weight))
-        self.display.cat_weight(weight)
+        # self.display.cat_weight(weight)
         pass
 
 
