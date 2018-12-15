@@ -3,9 +3,10 @@ import os
 
 
 class Cats():
-    def __init__(self):
+    def __init__(self, display):
 
         self.dbdir="catsdb"
+        self.current_cat=None
 
         self.cats=[]
         try:
@@ -51,3 +52,11 @@ class Cats():
                 best_match=cat
 
         return(best_match)
+
+
+    def detected_cat(self, cat):
+        if self.current_cat:
+            self.current_cat.gone()
+
+        self.current_cat=cat
+        cat.detected()

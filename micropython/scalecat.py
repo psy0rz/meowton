@@ -4,9 +4,10 @@ import scale
 
 class ScaleCat(scale.Scale):
 
-    def __init__(self, display=None):
+    def __init__(self, display=None, cats):
 
         self.display=display
+        self.cats=cats
 
         #init with default course calibration
         self.calibrating=False

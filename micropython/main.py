@@ -9,10 +9,10 @@ from cats import Cats
 
 ### init
 display=displayio.DisplayIO()
-scale_cat=scalecat.ScaleCat(display)
-scale_food=scalefood.ScaleFood(display)
+cats=Cats(display)
+scale_cat=scalecat.ScaleCat(display, cats)
+scale_food=scalefood.ScaleFood(display, cats)
 scale_io=scaleio.ScaleIO()
-cats=Cats()
 
 
 

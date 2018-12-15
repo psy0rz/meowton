@@ -2,14 +2,22 @@ from state import State
 
 
 class Cat(State):
-    def __init__(self):
+    def __init__(self, display):
         super().__init__()
+        self.display=display
         self.state.feed_daily=0
         self.state.feed_quota=0
         self.state.feed_quota_timestamp=0
         self.state.feed_max_quota=0
         self.state.weight=None
 
+
+    def detected(self):
+        self.display.show_cat(self)
+
+    def gone(self):
+        self.display.show_cat(None)
+        
 
     def get_quota(self, timestamp):
         '''calculate food quota, depending on time that has passed'''
@@ -38,8 +46,10 @@ class Cat(State):
     def ate(self, weight):
         '''substract amount cat has eaten'''
         self.state.feed_quota=self.state.feed_quota-weight
+        self.display.show_cat(self)
 
 
     def update_weight(self, weight):
         '''update weight by moving average'''
         self.state.weight=self.state.weight*0.9 + weight*0.1
+        self.display.show_cat(self)
