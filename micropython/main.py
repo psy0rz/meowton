@@ -5,13 +5,14 @@ import scalecat
 import scalefood
 import scaleio
 import displayio
+from cats import Cats
 
 ### init
 display=displayio.DisplayIO()
 scale_cat=scalecat.ScaleCat(display)
 scale_food=scalefood.ScaleFood(display)
 scale_io=scaleio.ScaleIO()
-
+cats=Cats()
 
 
 
