@@ -1,6 +1,6 @@
 from lib.state import State
 import linear_least_squares
-
+import timer
 
 """
 (weight)   |*
@@ -37,16 +37,16 @@ class Scale(State):
 
     #subclass thesse event classes:
 
-    def event_stable(self, timestamp, weight):
+    def event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
         print("Stable averaged weight: {}g".format(weight))
         self.debug()
 
-    def event_realtime(self, timestamp, weight):
+    def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
         print("Weight: {}g".format(weight))
 
-    def event_unstable(self, timestamp):
+    def event_unstable(self):
         """called once when scale leaves stable measurement"""
         print("Unstable")
 
@@ -88,7 +88,7 @@ class Scale(State):
         self.state.last_realtime_weight=0
         self.state.stable=False
 
-        self.__stable_reset(0,0)
+        self.__stable_reset(0)
 
         #tarre offsets
         self.state.no_tarre=True
@@ -104,7 +104,7 @@ class Scale(State):
 
 
 
-    def __stable_reset(self, weight, timestamp):
+    def __stable_reset(self, weight):
         self.state.stable_min=weight
         self.state.stable_max=weight
         self.state.stable_count=0
@@ -113,7 +113,7 @@ class Scale(State):
         self.debug=[]
 
         if self.state.stable:
-            self.event_unstable(timestamp)
+            self.event_unstable()
 
         self.state.stable=False
 
@@ -148,9 +148,9 @@ class Scale(State):
 
 
 
-    def tarre(self, timestamp):
+    def tarre(self):
         '''re-tarre scale as soon as possible (takes 10 measurements)'''
-        self.__stable_reset(0, timestamp)
+        self.__stable_reset(0)
         self.state.no_tarre=True
 
     def get_average(self):
@@ -173,8 +173,8 @@ class Scale(State):
 
 
 
-    def measurement(self, timestamp, sensors):
-        """update measurent data and generate stable events when detected. timestamp in ms """
+    def measurement(self, sensors):
+        """update measurent data and generate stable events when detected. """
 
         self.state.current=sensors
 
@@ -182,15 +182,15 @@ class Scale(State):
         weight=self.calibrated_weight(self.offset(sensors))
 
         self.state.last_realtime_weight=weight
-        self.event_realtime(timestamp, weight)
+        self.event_realtime(weight)
 
 
         # store stability statistics
 
         # reset stable measurement if there is a too big timegap
-        if timestamp-self.state.last_timestamp>self.stable_max_timegap:
-            self.__stable_reset(weight, timestamp)
-        self.state.last_timestamp=timestamp
+        if timer.timestamp-self.state.last_timestamp>self.stable_max_timegap:
+            self.__stable_reset(weight)
+        self.state.last_timestamp=timer.timestamp
 
         # keep min/max values
         if weight<self.state.stable_min:
@@ -203,7 +203,7 @@ class Scale(State):
         if (self.state.stable_max - self.state.stable_min) <= self.stable_range:
             self.state.stable_count=self.state.stable_count+1
         else:
-            self.__stable_reset(weight, timestamp)
+            self.__stable_reset(weight)
 
         #debug: store the measurements that happend between unstable and stable
         if self.state.stable_totals_count <= self.stable_measurements:
@@ -234,7 +234,7 @@ class Scale(State):
             average_weight=self.calibrated_weight(self.offset(self.get_average()))
             self.debug.append(average_weight)
             self.state.last_stable_weight=average_weight
-            self.event_stable(timestamp, average_weight)
+            self.event_stable(average_weight)
             self.state.stable=True
 
 

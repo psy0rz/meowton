@@ -5,11 +5,12 @@ import scalecat
 import scalefood
 import scaleio
 import displayio
+import timer
 from cats import Cats
 
 ### init
 display=displayio.DisplayIO()
-cats=Cats(display)
+cats=Cats()
 scale_cat=scalecat.ScaleCat(display, cats)
 scale_food=scalefood.ScaleFood(display, cats)
 scale_io=scaleio.ScaleIO()
@@ -53,17 +54,20 @@ prev=0
 led=machine.Pin(5,machine.Pin.OUT)
 oldvalue=True
 
-def loop(timer=None):
+def loop(sched=None):
 
 
     if scale_io.scales_ready():
-        timestamp=int(time.time()*1000)
+        timer.update()
+
+        # read, without irqs
         state=machine.disable_irq()
         c=scale_io.read_cat()
         f=scale_io.read_food()
         machine.enable_irq(state)
-        scale_cat.measurement(timestamp, c)
-        scale_food.measurement(timestamp, f)
+
+        scale_cat.measurement(c)
+        scale_food.measurement(f)
 
 
         if not wlan.isconnected():

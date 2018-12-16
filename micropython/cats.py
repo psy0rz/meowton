@@ -3,7 +3,7 @@ import os
 
 
 class Cats():
-    def __init__(self, display):
+    def __init__(self):
 
         self.dbdir="catsdb"
         self.current_cat=None
@@ -29,6 +29,7 @@ class Cats():
 
 
         c.state.name=name
+        c.state.weight=None
         c.save(self.dbdir+"/"+name)
         return(c)
 
@@ -41,6 +42,9 @@ class Cats():
 
     def by_weight(self, weight):
 
+        if weight<100:
+            return None
+
         best_match=None
         for c in self.cats:
             #new cat?
@@ -48,15 +52,12 @@ class Cats():
                 c.state.weight=weight
                 return c
 
-            if not best_match or abs(cat.state.weight-weight)<abs(best_match.state.weight-weight):
-                best_match=cat
+            # max 5% difference
+            if abs(c.state.weight-weight) < c.state.weight*0.05  and ( not best_match or abs(c.state.weight-weight) < abs(best_match.state.weight-weight)):
+                best_match=c
 
         return(best_match)
 
 
-    def detected_cat(self, cat):
-        if self.current_cat:
-            self.current_cat.gone()
-
+    def select_cat(self, cat):
         self.current_cat=cat
-        cat.detected()

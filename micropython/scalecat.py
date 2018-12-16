@@ -4,7 +4,7 @@ import scale
 
 class ScaleCat(scale.Scale):
 
-    def __init__(self, display=None, cats):
+    def __init__(self, display, cats):
 
         self.display=display
         self.cats=cats
@@ -18,7 +18,7 @@ class ScaleCat(scale.Scale):
 
 
         self.stable_auto_tarre_max=1000
-        self.stable_auto_tarre=100
+        self.stable_auto_tarre=6000
 
         self.stable_measurements=25
         self.stable_skip_measurements=10
@@ -38,37 +38,26 @@ class ScaleCat(scale.Scale):
         #     self.recalibrate()
 
 
-    def event_stable(self, timestamp, weight):
+    def event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
-        # print("Stable averaged weight: {}g".format(weight))
-
-        # print(weight, changed, s.offset(s.get_average()))
-        # lcd.move_to(0,0)
-        # lcd.putstr("{:0.1f}g   \n".format(weight))
-
-        if self.display:
-            self.display.cat_weight(weight)
-
 
         #calibrating?
         if self.calibrating:
             self.calibrate(weight)
             return
 
-        # self.print_debug()
-        pass
-        #calibration weight detected?
-        # if not self.state.no_tarre:
-        #     for cal in cals:
-        #         diff=abs(weight-cal)
-        #         if diff< (cal*0.1):
-        #             print("Call diff {}g".format(diff))
-        #             s.add_calibration(cal)
-        # if weight>10:
-        #     print("-----")
-        #     weights=self.calibrated_weights(self.offset(self.get_average()))
-        #     for w in weights:
-        #         print(int(w*100/weight))
+        #update cat weight
+        cat=self.cats.by_weight(weight)
+        self.cats.select_cat(cat)
+
+        if self.cats.current_cat:
+            self.cats.current_cat.update_weight(weight)
+
+        #display stuff
+        self.display.scale_weight_stable(weight)
+        self.display.update_cat(self.cats.current_cat)
+
+
 
     def calibrate(self, weight):
         averages=self.offset(self.get_average())
@@ -107,20 +96,15 @@ class ScaleCat(scale.Scale):
 
 
 
-    def event_realtime(self, timestamp, weight):
+    def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
-        # print("Weight: {}g".format(weight))
-        # lcd.move_to(0,1)
-        # lcd.putstr("({:0.1f}g)    \n".format(weight))
-        # self.display.cat_weight(weight)
         pass
 
 
-    def event_unstable(self, timestamp):
+    def event_unstable(self):
         """called once when scale leaves stable measurement"""
-        # print("Unstable")
-        # lcd.move_to(0,0)
-        # lcd.putstr("          \n")
-        if self.display:
-            self.display.cat_weight_unstable()
+
+        self.cats.select_cat(None)
+
+        self.display.scale_weight_unstable()
         pass
