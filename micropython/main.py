@@ -27,25 +27,14 @@ def clear():
 def s():
     """save"""
     print("saving stuff")
-    scale_cat.save("c")
-    scale_food.save("f")
+    scale_cat.save()
+    scale_food.save()
 
-def l():
-    """loda"""
-    print("loading stuff")
-    scale_cat.load("c")
-    scale_food.load("f")
+def t():
+    print("tarring")
+    scale_cat.tarre()
+    scale_food.tarre()
 
-# def food_cal():
-#     scale_food.state.calibrations=[]
-#     scale_food.add_calibration(10)
-#     print("Recalibrated food with 10g")
-#     s()
-#
-#
-
-# def c():
-#     scale_cat.recalibrate()
 
 
 prev=0
@@ -61,10 +50,8 @@ def loop(sched=None):
         timer.update()
 
         # read, without irqs
-        state=machine.disable_irq()
         c=scale_io.read_cat()
         f=scale_io.read_food()
-        machine.enable_irq(state)
 
         scale_cat.measurement(c)
         scale_food.measurement(f)

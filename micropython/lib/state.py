@@ -23,13 +23,13 @@ class State():
         if file_name:
             self._state_file_name=file_name
 
-        with open(self._state_file_name,'w') as fh:
-            json.dump(self.state.__dict__, fh)
+        if self._state_file_name:
+            with open(self._state_file_name,'w') as fh:
+                json.dump(self.state.__dict__, fh)
 
     def load(self, file_name=None):
         if file_name:
             self._state_file_name=file_name
-
 
         with open(self._state_file_name,'r') as fh:
             d=dict(json.load(fh))

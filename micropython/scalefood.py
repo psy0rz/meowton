@@ -5,25 +5,35 @@ class ScaleFood(scale.Scale):
 
     def __init__(self, display, cats):
 
-        self.display=display
-        self.cats=cats
-
-        #init with course default calibration
-        c=[7.61904761904762e-05]
-        super().__init__(calibrate_factors=c)
-
+        # scale configuration
+        super().__init__([7.619e-05])
+        self.calibrate_weight=10
         self.stable_auto_tarre_max=0.1
+        self.stable_auto_tarre=600
         self.stable_measurements=3
         self.stable_skip_measurements=3
         self.stable_range=0.1
-        self.stable_auto_tarre=600
 
+        self.display=display
+        self.cats=cats
+
+        #to calulate difference between measurements
         self.prev_weight=0
+
+        #keep count as when the cat isnt identified yet
         self.ate=0
+
+        try:
+            self.load("scale_food.state")
+            print("Loaded scale food")
+            self.stable_reset()
+        except Exception as e:
+            print("Error loading scale food:"+str(e))
 
 
     def event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
+
 
         diff=self.prev_weight-weight
         self.prev_weight=weight
@@ -50,6 +60,9 @@ class ScaleFood(scale.Scale):
         self.display.food_weight_stable(weight)
 
 
+
+
+
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
 
@@ -60,3 +73,7 @@ class ScaleFood(scale.Scale):
         """called once when scale leaves stable measurement"""
 
         self.display.food_weight_unstable()
+
+
+    def msg(self, msg):
+        self.display.msg("Food: "+msg)

@@ -1,4 +1,4 @@
-
+import machine
 from hx711 import HX711
 
 class ScaleIO():
@@ -29,15 +29,20 @@ class ScaleIO():
         return True
 
     def read_cat(self):
-        return([
-            self.cells_cat[0].read(),
-            self.cells_cat[1].read(),
-            self.cells_cat[2].read(),
-            self.cells_cat[3].read(),
-        ])
+        state=machine.disable_irq()
+        c=[         self.cells_cat[0].read(),
+                    self.cells_cat[1].read(),
+                    self.cells_cat[2].read(),
+                    self.cells_cat[3].read()]
+        machine.enable_irq(state)
+
+        return(c)
 
 
     def read_food(self):
-        return([
+        state=machine.disable_irq()
+        c=[
             self.cells_food[0].read(),
-        ])
+        ]
+        machine.enable_irq(state)
+        return(c)
