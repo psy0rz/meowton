@@ -233,7 +233,7 @@ class Scale(State):
         # store stability statistics
 
         # reset stable measurement if there is a too big timegap
-        if timer.timestamp-self.state.last_timestamp>self.stable_max_timegap:
+        if timer.diff(timer.timestamp,self.state.last_timestamp)>self.stable_max_timegap:
             self.stable_reset(weight)
         self.state.last_timestamp=timer.timestamp
 

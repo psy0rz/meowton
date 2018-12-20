@@ -31,6 +31,7 @@ def s():
     print("saving stuff")
     scale_cat.save()
     scale_food.save()
+    cats.save()
 
 def t():
     print("tarring")
@@ -83,11 +84,11 @@ def loop(sched=None):
         # else:
         #     led.value(0)
 
- 
-    #stuff that doesnt have to be done every loop
-    if timer.timestamp-slow_check_timestamp>2000:
 
-        ### auto feed?
+    #stuff that doesnt have to be done every loop
+    if timer.diff(timer.timestamp,slow_check_timestamp)>1000:
+
+        ### feed?
         if scale_food.should_feed():
             scale_io.feed()
 
@@ -104,7 +105,7 @@ def loop(sched=None):
         display.refresh()
         slow_check_timestamp=timer.timestamp
 
-    # micropython.schedule(loop,None)
+    micropython.schedule(loop,None)
 
 
 # while True:
@@ -198,10 +199,18 @@ if hasattr(config, 'network'):
 # mws.Start()         # Starts server in a new thread
 
 
+import sys
+def input_thread():
+    while True:
+        c=sys.stdin.read(1)
+        print("JA"+c)
 
 
+import _thread
+# _thread.start_new_thread (input_thread,[])
 
-while True:
-    loop()
+print("* SUBSCRIBE TO PEWDIEPIE *")
+# while True:
+#     loop()
 
-# loop()
+loop()

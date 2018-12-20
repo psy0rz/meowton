@@ -1,3 +1,4 @@
+import timer
 
 from machine import I2C, Pin
 from esp8266_i2c_lcd import I2cLcd
@@ -61,11 +62,12 @@ class DisplayIO():
         self.lcd.move_to(0,2)
         for cat in self.cats:
             if cat.state.weight:
-                s="{:<6} {:4.0f}g {:7.3f}".format(cat.state.name[:8], cat.state.weight, cat.get_quota())
+                # s="{:<6} {:4.0f}g {:7.3f}".format(cat.state.name[:8], cat.state.weight,  cat.get_quota())
+                s="{:<6} {:4.0f}g {:5.0f}m".format(cat.state.name[:8], cat.state.weight, cat.time())
                 s="{:<20}".format(s)
                 self.lcd.putstr(s)
 
-        if self.msg_timestamp and timer.timestamp-self.msg_timestamp>30000:
+        if self.msg_timestamp and timer.diff(timer.timestamp,self.msg_timestamp)>10000:
             self.lcd.move_to(0,1)
             self.lcd.putstr("{:<20}".format(""))
             self.msg_timestamp=None

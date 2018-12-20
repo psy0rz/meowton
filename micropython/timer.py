@@ -3,10 +3,12 @@ import time
 timestamp=0
 
 #we have a changeble timer so we can also run simulations
-def update(set=None):
-    if set==None:
-        set=time.ticks_ms()
+def update():
     global timestamp
-    timestamp=set
+    timestamp=time.ticks_ms()
+
+add=time.ticks_add
+
+diff=time.ticks_diff
 
 update()

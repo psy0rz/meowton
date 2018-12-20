@@ -48,7 +48,6 @@ class ScaleIO():
         return(c)
 
 
-    def feed(self):
-        print("FEED")
 
-        
+    def feed(self):
+        pass

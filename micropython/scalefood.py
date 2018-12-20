@@ -87,7 +87,7 @@ class ScaleFood(scale.Scale):
         '''should we put food in the bowl?'''
 
         #wait between feeds, to prevent mayhem ;)
-        if timer.timestamp-self.last_feed>5000:
+        if timer.diff(timer.timestamp,self.last_feed)>5000:
             #bowl is stable and empty?
             if self.stable and self.last_stable_weight<1:
                 # all cats may have food, or current cat may have food?

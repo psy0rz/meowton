@@ -19,14 +19,13 @@ class Cat(State):
 
         if self.state.feed_daily:
             if self.state.feed_quota_timestamp:
-                if timer.timestamp>=self.state.feed_quota_timestamp:
+                diff=timer.diff(timer.timestamp,self.state.feed_quota_timestamp)
 
-                    #prevent rounding errors, smallest increment is one second
-                    if timer.timestamp-self.state.feed_quota_timestamp<1000:
-                        return(self.state.feed_quota)
+                #minimum update time difference. dont make too small to prevent rounding errors
+                if diff>1000:
 
                     # update food quota
-                    quota_add=(timer.timestamp-self.state.feed_quota_timestamp)*self.state.feed_daily/(24*3600*1000)
+                    quota_add=diff*self.state.feed_daily/(24*3600*1000)
 
                     self.state.feed_quota=self.state.feed_quota+quota_add
 
@@ -36,9 +35,17 @@ class Cat(State):
                     if self.state.feed_quota<self.state.feed_quota_min:
                         self.state.feed_quota=self.state.feed_quota_min
 
-        self.state.feed_quota_timestamp=timer.timestamp
+                    self.state.feed_quota_timestamp=timer.timestamp
 
         return(self.state.feed_quota)
+
+
+    def time(self):
+        '''time in minutes that the current quota took to build, or will take to reach 0 again, in minutes (negative in that case)'''
+
+        quota=self.get_quota()
+        return(quota/(self.state.feed_daily/(24*60)))
+
 
 
     def ate(self, weight):

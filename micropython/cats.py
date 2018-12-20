@@ -1,7 +1,7 @@
 import cat
 import os
 import timer
-
+ 
 class Cats():
     def __init__(self, display):
 
