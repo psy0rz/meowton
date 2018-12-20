@@ -89,9 +89,9 @@ class Scale(State):
 
 
         #may also be used as API to get lastet weights/status:
-        self.state.last_stable_weight=0
-        self.state.last_realtime_weight=0
-        self.state.stable=False
+        self.last_stable_weight=0
+        self.last_realtime_weight=0
+        self.stable=False
 
         self.stable_reset(0)
 
@@ -118,10 +118,10 @@ class Scale(State):
         self.state.stable_totals_count=0
         self.debug=[]
 
-        if self.state.stable:
+        if self.stable:
             self.event_unstable()
 
-        self.state.stable=False
+        self.stable=False
 
 
         for i in range(0, self.sensor_count):
@@ -225,7 +225,7 @@ class Scale(State):
         #calculate weight,
         weight=self.calibrated_weight(self.offset(sensors))
 
-        self.state.last_realtime_weight=weight
+        self.last_realtime_weight=weight
         self.event_realtime(weight)
 
 
@@ -280,9 +280,9 @@ class Scale(State):
             else:
                 average_weight=self.calibrated_weight(self.offset(self.get_average()))
                 self.debug.append(average_weight)
-                self.state.last_stable_weight=average_weight
+                self.last_stable_weight=average_weight
                 self.event_stable(average_weight)
-                self.state.stable=True
+                self.stable=True
 
 
 

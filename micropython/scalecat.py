@@ -18,6 +18,7 @@ class ScaleCat(scale.Scale):
         self.display=display
         self.cats=cats
 
+        self.should_save=True
 
         try:
             self.load("scale_cat.state")
@@ -39,6 +40,10 @@ class ScaleCat(scale.Scale):
         cat=self.cats.by_weight(weight)
         self.cats.select_cat(cat)
 
+        if cat:
+            self.should_save=True
+
+
         if self.cats.current_cat:
             self.cats.current_cat.update_weight(weight)
 
@@ -46,43 +51,6 @@ class ScaleCat(scale.Scale):
         self.display.scale_weight_stable(weight)
         self.display.update_cat(self.cats.current_cat)
 
-
-
-    # def calibrate(self, weight):
-    #     averages=self.offset(self.get_average())
-    #     weights=self.calibrated_weights(averages)
-    #     zeros=0
-    #     factor=0
-    #     for sensor in range(0,self.sensor_count):
-    #         if abs(weights[sensor])<1:
-    #             zeros=zeros+1
-    #         if weights[sensor]>10:
-    #             factor=self.calibrate_weight/averages[sensor]
-    #             cal_sensor=sensor
-    #
-    #     if zeros==self.sensor_count-1 and factor:
-    #         self.display.msg("Calibrated #{}".format(cal_sensor))
-    #         self.state.calibrate_factors[cal_sensor]=factor
-    #
-    #         #done?
-    #         for factor in self.state.calibrate_factors:
-    #             #Note: there is no way a cell calibrates exactly on this factor :)
-    #             if factor==self.default_factor:
-    #                 return
-    #
-    #         self.calibrating=False
-    #         self.display.msg("Calibration done")
-    #         self.save()
-    #     else:
-    #         self.display.msg("Cal. place {}g ".format(self.calibrate_weight))
-
-
-    # def recalibrate(self):
-    #     self.calibrating=True
-    #     #reset to default cal
-    #     c=[self.default_factor] * 4
-    #     self.state.calibrate_factors=c
-    #     self.tarre(0)
 
 
 

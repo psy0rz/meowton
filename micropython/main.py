@@ -10,7 +10,7 @@ from cats import Cats
 
 ### init
 display=displayio.DisplayIO()
-cats=Cats()
+cats=Cats(display)
 scale_cat=scalecat.ScaleCat(display, cats)
 scale_food=scalefood.ScaleFood(display, cats)
 scale_io=scaleio.ScaleIO()
@@ -63,6 +63,15 @@ def loop(sched=None):
         #     oldvalue=not oldvalue
         # else:
         #     led.value(0)
+
+
+    if scale_cat.should_save and scale_cat.stable and abs(scale_cat.last_stable_weight)<5:
+        scale_cat.save()
+        scale_food.save()
+        cats.save()
+        scale_cat.should_save=False
+        print("Saved")
+        
 
 
     micropython.schedule(loop,None)

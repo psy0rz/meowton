@@ -3,10 +3,11 @@ import os
 
 
 class Cats():
-    def __init__(self):
+    def __init__(self, display):
 
         self.dbdir="catsdb"
         self.current_cat=None
+        self.display=display
 
         self.cats=[]
         try:
@@ -20,7 +21,7 @@ class Cats():
             self.cats.append(c)
 
 
-    def new_cat(self, name):
+    def new(self, name):
         c=self.by_name(name)
 
         if not c:
@@ -31,7 +32,24 @@ class Cats():
         c.state.name=name
         c.state.weight=None
         c.save(self.dbdir+"/"+name)
+
+        self.display.msg("Place {}".format(name))
         return(c)
+
+    def remove(self, name):
+
+        self.cats.remove(self.by_name(name))
+        os.remove(self.dbdir+"/"+name)
+        self.display.msg("Removed {}".format(name))
+    # for catnr in  range(0, len(self.cats)):
+    #         if self.cats[catnr].state.name==name:
+    #             self.cats.remove(catnr)
+
+
+
+    def save(self):
+        for cat in self.cats:
+            cat.save()
 
 
     def by_name(self, name):
@@ -50,6 +68,7 @@ class Cats():
             #new cat?
             if c.state.weight==None:
                 c.state.weight=weight
+                self.display.msg("Learned {}".format(c.state.name))
                 return c
 
             # max 5% difference
