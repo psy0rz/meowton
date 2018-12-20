@@ -17,6 +17,7 @@ class DisplayIO():
         self.lcd = I2cLcd(self.i2c, DEFAULT_I2C_ADDR, self.rows, self.cols)
 
         self.cats=[]
+        self.msg_timestamp=0
 
 
     def scale_weight_stable(self, weight):
@@ -56,16 +57,23 @@ class DisplayIO():
             self.cats=self.cats[-2:]
 
 
-    def show_cats(self):
+    def refresh(self):
         self.lcd.move_to(0,2)
         for cat in self.cats:
             if cat.state.weight:
-                s="{:<6} {:4.0f}g {:2.3f}".format(cat.state.name[:8], cat.state.weight, cat.get_quota())
+                s="{:<6} {:4.0f}g {:7.3f}".format(cat.state.name[:8], cat.state.weight, cat.get_quota())
                 s="{:<20}".format(s)
                 self.lcd.putstr(s)
+
+        if self.msg_timestamp and timer.timestamp-self.msg_timestamp>30000:
+            self.lcd.move_to(0,1)
+            self.lcd.putstr("{:<20}".format(""))
+            self.msg_timestamp=None
+
 
 
 
     def msg(self, txt):
         self.lcd.move_to(0,1)
         self.lcd.putstr("{:<20}".format(txt))
+        self.msg_timestamp=timer.timestamp

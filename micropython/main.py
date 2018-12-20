@@ -101,7 +101,7 @@ def loop(sched=None):
             print("Saved")
 
         ### display realtime quota/cat food_weight
-        display.show_cats()
+        display.refresh()
         slow_check_timestamp=timer.timestamp
 
     micropython.schedule(loop,None)
