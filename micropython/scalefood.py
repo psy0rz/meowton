@@ -38,7 +38,8 @@ class ScaleFood(scale.Scale):
         diff=self.prev_weight-weight
         self.prev_weight=weight
 
-        if abs(diff)<2:
+        #dont count if more that 2g is added at once (by the food dispencer)
+        if diff>-2:
             if self.cats.current_cat:
 
                 if self.ate:

@@ -189,6 +189,7 @@ class Scale(State):
             self.msg("Cal. done")
             self.save()
         else:
+
             self.msg("place {}g ".format(self.calibrate_weight))
 
 
