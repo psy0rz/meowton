@@ -1,6 +1,6 @@
 import cat
 import os
-
+import timer
 
 class Cats():
     def __init__(self, display):
@@ -20,6 +20,10 @@ class Cats():
             c.load(self.dbdir+"/"+name)
             self.cats.append(c)
 
+            #since we dont have an RTC, just start from this point
+            c.state.feed_quota_timestamp=timer.timestamp
+            self.display.update_cat(c)
+
 
     def new(self, name):
         c=self.by_name(name)
@@ -27,11 +31,11 @@ class Cats():
         if not c:
             c=cat.Cat()
             self.cats.append(c)
+            c.save_file_name(self.dbdir+"/"+name)
 
 
         c.state.name=name
         c.state.weight=None
-        c.save(self.dbdir+"/"+name)
 
         self.display.msg("Place {}".format(name))
         return(c)
@@ -80,3 +84,15 @@ class Cats():
 
     def select_cat(self, cat):
         self.current_cat=cat
+
+
+
+    def quota_all(self):
+        '''determine if all cats have a positive quota'''
+        yes=True
+
+        for cat in self.cats:
+            if cat.get_quota()<0:
+                yes=False
+
+        return(yes)

@@ -1,3 +1,4 @@
+import timer
 import scale
 #we want to keep this class independent of IO and display, so we can use it for simulations as well
 
@@ -23,6 +24,8 @@ class ScaleFood(scale.Scale):
         #keep count as when the cat isnt identified yet
         self.ate=0
 
+        self.last_feed=0
+
         try:
             self.load("scale_food.state")
             print("Loaded scale food")
@@ -32,7 +35,7 @@ class ScaleFood(scale.Scale):
 
 
     def event_stable(self, weight):
-        """called once after scale has been stable according to specified stable_ parameters"""
+        """called once after scale has been stable according to specified stable_ parameters """
 
 
         diff=self.prev_weight-weight
@@ -78,3 +81,16 @@ class ScaleFood(scale.Scale):
 
     def msg(self, msg):
         self.display.msg("Food: "+msg)
+
+
+    def should_feed(self):
+        '''should we put food in the bowl?'''
+
+        #wait between feeds, to prevent mayhem ;)
+        if timer.timestamp-self.last_feed>5000:
+            #bowl is stable and empty?
+            if self.stable and self.last_stable_weight<1:
+                # all cats may have food, or current cat may have food?
+                if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
+                    self.last_feed=timer.timestamp
+                    return True

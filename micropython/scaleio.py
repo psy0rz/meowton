@@ -46,3 +46,9 @@ class ScaleIO():
         ]
         machine.enable_irq(state)
         return(c)
+
+
+    def feed(self):
+        print("FEED")
+
+        

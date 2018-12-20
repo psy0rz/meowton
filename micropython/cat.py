@@ -7,7 +7,8 @@ class Cat(State):
         self.state.feed_daily=0
         self.state.feed_quota=0
         self.state.feed_quota_timestamp=0
-        self.state.feed_max_quota=0
+        self.state.feed_quota_max=0
+        self.state.feed_quota_min=0
         self.state.weight=None
 
 
@@ -17,12 +18,12 @@ class Cat(State):
         '''calculate food quota, depending on time that has passed'''
 
         if self.state.feed_daily:
-            if self.state.feed_quota_timer.timestamp:
+            if self.state.feed_quota_timestamp:
                 if timer.timestamp>=self.state.feed_quota_timestamp:
 
                     #prevent rounding errors, smallest increment is one second
                     if timer.timestamp-self.state.feed_quota_timestamp<1000:
-                        return
+                        return(self.state.feed_quota)
 
                     # update food quota
                     quota_add=(timer.timestamp-self.state.feed_quota_timestamp)*self.state.feed_daily/(24*3600*1000)
@@ -31,6 +32,9 @@ class Cat(State):
 
                     if self.state.feed_quota>self.state.feed_quota_max:
                         self.state.feed_quota=self.state.feed_quota_max
+
+                    if self.state.feed_quota<self.state.feed_quota_min:
+                        self.state.feed_quota=self.state.feed_quota_min
 
         self.state.feed_quota_timestamp=timer.timestamp
 

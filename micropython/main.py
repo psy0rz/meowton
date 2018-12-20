@@ -19,6 +19,8 @@ scale_io=scaleio.ScaleIO()
 
 import micropython
 
+### this is the "userinterface" for now. replace with buttons or something ;)
+
 def clear():
      import os
      os.remove("scale_food.state")
@@ -36,18 +38,35 @@ def t():
     scale_food.tarre()
 
 
+def q(name, quota):
+    '''set daily quota'''
+    cats.by_name(name).state.feed_quota_max=quota
+    cats.by_name(name).state.feed_quota_min=-quota
+    cats.by_name(name).state.feed_daily=quota
+    cats.by_name(name).save()
+    print("set daily quota of cat")
 
-prev=0
+
+def n(name):
+    '''new cat or reset weight'''
+    cats.new(name)
 
 
-led=machine.Pin(5,machine.Pin.OUT)
-oldvalue=True
+# prev=0
+
+
+# led=machine.Pin(5,machine.Pin.OUT)
+# oldvalue=True
+
+slow_check_timestamp=timer.timestamp
 
 def loop(sched=None):
+    global slow_check_timestamp
 
+    timer.update()
 
+    ### read and update scales
     if scale_io.scales_ready():
-        timer.update()
 
         # read, without irqs
         c=scale_io.read_cat()
@@ -65,14 +84,25 @@ def loop(sched=None):
         #     led.value(0)
 
 
-    if scale_cat.should_save and scale_cat.stable and abs(scale_cat.last_stable_weight)<5:
-        scale_cat.save()
-        scale_food.save()
-        cats.save()
-        scale_cat.should_save=False
-        print("Saved")
-        
+    #stuff that doesnt have to be done every loop
+    if timer.timestamp-slow_check_timestamp>1000:
 
+        ### auto feed?
+        if scale_food.should_feed():
+            scale_io.feed()
+
+
+        ### save settings
+        if scale_cat.should_save and scale_cat.stable and abs(scale_cat.last_stable_weight)<5:
+            scale_cat.save()
+            scale_food.save()
+            cats.save()
+            scale_cat.should_save=False
+            print("Saved")
+
+        ### display realtime quota/cat food_weight
+        display.show_cats()
+        slow_check_timestamp=timer.timestamp
 
     micropython.schedule(loop,None)
 

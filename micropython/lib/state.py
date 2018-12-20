@@ -19,6 +19,9 @@ class State():
     #     self.state=state
 
 
+    def save_file_name(self, file_name):
+        self._state_file_name=file_name
+
     def save(self, file_name=None):
         if file_name:
             self._state_file_name=file_name

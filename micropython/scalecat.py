@@ -16,9 +16,9 @@ class ScaleCat(scale.Scale):
         # self.stable_skip_measurements=10
         # self.stable_range=50
 
-        self.stable_measurements=12
+        self.stable_measurements=10
         self.stable_skip_measurements=5
-        self.stable_range=25
+        self.stable_range=50
 
         self.display=display
         self.cats=cats
@@ -33,7 +33,10 @@ class ScaleCat(scale.Scale):
             print("Error loading scale cat:"+str(e))
 
         #always tarre cat scale on boot for nopw
-        self.tarre()
+        # self.tarre()
+
+
+
 
 
     def event_stable(self, weight):
