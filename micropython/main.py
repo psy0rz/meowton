@@ -57,12 +57,12 @@ def loop(sched=None):
         scale_food.measurement(f)
 
 
-        if not wlan.isconnected():
-            global oldvalue
-            led.value(oldvalue)
-            oldvalue=not oldvalue
-        else:
-            led.value(0)
+        # if not wlan.isconnected():
+        #     global oldvalue
+        #     led.value(oldvalue)
+        #     oldvalue=not oldvalue
+        # else:
+        #     led.value(0)
 
 
     micropython.schedule(loop,None)
@@ -90,12 +90,13 @@ import config
 
 
 ### network stuff
-import network
-from network import WLAN
-wlan = WLAN(network.STA_IF) # get current object, without changing the mode
-wlan.active(True)
-wlan.ifconfig(config.network)
-wlan.connect(config.wifi_essid, config.wifi_password)
+if hasattr(config, 'network'):
+    import network
+    from network import WLAN
+    wlan = WLAN(network.STA_IF) # get current object, without changing the mode
+    wlan.active(True)
+    wlan.ifconfig(config.network)
+    wlan.connect(config.wifi_essid, config.wifi_password)
 
 
 

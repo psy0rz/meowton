@@ -158,17 +158,17 @@ class Scale(State):
         self.state.calibrating=True
         #reset to default cal
         self.state.calibrate_factors=self.__default_factors.copy()
-        self.tarre(0)
+        self.tarre()
 
 
-    def _calibrate(self):
+    def __calibrate(self):
         '''do calibration step (called on stable weight)'''
         averages=self.offset(self.get_average())
         weights=self.calibrated_weights(averages)
         zeros=0
         factor=0
         for sensor in range(0,self.sensor_count):
-            if weights[sensor]>=self.calibrate_weight*0.5: #the calibrating sensor should be least 50%
+            if abs(weights[sensor]-self.calibrate_weight)<self.calibrate_weight*0.5: #the calibrating sensor should be least 50% in range
                 factor=self.calibrate_weight/averages[sensor]
                 cal_sensor=sensor
             if abs(weights[sensor])<=self.calibrate_weight*0.01: # others should be not more than 1% of zero
