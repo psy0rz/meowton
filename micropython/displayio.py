@@ -16,10 +16,14 @@ class DisplayIO():
         # 4x16
         self.lcd = I2cLcd(self.i2c, DEFAULT_I2C_ADDR, self.rows, self.cols)
 
+        self.last_cat=""
+        self.cat_row=2
+
 
     def scale_weight_stable(self, weight):
         self.lcd.move_to(0,0)
-        s="  Scale: {:0.0f}g    ".format(weight)
+        s=" {:4.0f}g cat".format(weight)
+        s="{:<10}".format(s)
         self.lcd.putstr(s)
 
     def scale_weight_unstable(self):
@@ -28,24 +32,33 @@ class DisplayIO():
 
 
     def food_weight_stable(self, weight):
-        self.lcd.move_to(0,1)
-        s="  Food : {:0.2f}g    ".format(weight)
+        self.lcd.move_to(11,0)
+        s=" {:2.0f}g food".format(weight)
+        s="{:<10}".format(s)
         self.lcd.putstr(s)
 
     def food_weight_unstable(self):
-        self.lcd.move_to(0,1)
+        self.lcd.move_to(11,0)
         self.lcd.putstr("*")
 
 
     def update_cat(self, cat):
-        self.lcd.move_to(0,2)
+
         if cat:
-            self.lcd.putstr("{}: {:0.0f}g ({:0.0f})".format(cat.state.name, cat.state.weight, cat.get_quota()))
-        else:
-            self.lcd.putstr("                ")
+            if cat.state.name!=self.last_cat:
+                self.last_cat=cat.state.name
+                self.cat_row=self.cat_row+1
+                if self.cat_row>3:
+                    self.cat_row=2
+
+            s="{:<8} {:4.0f}g ({:3.0f})".format(cat.state.name[:8], cat.state.weight, cat.get_quota())
+            s="{:<20}".format(s)
+
+            self.lcd.move_to(0,self.cat_row)
+            self.lcd.putstr(s)
 
 
 
     def msg(self, txt):
-        self.lcd.move_to(0,3)
-        self.lcd.putstr(txt+"  ")
+        self.lcd.move_to(0,2)
+        self.lcd.putstr("{:<20}".format(txt))
