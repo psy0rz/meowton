@@ -83,9 +83,9 @@ def loop(sched=None):
         # else:
         #     led.value(0)
 
-
+ 
     #stuff that doesnt have to be done every loop
-    if timer.timestamp-slow_check_timestamp>1000:
+    if timer.timestamp-slow_check_timestamp>2000:
 
         ### auto feed?
         if scale_food.should_feed():
@@ -104,7 +104,7 @@ def loop(sched=None):
         display.refresh()
         slow_check_timestamp=timer.timestamp
 
-    micropython.schedule(loop,None)
+    # micropython.schedule(loop,None)
 
 
 # while True:
@@ -201,5 +201,7 @@ if hasattr(config, 'network'):
 
 
 
+while True:
+    loop()
 
-loop()
+# loop()

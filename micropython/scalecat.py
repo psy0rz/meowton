@@ -63,6 +63,7 @@ class ScaleCat(scale.Scale):
         self.display.update_cat(self.cats.current_cat)
 
 
+        self.print_debug()
 
 
     def event_realtime(self, weight):

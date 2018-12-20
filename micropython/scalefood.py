@@ -11,9 +11,9 @@ class ScaleFood(scale.Scale):
         self.calibrate_weight=10
         self.stable_auto_tarre_max=0.1
         self.stable_auto_tarre=600
-        self.stable_measurements=3
-        self.stable_skip_measurements=3
-        self.stable_range=0.1
+        self.stable_measurements=2
+        self.stable_skip_measurements=2
+        self.stable_range=0.2
 
         self.display=display
         self.cats=cats
@@ -46,7 +46,7 @@ class ScaleFood(scale.Scale):
             if self.cats.current_cat:
 
                 if self.ate:
-                    self.cats.current_cat.ate(diff)
+                    self.cats.current_cat.ate(self.ate)
                     self.ate=0
 
                 self.cats.current_cat.ate(diff)
@@ -65,7 +65,7 @@ class ScaleFood(scale.Scale):
 
 
 
-
+        self.print_debug()
 
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
