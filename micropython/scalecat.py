@@ -42,14 +42,18 @@ class ScaleCat(scale.Scale):
     def event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
 
-        #calibrating?
-        # if self.calibrating:
-        #     self.calibrate(weight)
-        #     return
-
-        #update cat weight
+        #determine which cat it is
         cat=self.cats.by_weight(weight)
+
+        #changed cat?
+        if cat!=self.cats.current_cat:
+            #store statistics of previous cat
+            if self.cats.current_cat:
+                print("STORE")
+
+
         self.cats.select_cat(cat)
+
 
         if cat:
             self.should_save=True
@@ -74,7 +78,6 @@ class ScaleCat(scale.Scale):
     def event_unstable(self):
         """called once when scale leaves stable measurement"""
 
-        self.cats.select_cat(None)
 
         self.display.scale_weight_unstable()
         pass

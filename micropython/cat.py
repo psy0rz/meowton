@@ -11,7 +11,8 @@ class Cat(State):
         self.state.feed_quota_min=0
         self.state.weight=None
 
-
+        #aten during this feeding session (usually ends when cat leaves and uploaded to database)
+        self.ate_session=0
 
 
     def get_quota(self):
@@ -22,7 +23,7 @@ class Cat(State):
                 diff=timer.diff(timer.timestamp,self.state.feed_quota_timestamp)
 
                 #minimum update time difference. dont make too small to prevent rounding errors
-                if diff>1000:
+                if diff>60000:
 
                     # update food quota
                     quota_add=diff*self.state.feed_daily/(24*3600*1000)
@@ -51,6 +52,7 @@ class Cat(State):
     def ate(self, weight):
         '''substract amount cat has eaten'''
         self.state.feed_quota=self.state.feed_quota-weight
+        self.ate_session=self.ate_session+weight
 
 
     def update_weight(self, weight):
