@@ -26,6 +26,8 @@ class ScaleFood(scale.Scale):
 
         self.last_feed=0
 
+        self.just_fed=True
+
         try:
             self.load("scale_food.state")
             print("Loaded scale food")
@@ -34,6 +36,11 @@ class ScaleFood(scale.Scale):
             print("Error loading scale food:"+str(e))
 
 
+    def fed(self):
+        '''indicate we should ignore the current weight change'''
+        self.stable_reset()
+        self.just_fed=True
+
     def event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters """
 
@@ -41,8 +48,8 @@ class ScaleFood(scale.Scale):
         diff=self.prev_weight-weight
         self.prev_weight=weight
 
-        #dont count if more that 2g is added at once (by the food dispencer)
-        if diff>-2:
+        #ignore weight change after despensing food
+        if not self.just_fed:
             if self.cats.current_cat:
 
                 if self.ate:
@@ -56,6 +63,8 @@ class ScaleFood(scale.Scale):
 
             else:
                 self.ate=self.ate+diff
+        else:
+            self.just_fed=False
 
 
 
@@ -89,7 +98,7 @@ class ScaleFood(scale.Scale):
         #wait between feeds, to prevent mayhem ;)
         if timer.diff(timer.timestamp,self.last_feed)>5000:
             #bowl is stable and empty?
-            if self.stable and self.last_stable_weight<1:
+            if self.stable and self.last_stable_weight<0.5:
                 # all cats may have food, or current cat may have food?
                 if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
                     self.last_feed=timer.timestamp

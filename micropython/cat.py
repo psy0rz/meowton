@@ -44,9 +44,11 @@ class Cat(State):
     def time(self):
         '''time in minutes that the current quota took to build, or will take to reach 0 again, in minutes (negative in that case)'''
 
-        quota=self.get_quota()
-        return(quota/(self.state.feed_daily/(24*60)))
+        if self.state.feed_daily:
+            quota=self.get_quota()
+            return(quota/(self.state.feed_daily/(24*60)))
 
+        return 0
 
 
     def ate(self, weight):

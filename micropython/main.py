@@ -89,12 +89,13 @@ def loop(sched=None):
             led.value(0)
 
 
-    #stuff that doesnt have to be done every loop
-    if timer.diff(timer.timestamp,slow_check_timestamp)>10000:
+    #stuff that doesnt have  to be done every loop
+    if timer.diff(timer.timestamp,slow_check_timestamp)>1000:
 
-        ### feed?
+        ###  feed?
         if scale_food.should_feed():
-            scale_io.feed()
+            scale_io.feed(400)
+            scale_food.fed()
 
 
         ### save settings

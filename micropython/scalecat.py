@@ -52,6 +52,7 @@ class ScaleCat(scale.Scale):
             if self.cats.current_cat:
                 #store this session and reset ate-counter
                 self.db.store(self.cats.current_cat)
+                self.display.msg("{} ate {:0.0f}g".format(self.cats.current_cat.state.name, self.cats.current_cat.ate_session), timeout=None)
                 self.cats.current_cat.ate_session=0
 
         self.cats.select_cat(cat)
