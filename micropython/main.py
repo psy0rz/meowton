@@ -6,12 +6,14 @@ import scalefood
 import scaleio
 import displayio
 import timer
+import db
 from cats import Cats
 
 ### init
 display=displayio.DisplayIO()
 cats=Cats(display)
-scale_cat=scalecat.ScaleCat(display, cats)
+db=db.Db(display)
+scale_cat=scalecat.ScaleCat(display, cats, db)
 scale_food=scalefood.ScaleFood(display, cats)
 scale_io=scaleio.ScaleIO()
 
@@ -130,13 +132,12 @@ import config
 
 
 ### network stuff
-if hasattr(config, 'network'):
-    import network
-    from network import WLAN
-    wlan = WLAN(network.STA_IF) # get current object, without changing the mode
-    wlan.active(True)
-    wlan.ifconfig(config.network)
-    wlan.connect(config.wifi_essid, config.wifi_password)
+import network
+from network import WLAN
+wlan = WLAN(network.STA_IF) # get current object, without changing the mode
+wlan.active(True)
+# wlan.ifconfig(config.network)
+wlan.connect(config.wifi_essid, config.wifi_password)
 
 
 

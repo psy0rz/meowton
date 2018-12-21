@@ -18,7 +18,7 @@ class DisplayIO():
         self.lcd = I2cLcd(self.i2c, DEFAULT_I2C_ADDR, self.rows, self.cols)
 
         self.cats=[]
-        self.msg_timestamp=0
+        self.msg_timeout=0
 
 
     def scale_weight_stable(self, weight):
@@ -67,15 +67,18 @@ class DisplayIO():
                 s="{:<20}".format(s)
                 self.lcd.putstr(s)
 
-        if self.msg_timestamp and timer.diff(timer.timestamp,self.msg_timestamp)>10000:
+        if self.msg_timeout and timer.diff(timer.timestamp,self.msg_timeout)>0:
             self.lcd.move_to(0,1)
             self.lcd.putstr("{:<20}".format(""))
-            self.msg_timestamp=None
+            self.msg_timeout=None
 
 
 
 
-    def msg(self, txt):
+    def msg(self, txt, timeout=10):
         self.lcd.move_to(0,1)
-        self.lcd.putstr("{:<20}".format(txt))
-        self.msg_timestamp=timer.timestamp
+        self.lcd.putstr("{:<20}".format(txt[:20]))
+        if timeout:
+            self.msg_timeout=timer.add(timer.timestamp, timeout*1000)
+        else:
+            self.msg_timeout=None

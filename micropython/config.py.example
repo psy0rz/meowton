@@ -1,0 +1,8 @@
+wifi_essid = "blah"
+wifi_password="blah"
+
+#scale id
+id="test"
+
+#influx db url
+db="http://1.2.3.4:8086/write?db=meowton"

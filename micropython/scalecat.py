@@ -4,7 +4,7 @@ import scale
 
 class ScaleCat(scale.Scale):
 
-    def __init__(self, display, cats):
+    def __init__(self, display, cats, db):
 
         #configure scale
         super().__init__([0.00219]*4)
@@ -22,6 +22,7 @@ class ScaleCat(scale.Scale):
 
         self.display=display
         self.cats=cats
+        self.db=db
 
         self.should_save=True
 
@@ -49,8 +50,9 @@ class ScaleCat(scale.Scale):
         if cat!=self.cats.current_cat:
             #store statistics of previous cat
             if self.cats.current_cat:
-                print("STORE")
-
+                #store this session and reset ate-counter
+                self.db.store(self.cats.current_cat)
+                self.cats.current_cat.ate_session=0
 
         self.cats.select_cat(cat)
 
