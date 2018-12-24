@@ -9,18 +9,17 @@ goals of the project:
 * Track weight of multiple cats by recognizing them by weight.
 * Operate a cat feeder and making sure each cat get a certain amount of food per day. (Mogwai needs to lose weight)
 
-# Examples
+# Latest news
 
-Note: old graphs from before the feeder. Mogwai has been losing weight slowly but steady for the past 6 weeks. Its amazing how much weight he gained in a couple days of over feeding. It takes weeks to lose it.
+Currently working on V2: It is standalone (only one ESP32 needed and an influxdb somewhere). Also the feeder and both scale can be 3d printed. (3d models will be online soon)
 
+Example v2 graph: https://snapshot.raintank.io/dashboard/snapshot/avc0w5y7Pvr2LhI1FFhoQmX2qvnb4Cxl?orgId=2
 
-Example of graphs (Created with Grafana):
-
-![global](https://github.com/psy0rz/meowton/blob/master/examples/Cat%200.png?raw=true)
-
-![global](https://github.com/psy0rz/meowton/blob/master/examples/Cat%201.png?raw=true)
+Some demo videos will appear on my youtube channel: https://www.youtube.com/user/psy0rz
 
 # Hardware overview
+
+Note: This is still v1. Version 2 pics will be up soon.
 
 Electronics on prototype board:
 
