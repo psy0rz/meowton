@@ -50,19 +50,21 @@ class ScaleFood(scale.Scale):
 
         #ignore weight change after despensing food
         if not self.just_fed:
-            if self.cats.current_cat:
+            #ignore manually added food (>1g)
+            if diff>-1:
+                if self.cats.current_cat:
 
-                if self.ate:
-                    self.cats.current_cat.ate(self.ate)
-                    self.ate=0
+                    if self.ate:
+                        self.cats.current_cat.ate(self.ate)
+                        self.ate=0
 
-                self.cats.current_cat.ate(diff)
+                    self.cats.current_cat.ate(diff)
 
-                self.display.update_cat(self.cats.current_cat)
+                    self.display.update_cat(self.cats.current_cat)
 
 
-            else:
-                self.ate=self.ate+diff
+                else:
+                    self.ate=self.ate+diff
         else:
             self.just_fed=False
 

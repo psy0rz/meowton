@@ -13,7 +13,7 @@ class Db():
             try:
                 self.display.msg("Uploading...")
                 print("HTTP posting to {}".format(config.db))
-                req_data = 'measurements,cat={},scale={} weight={},food={}'.format(cat.state.name, config.id, cat.state.weight, cat.ate_session)
+                req_data = 'measurements,cat={},scale={} weight={},food={},feed_daily={}'.format(cat.state.name, config.id, cat.state.weight, cat.ate_session, cat.feed_daily)
                 resp=urequests.post(config.db, data=req_data, headers={ 'Content-Type': 'text/plain' })
 
                 print('HTTP response "{}", text: {} '.format(resp.reason,resp.text))
