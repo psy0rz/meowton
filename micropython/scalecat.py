@@ -24,7 +24,7 @@ class ScaleCat(scale.Scale):
         self.cats=cats
         self.db=db
 
-        self.should_save=True
+        self.should_save=False
 
         try:
             self.load("scale_cat.state")
@@ -51,8 +51,9 @@ class ScaleCat(scale.Scale):
             #store statistics of previous cat
             if self.cats.current_cat:
                 #store this session and reset ate-counter
-                self.db.store(self.cats.current_cat)
-                self.display.msg("{} ate {:0.0f}g".format(self.cats.current_cat.state.name, self.cats.current_cat.ate_session), timeout=None)
+                if self.db.store(self.cats.current_cat):
+                    #dont overwrite db errors on display
+                    self.display.msg("{} ate {:0.0f}g".format(self.cats.current_cat.state.name, self.cats.current_cat.ate_session), timeout=None)
                 self.cats.current_cat.ate_session=0
 
         self.cats.select_cat(cat)

@@ -97,11 +97,18 @@ class ScaleFood(scale.Scale):
     def should_feed(self):
         '''should we put food in the bowl?'''
 
+        # #wait between feeds, to prevent mayhem ;)
+        # if timer.diff(timer.timestamp,self.last_feed)>5z000:
+        #     #bowl is stable and empty?
+        #     if self.stable and self.last_stable_weight<0.5:
+        #         # all cats may have food, or current cat may have food?
+        #         if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
+        #             self.last_feed=timer.timestamp
+        #             return True
+        #
+
         #wait between feeds, to prevent mayhem ;)
-        if timer.diff(timer.timestamp,self.last_feed)>5000:
-            #bowl is stable and empty?
-            if self.stable and self.last_stable_weight<0.5:
-                # all cats may have food, or current cat may have food?
-                if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
-                    self.last_feed=timer.timestamp
-                    return True
+        if timer.diff(timer.timestamp,self.last_feed)>120000:
+            if self.cats.current_cat:
+                self.last_feed=timer.timestamp
+                return True
