@@ -9,7 +9,7 @@ goals of the project:
 * Track weight of multiple cats by recognizing them by weight.
 * Operate a cat feeder and making sure each cat get a certain amount of food per day. (Mogwai needs to lose weight)
 
-**Live stream: https://www.youtube.com/channel/UC91dBCCF5MRUt8zm8YhqT_g/live **
+**Live stream: https://www.youtube.com/channel/UC91dBCCF5MRUt8zm8YhqT_g/live**
 
 # Latest news
 
