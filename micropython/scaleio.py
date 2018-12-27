@@ -18,6 +18,7 @@ class ScaleIO():
         ]
 
         self.cells_food=[ HX711(d_out=14, pd_sck=12) ]
+        # self.cells_food=[ HX711(d_out=12, pd_sck=14) ]
 
         # self.servo = machine.PWM(machine.Pin(17), freq=50)
         self.servo = machine.PWM(machine.Pin(13), freq=50)

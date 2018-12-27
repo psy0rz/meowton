@@ -4,19 +4,21 @@ import scale
 
 class ScaleFood(scale.Scale):
 
-    def __init__(self, display, cats):
+    def __init__(self, display, cats, scale_cat):
 
         # scale configuration
-        super().__init__([7.619e-05])
+        # super().__init__([7.619e-05])
+        super().__init__([0.00219])
         self.calibrate_weight=10
         self.stable_auto_tarre_max=0.1
         self.stable_auto_tarre=600
-        self.stable_measurements=2
+        self.stable_measurements=10
         self.stable_skip_measurements=2
-        self.stable_range=0.2
+        self.stable_range=0.5
 
         self.display=display
         self.cats=cats
+        self.scale_cat=scale_cat
 
         #to calulate difference between measurements
         self.prev_weight=0
@@ -52,6 +54,7 @@ class ScaleFood(scale.Scale):
         if not self.just_fed:
             #ignore manually added food (>1g)
             if diff>-1:
+                #known cat, update its quota
                 if self.cats.current_cat:
 
                     if self.ate:
@@ -64,7 +67,9 @@ class ScaleFood(scale.Scale):
 
 
                 else:
-                    self.ate=self.ate+diff
+                    #unknown cat, store amount eaten temporary until we identify cat
+                    if self.scale_cat.last_realtime_weight>100:
+                        self.ate=self.ate+diff
         else:
             self.just_fed=False
 
@@ -80,7 +85,7 @@ class ScaleFood(scale.Scale):
 
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
-
+        # print(weight)
         pass
 
 
@@ -97,18 +102,19 @@ class ScaleFood(scale.Scale):
     def should_feed(self):
         '''should we put food in the bowl?'''
 
-        # #wait between feeds, to prevent mayhem ;)
-        # if timer.diff(timer.timestamp,self.last_feed)>5z000:
-        #     #bowl is stable and empty?
-        #     if self.stable and self.last_stable_weight<0.5:
-        #         # all cats may have food, or current cat may have food?
-        #         if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
-        #             self.last_feed=timer.timestamp
-        #             return True
-        #
-
         #wait between feeds, to prevent mayhem ;)
-        if timer.diff(timer.timestamp,self.last_feed)>120000:
-            if self.cats.current_cat:
-                self.last_feed=timer.timestamp
-                return True
+        if timer.diff(timer.timestamp,self.last_feed)>5000:
+            #bowl is stable and empty?
+            if self.stable and self.last_stable_weight<0.5:
+                # all cats may have food, or current cat may have food?
+                if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
+                    self.last_feed=timer.timestamp
+                    return True
+
+
+        # #TMP HACK
+        # #wait between feeds, to prevent mayhem ;)
+        # if timer.diff(timer.timestamp,self.last_feed)>120000:
+        #     if self.cats.current_cat:
+        #         self.last_feed=timer.timestamp
+        #         return True

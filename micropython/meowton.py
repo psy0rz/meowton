@@ -16,7 +16,7 @@ display=displayio.DisplayIO()
 cats=Cats(display)
 db=db.Db(display)
 scale_cat=scalecat.ScaleCat(display, cats, db)
-scale_food=scalefood.ScaleFood(display, cats)
+scale_food=scalefood.ScaleFood(display, cats, scale_cat)
 scale_io=scaleio.ScaleIO()
 
 #doing my part :)
@@ -97,6 +97,7 @@ def loop(sched=None):
         # read, without irqs
         c=scale_io.read_cat()
         f=scale_io.read_food()
+        # print(f)
 
         scale_cat.measurement(c)
         scale_food.measurement(f)
@@ -136,7 +137,7 @@ def loop(sched=None):
         ### cat cam hack
         if scale_cat.stable and scale_cat.last_stable_weight<100 and scale_cat.state.stable_count>300:
             cam_send("false")
- 
+
         if not scale_cat.stable and scale_cat.last_realtime_weight>100:
             cam_send("true")
 
