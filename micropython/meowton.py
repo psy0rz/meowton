@@ -138,7 +138,7 @@ def loop(sched=None):
         if scale_cat.stable and scale_cat.last_stable_weight<100 and scale_cat.state.stable_count>300:
             cam_send("false")
 
-        if not scale_cat.stable and scale_cat.last_realtime_weight>100:
+        if not scale_cat.stable and ( scale_cat.state.stable_count==2 and scale_cat.last_realtime_weight>100):
             cam_send("true")
 
 
