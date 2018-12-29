@@ -1,5 +1,8 @@
 # Automatic cat weighing system 
 
+![logo](https://raw.githubusercontent.com/psy0rz/meowton/master/logo/normal.png)
+
+
 Meowton is a system that will automaticly weigh your cat and create nice graphs.
 
 goals of the project:
@@ -11,13 +14,14 @@ goals of the project:
 
 **Live stream: https://www.youtube.com/channel/UC91dBCCF5MRUt8zm8YhqT_g/live**
 
+Live feeding videos: https://www.youtube.com/channel/UC91dBCCF5MRUt8zm8YhqT_g
+
 # Latest news
 
 Currently working on V2: It is standalone (only one ESP32 needed and an influxdb somewhere). Also the feeder and both scale can be 3d printed. (3d models will be online soon)
 
 Example v2 graph: https://snapshot.raintank.io/dashboard/snapshot/avc0w5y7Pvr2LhI1FFhoQmX2qvnb4Cxl?orgId=2
 
-Some demo videos will appear on my youtube channel: https://www.youtube.com/user/psy0rz
 
 # Hardware overview
 
