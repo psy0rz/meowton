@@ -8,10 +8,14 @@ class ScaleIO():
 
     def test(self, cell):
         """test loadcell by detecting noise"""
-        a=cell.read()
-        b=cell.read()
-        if a==b:
-            raise(Exception("No noise detected"))
+
+        start=cell.read()
+        count=0
+
+        while start==cell.read():
+            count=count+1
+            if count>10:
+                raise(Exception("No noise detected (value={})".format(start)))
 
 
     def __init__(self, display):
@@ -36,6 +40,9 @@ class ScaleIO():
 
         try:
             cell=HX711(*config.food_pins)
+
+
+
             self.test(cell)
             self.cells_food=[ cell ]
         except Exception as e:
