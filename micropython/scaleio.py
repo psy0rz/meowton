@@ -35,7 +35,9 @@ class ScaleIO():
 
 
         try:
-            self.cells_food=[ HX711(*config.food_pins) ]
+            cell=HX711(*config.food_pins)
+            self.test(cell)
+            self.cells_food=[ cell ]
         except Exception as e:
             #disable
             self.cells_food=None
