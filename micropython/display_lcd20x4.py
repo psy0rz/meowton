@@ -1,11 +1,15 @@
 import timer
+import display
 
 from machine import I2C, Pin
 from esp8266_i2c_lcd import I2cLcd
 
-class DisplayIO():
+class Display(display.Display):
+    """standard LCD2004 20x4 display via I2C"""
 
     def __init__(self):
+        super().__init__()
+
         DEFAULT_I2C_ADDR = 0x27
         self.i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
 

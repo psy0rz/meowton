@@ -1,24 +1,46 @@
 import time
 import machine
 from hx711 import HX711
+import config
 
 class ScaleIO():
     """deals with reading raw loadcell input from HX711 modules"""
 
-    def __init__(self):
-        self.cells_cat=[
-            HX711(d_out=34, pd_sck=32), #1
-            HX711(d_out=25, pd_sck=33), #2
-            HX711(d_out=27, pd_sck=26), #3
-            # HX711(d_out=4, pd_sck=5), #4
-            # HX711(d_out=23, pd_sck=5), #4
-            # HX711(d_out=18, pd_sck=5,), #4
-            # HX711(d_out=18, pd_sck=23), #4
-            HX711(d_out=23, pd_sck=18), #4
-        ]
+    def test(self, cell):
+        """test loadcell by detecting noise"""
+        a=cell.read()
+        b=cell.read()
+        if a==b:
+            raise(Exception("No noise detected"))
 
-        self.cells_food=[ HX711(d_out=14, pd_sck=12) ]
-        # self.cells_food=[ HX711(d_out=12, pd_sck=14) ]
+
+    def __init__(self, display):
+        self.display=display
+        # self.display.msg("Scale IO init")
+
+        self.cells_cat=[]
+
+        try:
+            cell_nr=0
+            for pins in config.scale_pins:
+                cell_nr=cell_nr+1
+                # self.display.msg("Scale init cell {}".format(cell_nr))
+                cell=HX711(*pins)
+                self.test(cell)
+                self.cells_cat.append(cell)
+        except Exception as e:
+            #disable
+            self.display.msg("IO error on cell {} ({}: {})".format(cell_nr, e.__class__.__name__, str(e)))
+            self.cells_cat=None
+
+
+        try:
+            self.cells_food=[ HX711(*config.food_pins) ]
+        except Exception as e:
+            #disable
+            self.cells_food=None
+            self.display.msg("IO error on food cell ({}: {})".format(e.__class__.__name__, str(e)))
+
 
         # self.servo = machine.PWM(machine.Pin(17), freq=50)
         self.servo = machine.PWM(machine.Pin(13), freq=50)
@@ -26,17 +48,21 @@ class ScaleIO():
 #
 
     def scales_ready(self):
-        if not self.cells_food[0].is_ready():
+        if self.cells_food and not self.cells_food[0].is_ready():
             return False
 
-        for cell in self.cells_cat:
-            if not cell.is_ready():
-                return False
+        if self.cells_cat:
+            for cell in self.cells_cat:
+                if not cell.is_ready():
+                    return False
 
         return True
 
 
     def read_cat(self):
+        if not self.cells_cat:
+            return None
+
         state=machine.disable_irq()
         c=[         self.cells_cat[0].read(),
                     self.cells_cat[1].read(),
@@ -48,6 +74,9 @@ class ScaleIO():
 
 
     def read_food(self):
+        if not self.cells_food:
+            return None
+
         state=machine.disable_irq()
         c=[
             self.cells_food[0].read(),

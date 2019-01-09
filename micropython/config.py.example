@@ -1,8 +1,29 @@
-wifi_essid = "blah"
-wifi_password="blah"
+wifi_essid = "YOURSSID"
+wifi_password="XXXX"
+# network=('192.168.13.71', '255.255.255.0', '192.168.13.1', '192.168.13.1')
 
 #scale id
-id="test"
+id="dev"
 
 #influx db url
-db="http://1.2.3.4:8086/write?db=meowton"
+db="http://192.168.13.22:8086/write?db=meowton2"
+
+#scale loadcell pinouts
+scale_pins=[
+    #hx711 cell 1 data, clock
+    (34,32),
+    #hx711 cell 2 data, clock
+    (25,33),
+    #hx711 cell 3 data, clock
+    (27,26),
+    #hx711 cell 4 data, clock
+    (23,18)
+]
+
+#food loadcell pinout (hx711 data,clock)
+food_pins=[14, 12]
+
+import display_lcd20x4
+import display
+# display_class=display_lcd20x4.Display
+display_class=display.Display

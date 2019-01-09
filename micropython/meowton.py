@@ -4,20 +4,19 @@ import utime
 import scalecat
 import scalefood
 import scaleio
-import displayio
 import timer
 import db
 from cats import Cats
 import usocket
-
+import config
 
 ### init
-display=displayio.DisplayIO()
+display=config.display_class()
 cats=Cats(display)
 db=db.Db(display)
 scale_cat=scalecat.ScaleCat(display, cats, db)
 scale_food=scalefood.ScaleFood(display, cats, scale_cat)
-scale_io=scaleio.ScaleIO()
+scale_io=scaleio.ScaleIO(display)
 
 #doing my part :)
 display.msg("Subscribe2Pewdiepie!")
@@ -99,8 +98,10 @@ def loop(sched=None):
         f=scale_io.read_food()
         # print(f)
 
-        scale_cat.measurement(c)
-        scale_food.measurement(f)
+        if c:
+            scale_cat.measurement(c)
+        if f:
+            scale_food.measurement(f)
 
 
         if not wlan.isconnected():
