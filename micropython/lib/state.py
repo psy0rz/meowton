@@ -8,7 +8,7 @@ class State():
     '''subclass from this class is you want persistant state. self.state can be saved/loaded'''
     def __init__(self, file_name=None):
         self.state=StateItems()
-
+ 
         if file_name:
             self.load(file_name)
 

@@ -80,10 +80,10 @@ class Scale(State):
         # everything in self.state can be saved and reloaded upon restart
 
         #calibration default factors. number of factors decides the number of sensors
-        self.__default_factors=default_factors
+        # self.__default_factors=default_factors
         self.sensor_count=len(default_factors)
-        self.state.calibrate_factors=default_factors.copy()
-        self.state.calibrating=True
+        # self.state.calibrate_factors=default_factors.copy()
+        self.recalibrate()
 
         self.state.last_timestamp=0
 
@@ -109,7 +109,7 @@ class Scale(State):
 
 
 
-    def stable_reset(self, weight=0):
+    def stable_reset(self, weight=None):
         """resets stable state of the scale. (usefull after changing parameters of loading state)"""
         self.state.stable_min=weight
         self.state.stable_max=weight
@@ -155,42 +155,121 @@ class Scale(State):
 
     def recalibrate(self):
         '''reset calibration to factory default and start recalibration procedure'''
+
+        # Rcalibration should allow for widely different and mixed sensors in one system
+        # It will first measure noise levels and then try to calibrate
+
         self.state.calibrating=True
-        #reset to default cal
-        self.state.calibrate_factors=self.__default_factors.copy()
-        self.tarre()
+        self.cal_states=[]
+        self.cal_count=0
+        self.state.calibrate_factors=[None]*self.sensor_count
 
+    def __calibrate(self, sensors):
+        '''do calibration magic'''
 
-    def __calibrate(self):
-        '''do calibration step (called on stable weight)'''
-        averages=self.offset(self.get_average())
-        weights=self.calibrated_weights(averages)
-        zeros=0
-        factor=0
-        for sensor in range(0,self.sensor_count):
-            if abs(weights[sensor]-self.calibrate_weight)<self.calibrate_weight*0.5: #the calibrating sensor should be least 50% in range
-                factor=self.calibrate_weight/averages[sensor]
-                cal_sensor=sensor
-            if abs(weights[sensor])<=self.calibrate_weight*0.01: # others should be not more than 1% of zero
-                zeros=zeros+1
+        if not self.state.calibrating:
+            return False
 
-        #the calibration weight is placed on exactly one sensor?
-        if zeros==self.sensor_count-1 and factor:
-            self.state.calibrate_factors[cal_sensor]=factor
+        self.cal_count=self.cal_count+1
 
-            #done?
-            for sensor in range(0,self.sensor_count):
-                #Note: there is no way a cell calibrates exactly on this factor :)
-                if self.state.calibrate_factors[sensor]==self.__default_factors[sensor]:
-                    self.msg("ok next")
-                    return
-
-            self.state.calibrating=False
-            self.msg("Cal. done")
-            self.save()
+        ### Step 1: just started, init with current sensor values
+        if not self.cal_states:
+            self.msg("Calibrating...")
+            for sensor in sensors:
+                self.cal_states.append({
+                    'min': sensor,
+                    'max': sensor,
+                    'start_avg': None,
+                    'noise': None,
+                    'avg': sensor,
+                })
         else:
+            # keep track of averages and min/max range, per sensor
+            for i in range(0,self.sensor_count):
 
-            self.msg("place {}g ".format(self.calibrate_weight))
+                self.cal_states[i]['avg']*0.9+sensors[i]*0.1
+
+                if sensors[i]<self.cal_states[i]['min']:
+                    self.cal_states[i]['min']=sensors[i]
+
+                if sensors[i]>self.cal_states[i]['max']:
+                    self.cal_states[i]['max']=sensors[i]
+
+            ### Step 2: determining noise range and start average:
+            if self.cal_states[0]['start_avg']==None:
+
+                # wait until we have 10 measurements:
+                if self.cal_count==10:
+                    #done, store start_average and noise, continue to next step
+                    for cal_state in self.cal_states:
+                        cal_state['start_avg']=cal_state['avg']
+                        cal_state['noise']=abs(cal_state['max']-cal_state['min'])
+                    self.cal_count==0
+                    self.msg("Place cal. weight")
+
+            else:
+                ### Step 3: detect calibration weight:
+
+                for i in range(0,self.sensor_count):
+                    # big change of 10x noise?
+                    if abs(self.cal_states[i]['avg']-sensors[i])>self.cal_states[i]['noise']*10:
+                        # reset average and count
+                        self.cal_states[i]['avg']=sensors[i]
+                        self.cal_count=0
+
+                if self.cal_count==0:
+                    self.msg("Place cal. weight")
+
+                # stable for a while?
+                if self.cal_count==10:
+                    for i in range(0,self.sensor_count):
+                        # all averages that are still >10x compared to start average can be calibrated now:
+                        diff=self.cal_states[i]['avg']-self.cal_states[i]['start_avg']
+                        if abs(diff)>self.cal_states[i]['noise']*10:
+                            self.state.calibrate_factors[i]=self.calibrate_weight/diff
+                            self.msg("Calibrated {}".format(i))
+
+                    # done?
+                    if not None in self.state.calibrate_factors:
+                        self.state.calibrating=False
+                        self.cal_states=None
+                        self.msg("Calbration done")
+
+
+        return True
+
+
+
+
+
+        # averages=self.offset(self.get_average())
+        # weights=self.calibrated_weights(averages)
+        # zeros=0
+        # factor=0
+        # for sensor in range(0,self.sensor_count):
+        #     if abs(weights[sensor]-self.calibrate_weight)<self.calibrate_weight*0.5: #the calibrating sensor should be least 50% in range
+        #         factor=self.calibrate_weight/averages[sensor]
+        #         cal_sensor=sensor
+        #     if abs(weights[sensor])<=self.calibrate_weight*0.01: # others should be not more than 1% of zero
+        #         zeros=zeros+1
+        #
+        # #the calibration weight is placed on exactly one sensor?
+        # if zeros==self.sensor_count-1 and factor:
+        #     self.state.calibrate_factors[cal_sensor]=factor
+        #
+        #     #done?
+        #     for sensor in range(0,self.sensor_count):
+        #         #Note: there is no way a cell calibrates exactly on this factor :)
+        #         if self.state.calibrate_factors[sensor]==self.__default_factors[sensor]:
+        #             self.msg("ok next")
+        #             return
+        #
+        #     self.state.calibrating=False
+        #     self.msg("Cal. done")
+        #     self.save()
+        # else:
+        #
+        #     self.msg("place {}g ".format(self.calibrate_weight))
 
 
 
@@ -221,6 +300,10 @@ class Scale(State):
     def measurement(self, sensors):
         """update measurent data and generate stable events when detected. """
 
+        if self.__calibrate(sensors):
+            return
+
+
         self.state.current=sensors
 
         #calculate weight,
@@ -238,10 +321,10 @@ class Scale(State):
         self.state.last_timestamp=timer.timestamp
 
         # keep min/max values
-        if weight<self.state.stable_min:
+        if self.state.stable_min==None or weight<self.state.stable_min:
             self.state.stable_min=weight
 
-        if weight>self.state.stable_max:
+        if self.state.stable_max==None or weight>self.state.stable_max:
             self.state.stable_max=weight
 
         # reset if weight goes out of stable_range
@@ -276,14 +359,11 @@ class Scale(State):
 
         # generate measuring event
         if self.state.stable_totals_count == self.stable_measurements and not self.state.no_tarre:
-            if self.state.calibrating:
-                self.__calibrate()
-            else:
-                average_weight=self.calibrated_weight(self.offset(self.get_average()))
-                self.debug.append(average_weight)
-                self.last_stable_weight=average_weight
-                self.event_stable(average_weight)
-                self.stable=True
+            average_weight=self.calibrated_weight(self.offset(self.get_average()))
+            self.debug.append(average_weight)
+            self.last_stable_weight=average_weight
+            self.event_stable(average_weight)
+            self.stable=True
 
 
 
