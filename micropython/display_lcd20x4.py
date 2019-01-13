@@ -26,28 +26,33 @@ class Display(display.Display):
 
 
     def scale_weight_stable(self, weight):
+        """called when a stable weight is detected on the cat scale """
         self.lcd.move_to(0,0)
-        s=" {:4.0f}g cat".format(weight)
+        s=" {:4.0f}g".format(weight)
         s="{:<10}".format(s)
         self.lcd.putstr(s)
 
     def scale_weight_unstable(self):
+        """called when cat scale starts moving """
         self.lcd.move_to(0,0)
         self.lcd.putstr("*")
 
 
     def food_weight_stable(self, weight):
+        """called when a stable weight is detected on the food scale """
         self.lcd.move_to(11,0)
-        s=" {:2.0f}g food".format(weight)
+        s=" {:2.2f}g".format(weight)
         s="{:<9}".format(s)
         self.lcd.putstr(s)
 
     def food_weight_unstable(self):
+        """called when food scale starts moving """
         self.lcd.move_to(11,0)
         self.lcd.putstr("*")
 
 
     def update_cat(self, cat):
+        """called to update info about currently detected cat. called with None if cat has left"""
 
         # if cat:
         #     if cat.state.name!=self.last_cat:
@@ -63,6 +68,7 @@ class Display(display.Display):
 
 
     def refresh(self):
+        """called every second to update/refresh info on screen"""
         self.lcd.move_to(0,2)
         for cat in self.cats:
             if cat.state.weight:
@@ -80,7 +86,8 @@ class Display(display.Display):
 
 
     def msg(self, txt, timeout=10):
-        self.lcd.move_to(0,1)
+        """called to display a message on the screen"""
+        self.lcd.move_to(0,3)
         self.lcd.putstr("{:<20}".format(txt[:20]))
         if timeout:
             self.msg_timeout=timer.add(timer.timestamp, timeout*1000)
