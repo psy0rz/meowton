@@ -149,7 +149,7 @@ def loop(sched=None):
 
     if config.loop_async:
         micropython.schedule(loop,None)
-  
+
 
 import config
 

@@ -57,7 +57,7 @@ class ScaleCat(scale.Scale):
                 self.cats.current_cat.ate_session=0
 
         self.cats.select_cat(cat)
-
+ 
 
         if cat:
             self.should_save=True

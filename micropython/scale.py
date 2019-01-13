@@ -234,11 +234,12 @@ class Scale(State):
                     if not None in self.state.calibrate_factors:
                         self.state.calibrating=False
                         self.cal_states=None
+                        self.tarre()
                         self.msg("Calbration done")
 
 
         return True
-
+ 
 
 
 

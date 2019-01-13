@@ -1,6 +1,6 @@
 import timer
 import display
-
+import config
 from machine import I2C, Pin
 from esp8266_i2c_lcd import I2cLcd
 
@@ -11,7 +11,7 @@ class Display(display.Display):
         super().__init__()
 
         DEFAULT_I2C_ADDR = 0x27
-        self.i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
+        self.i2c = I2C(scl=Pin(config.lcd_pins[1]), sda=Pin(config.lcd_pins[0]), freq=400000)
 
         self.cols=20
         self.rows=4

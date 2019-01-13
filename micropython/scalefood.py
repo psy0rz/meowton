@@ -12,9 +12,9 @@ class ScaleFood(scale.Scale):
         self.calibrate_weight=10
         self.stable_auto_tarre_max=0.1
         self.stable_auto_tarre=600
-        self.stable_measurements=10
+        self.stable_measurements=2
         self.stable_skip_measurements=2
-        self.stable_range=0.5
+        self.stable_range=0.2
 
         self.display=display
         self.cats=cats
@@ -94,7 +94,7 @@ class ScaleFood(scale.Scale):
 
         self.display.food_weight_unstable()
 
-
+  
     def msg(self, msg):
         self.display.msg("Food: "+msg)
 
@@ -115,11 +115,3 @@ class ScaleFood(scale.Scale):
                 if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
                     self.last_feed=timer.timestamp
                     return True
-
-
-        # #TMP HACK
-        # #wait between feeds, to prevent mayhem ;)
-        # if timer.diff(timer.timestamp,self.last_feed)>120000:
-        #     if self.cats.current_cat:
-        #         self.last_feed=timer.timestamp
-        #         return True
