@@ -58,6 +58,9 @@ def n(name):
     cats.new(name)
 
 
+
+
+
 # prev=0
 
 
@@ -72,15 +75,15 @@ def cam_send(state):
     global last_state
     if state!=last_state:
         try:
-            print("Setting cam to "+state)
+            # print("Setting cam to "+state)
             s=usocket.socket()
             sockaddr = usocket.getaddrinfo('192.168.13.233', 1234)[0][-1]
             s.connect(sockaddr)
             s.send(state+"\n")
             s.close()
-            print("Cam send done")
+            # print("Cam send done")
         except Exception as e:
-            print("failed: "+str(e))
+            # print("failed: "+str(e))
             pass
     last_state=state
 
@@ -117,7 +120,7 @@ def loop(sched=None):
 
         ###  feed?
         if scale_food.should_feed():
-            scale_io.feed(400)
+            scale_io.feed(config.servo_length)
             scale_food.fed()
 
 
@@ -144,9 +147,9 @@ def loop(sched=None):
 
 
 
-
-    micropython.schedule(loop,None)
-
+    if config.loop_async:
+        micropython.schedule(loop,None)
+  
 
 import config
 
@@ -172,8 +175,8 @@ def input_thread():
 
 
 
-
-# while True:
-#     loop()
-
-loop()
+if not config.loop_async:
+    while True:
+        loop()
+else:
+    loop()

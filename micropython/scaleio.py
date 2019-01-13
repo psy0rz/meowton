@@ -52,7 +52,7 @@ class ScaleIO():
 
 
         # self.servo = machine.PWM(machine.Pin(17), freq=50)
-        self.servo = machine.PWM(machine.Pin(13), freq=50)
+        self.servo = machine.PWM(machine.Pin(config.servo_pin), freq=50)
         self.servo.duty(0)
 #
 
@@ -111,7 +111,7 @@ class ScaleIO():
 
         left_duty=90
         middle_duty=77
-        right_duty=60
+        right_duty=67
         self.servo.duty(0)
 
         #feed

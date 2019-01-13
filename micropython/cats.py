@@ -1,7 +1,7 @@
 import cat
 import os
 import timer
- 
+
 class Cats():
     def __init__(self, display):
 
@@ -9,7 +9,7 @@ class Cats():
         self.current_cat=None
         self.display=display
 
-        self.cats=[]
+        self.cats=[] 
         try:
             os.mkdir(self.dbdir)
         except:

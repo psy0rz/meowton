@@ -7,7 +7,7 @@ class Display():
         self.print("Display init")
 
     def print(self, txt):
-        print("DISPLAY: "+txt)
+        print("DISPLAY: "+txt) 
 
     def scale_weight_stable(self, weight):
 
@@ -18,7 +18,7 @@ class Display():
         pass
 
     def food_weight_stable(self, weight):
-        s="Food {:4.0f}g".format(weight)
+        s="Food {:4.3f}g".format(weight)
         self.print(s)
 
     def food_weight_unstable(self):

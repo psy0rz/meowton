@@ -81,7 +81,7 @@ class ScaleFood(scale.Scale):
 
 
 
-        self.print_debug()
+        # self.print_debug()
 
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
@@ -101,6 +101,10 @@ class ScaleFood(scale.Scale):
 
     def should_feed(self):
         '''should we put food in the bowl?'''
+
+
+        if self.state.calibrating:
+            return False
 
         #wait between feeds, to prevent mayhem ;)
         if timer.diff(timer.timestamp,self.last_feed)>5000:

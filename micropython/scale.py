@@ -111,6 +111,7 @@ class Scale(State):
 
     def stable_reset(self, weight=None):
         """resets stable state of the scale. (usefull after changing parameters of loading state)"""
+        # print("RESET")
         self.state.stable_min=weight
         self.state.stable_max=weight
         self.state.stable_count=0
@@ -199,13 +200,13 @@ class Scale(State):
             if self.cal_states[0]['start_avg']==None:
 
                 # wait until we have 10 measurements:
-                if self.cal_count==10:
+                if self.cal_count==30:
                     #done, store start_average and noise, continue to next step
                     for cal_state in self.cal_states:
                         cal_state['start_avg']=cal_state['avg']
                         cal_state['noise']=abs(cal_state['max']-cal_state['min'])
                     self.cal_count==0
-                    self.msg("Place cal. weight")
+                    self.msg("Place cal. {:2.0f}g".format(self.calibrate_weight))
 
             else:
                 ### Step 3: detect calibration weight:
@@ -221,7 +222,7 @@ class Scale(State):
                     self.msg("Place cal. weight")
 
                 # stable for a while?
-                if self.cal_count==10:
+                if self.cal_count==30:
                     for i in range(0,self.sensor_count):
                         # all averages that are still >10x compared to start average can be calibrated now:
                         diff=self.cal_states[i]['avg']-self.cal_states[i]['start_avg']
@@ -331,6 +332,7 @@ class Scale(State):
         if (self.state.stable_max - self.state.stable_min) <= self.stable_range:
             self.state.stable_count=self.state.stable_count+1
         else:
+            # print("RESET: range")
             self.stable_reset(weight)
 
         #debug: store the measurements that happend between unstable and stable
