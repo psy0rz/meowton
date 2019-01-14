@@ -107,7 +107,7 @@ class Display(display.Display):
 
         #time out message
         if self.msg_timeout and timer.diff(timer.timestamp,self.msg_timeout)>0:
-            self.msg("",timeout=None)
+            self.msg("")
             # self.lcd.move_to(0,3)
             # self.lcd.putstr("{:<20}".format(""))
             # self.msg_timeout=None
@@ -121,7 +121,7 @@ class Display(display.Display):
         self.lcd.move_to(0,3)
         self.lcd.putstr("{:<20}".format(txt[:20]))
         self.current_msg=txt
-        if timeout:
+        if timeout and txt!="":
             self.msg_timeout=timer.add(timer.timestamp, timeout*1000)
         else:
             self.msg_timeout=None
