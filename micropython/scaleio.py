@@ -111,18 +111,32 @@ class ScaleIO():
 
         left_duty=90
         middle_duty=77
-        right_duty=67
+        # right_duty=67
+        right_duty=60
         self.servo.duty(0)
 
         #feed
-        self.fade(self.servo, middle_duty, right_duty, 100)
+        self.servo.duty(right_duty)
         time.sleep_ms(amount)
 
-        self.fade(self.servo, right_duty, middle_duty, 100)
-
-        # ### retract
-        self.fade(self.servo, middle_duty, left_duty, 100)
-        self.fade(self.servo, left_duty, middle_duty, 100)
+        #retract
+        self.servo.duty(left_duty)
+        time.sleep_ms(200)
 
         #disable
         self.servo.duty(0)
+
+
+
+        # #feed
+        # self.fade(self.servo, middle_duty, right_duty, 100)
+        # time.sleep_ms(amount)
+        #
+        # self.fade(self.servo, right_duty, middle_duty, 100)
+        #
+        # # ### retract
+        # self.fade(self.servo, middle_duty, left_duty, 100)
+        # self.fade(self.servo, left_duty, middle_duty, 100)
+        #
+        # #disable
+        # self.servo.duty(0)

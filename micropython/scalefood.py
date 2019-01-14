@@ -94,7 +94,7 @@ class ScaleFood(scale.Scale):
 
         self.display.food_weight_unstable()
 
-  
+
     def msg(self, msg):
         self.display.msg("Food: "+msg)
 
@@ -109,8 +109,8 @@ class ScaleFood(scale.Scale):
         #wait between feeds, to prevent mayhem ;)
         if timer.diff(timer.timestamp,self.last_feed)>5000:
             #bowl is stable and empty?
-            # if self.stable and self.last_stable_weight<0.5:
-            if self.stable and self.last_stable_weight<2:
+            if self.stable and self.last_stable_weight<0.5:
+            # if self.stable and self.last_stable_weight<2:
                 # all cats may have food, or current cat may have food?
                 if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
                     self.last_feed=timer.timestamp

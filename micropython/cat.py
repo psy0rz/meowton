@@ -17,7 +17,7 @@ class Cat(State):
 
     def get_quota(self):
         '''calculate food quota, depending on time that has passed'''
-
+ 
         if self.state.feed_daily:
             if self.state.feed_quota_timestamp:
                 diff=timer.diff(timer.timestamp,self.state.feed_quota_timestamp)

@@ -110,7 +110,7 @@ class Display(display.Display):
             self.msg("")
             # self.lcd.move_to(0,3)
             # self.lcd.putstr("{:<20}".format(""))
-            # self.msg_timeout=None
+            # self.msg_timeout=None 
             # self.current_msg=""
 
 
