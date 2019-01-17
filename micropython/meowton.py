@@ -87,7 +87,7 @@ def cam_send(state):
             pass
     last_state=state
 
-
+cam_detect_count=0
 def loop(sched=None):
     global slow_check_timestamp
 
@@ -138,12 +138,17 @@ def loop(sched=None):
 
 
 
+        global cam_detect_count
         ### cat cam hack
         if scale_cat.stable and scale_cat.last_stable_weight<100 and scale_cat.state.stable_count>300:
+            cam_detect_count=0
             cam_send("false")
-
-        if not scale_cat.stable and ( scale_cat.state.stable_count==2 and scale_cat.last_realtime_weight>100):
-            cam_send("true")
+        else:
+            if scale_cat.last_realtime_weight>100:
+                cam_detect_count=cam_detect_count+1
+                #sometimes there are bogus measurements, so make sure we have more than one
+                if cam_detect_count==3:
+                    cam_send("true")
 
 
 
