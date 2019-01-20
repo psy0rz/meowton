@@ -1,5 +1,8 @@
 # bare minimum to initalize webrepl and start meowton
 
+# disable debug
+import esp
+esp.osdebug(None)
 
 ### network stuff
 import config
@@ -14,4 +17,9 @@ import webrepl
 webrepl.start()
 
 
+
+import meowton
+meowton.wlan=wlan
 from meowton import *
+
+start()

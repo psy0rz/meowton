@@ -4,10 +4,10 @@ class Display():
     """base display class. will print messages to stdout. subclass this to use other displays"""
 
     def __init__(self):
-        self.print("Display init")
+        pass
 
     def print(self, txt):
-        print("DISPLAY: "+txt)
+        print("display: "+txt)
 
     def scale_weight_stable(self, weight):
         """called when a stable weight is detected on the cat scale """

@@ -11,15 +11,24 @@ import usocket
 import config
 
 ### init
-display=config.display_class()
+
+
+
+try:
+    print("Init display...")
+    display=config.display_class()
+except Exception as e:
+    print("DISPLAY ERROR: "+str(e))
+    print("Falling back to serial display.")
+    import display
+    display=display.Display()
+
 cats=Cats(display)
 db=db.Db(display)
 scale_cat=scalecat.ScaleCat(display, cats, db)
 scale_food=scalefood.ScaleFood(display, cats, scale_cat)
 scale_io=scaleio.ScaleIO(display)
 
-#doing my part :)
-display.msg("Subscribe2Pewdiepie!")
 
 
 import micropython
@@ -156,19 +165,9 @@ def loop(sched=None):
         micropython.schedule(loop,None)
 
 
+################################ INIT
+
 import config
-
-
-
-### network stuff
-import network
-from network import WLAN
-wlan = WLAN(network.STA_IF) # get current object, without changing the mode
-wlan.active(True)
-# wlan.ifconfig(config.network)
-wlan.connect(config.wifi_essid, config.wifi_password)
-
-
 
 
 import sys
@@ -179,9 +178,9 @@ def input_thread():
 
 
 
-
-if not config.loop_async:
-    while True:
+def start():
+    if not config.loop_async:
+        while True:
+            loop()
+    else:
         loop()
-else:
-    loop()

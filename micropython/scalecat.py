@@ -58,6 +58,10 @@ class ScaleCat(scale.Scale):
             if cat:
                 #reset ate_session for new cat:
                 cat.ate_session=0
+            else:
+                #doing my part :)
+                self.display.msg("Subscribe2Pewdiepie!",10)
+
 
         self.cats.select_cat(cat)
 

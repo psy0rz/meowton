@@ -1,29 +1,38 @@
-wifi_essid = "YOURSSID"
-wifi_password="XXXX"
-# network=('192.168.13.71', '255.255.255.0', '192.168.13.1', '192.168.13.1')
+wifi_essid = "YOURS"
+wifi_password="BLAH"
 
 #scale id
-id="dev"
+id="test"
 
 #influx db url
 db="http://192.168.13.22:8086/write?db=meowton2"
 
 #scale loadcell pinouts
-scale_pins=[
+scale_pins=(
     #hx711 cell 1 data, clock
     (34,32),
-    #hx711 cell 2 data, clock
-    (25,33),
-    #hx711 cell 3 data, clock
-    (27,26),
-    #hx711 cell 4 data, clock
-    (23,18)
-]
+    # #hx711 cell 2 data, clock
+    (33,25),
+    # #hx711 cell 3 data, clock
+    (26,27),
+    # #hx711 cell 4 data, clock
+    (14,12),
+)
 
-#food loadcell pinout (hx711 data,clock)
-food_pins=[14, 12]
+#food loadcell pinout
+food_pins=(
+    (23, 22),
+)
 
+#servo config
+servo_pin=13
+servo_length=600
+
+
+#display configuration
+#(will automaticly fallback to serial display if not detected)
 import display_lcd20x4
-import display
-# display_class=display_lcd20x4.Display
-display_class=display.Display
+lcd_pins=(21, 22) #data,clock
+display_class=display_lcd20x4.Display
+
+loop_async=True

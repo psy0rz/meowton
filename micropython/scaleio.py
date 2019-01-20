@@ -9,52 +9,58 @@ class ScaleIO():
     def test(self, cell):
         """test loadcell by detecting noise"""
 
+        print("Loadcell: Testing with DT={} SCK={}".format(cell.d_out_pin,cell.pd_sck_pin))
+
         start=cell.read()
         count=0
 
         while start==cell.read():
             count=count+1
-            if count>10:
-                raise(Exception("No noise detected (value={})".format(start)))
+            if count>3:
+                return(False)
+
+        print("Loadcell: Found")
+        return(True)
+
+
+    def config_loadcells(self, pin_list):
+        """tests and config loadcells, returns array of HX711 objects or None when failed"""
+        cells=[]
+        try:
+            for pins in pin_list:
+                cell=HX711(*pins)
+                if not self.test(cell):
+                    #reverse pins?
+                    pins=[ pins[1], pins[0] ]
+                    cell=HX711(*pins)
+                    if not self.test(cell):
+                        self.display.msg("Loadcell on {} not found!".format(pins))
+                        return(None)
+                cells.append(cell)
+            return(cells)
+        except Exception as e:
+            print("CANT CONFIG PINS {}: {}".format(pins,str(e)))
+            self.display.msg("Loadcell on {} not found!".format(pins))
+            return(None)
 
 
     def __init__(self, display):
         self.display=display
         # self.display.msg("Scale IO init")
 
-        self.cells_cat=[]
 
-        try:
-            cell_nr=0
-            for pins in config.scale_pins:
-                cell_nr=cell_nr+1
-                # self.display.msg("Scale init cell {}".format(cell_nr))
-                cell=HX711(*pins)
-                self.test(cell)
-                self.cells_cat.append(cell)
-        except Exception as e:
-            #disable
-            self.display.msg("IO error on cell {} ({}: {})".format(cell_nr, e.__class__.__name__, str(e)))
-            self.cells_cat=None
+        ### config cat scale pins
+        self.cells_cat=self.config_loadcells(config.scale_pins)
+
+        ### config food scale pins
+        self.cells_food=self.config_loadcells(config.food_pins)
 
 
-        try:
-            cell=HX711(*config.food_pins)
-
-
-
-            self.test(cell)
-            self.cells_food=[ cell ]
-        except Exception as e:
-            #disable
-            self.cells_food=None
-            self.display.msg("IO error on food cell ({}: {})".format(e.__class__.__name__, str(e)))
-
-
+        ### config servo
         # self.servo = machine.PWM(machine.Pin(17), freq=50)
         self.servo = machine.PWM(machine.Pin(config.servo_pin), freq=50)
         self.servo.duty(0)
-#
+
 
     def scales_ready(self):
         if self.cells_food and not self.cells_food[0].is_ready():
