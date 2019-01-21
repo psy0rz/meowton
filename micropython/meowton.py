@@ -161,8 +161,8 @@ def loop(sched=None):
 
 
 
-    if config.loop_async:
-        micropython.schedule(loop,None)
+    # if config.loop_async:
+    #     micropython.schedule(loop,None)
 
 
 ################################ INIT
@@ -177,10 +177,13 @@ def input_thread():
         print("JA"+c)
 
 
+from machine import Timer
 
 def start():
+
     if not config.loop_async:
         while True:
             loop()
     else:
-        loop()
+        tim = Timer(-1)
+        tim.init(period=10, mode=Timer.PERIODIC, callback=loop)

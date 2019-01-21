@@ -200,7 +200,7 @@ class Scale(State):
             if self.cal_states[0]['start_avg']==None:
 
                 # wait until we have 10 measurements:
-                if self.cal_count==30:
+                if self.cal_count==100:
                     #done, store start_average and noise, continue to next step
                     for cal_state in self.cal_states:
                         cal_state['start_avg']=cal_state['avg']
@@ -213,7 +213,7 @@ class Scale(State):
 
                 for i in range(0,self.sensor_count):
                     # big change of 10x noise?
-                    if abs(self.cal_states[i]['avg']-sensors[i])>self.cal_states[i]['noise']*10:
+                    if abs(self.cal_states[i]['avg']-sensors[i])>self.cal_states[i]['noise']*2:
                         # reset average and count
                         self.cal_states[i]['avg']=sensors[i]
                         self.cal_count=0
@@ -226,7 +226,7 @@ class Scale(State):
                     for i in range(0,self.sensor_count):
                         # all averages that are still >10x compared to start average can be calibrated now:
                         diff=self.cal_states[i]['avg']-self.cal_states[i]['start_avg']
-                        if abs(diff)>self.cal_states[i]['noise']*10:
+                        if abs(diff)>self.cal_states[i]['noise']*2:
                             self.state.calibrate_factors[i]=self.calibrate_weight/diff
                             self.msg("Calibrated {}".format(i))
 
@@ -236,6 +236,7 @@ class Scale(State):
                         self.cal_states=None
                         self.tarre()
                         self.msg("Calbration done")
+                        self.save()
 
 
         return True
