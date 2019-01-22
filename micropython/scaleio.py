@@ -112,7 +112,7 @@ class ScaleIO():
 
         pwm.duty(end_duty)
 
-    def feed(self, amount):
+    def feed(self, fade_time, sustain_time, retract_time):
         '''ramp up the feeder, stay there for amount mS, and then ramp back'''
 
         left_duty=90
@@ -122,12 +122,14 @@ class ScaleIO():
         self.servo.duty(0)
 
         #feed
+        self.fade(self.servo, middle_duty, right_duty, fade_time)
+
         self.servo.duty(right_duty)
-        time.sleep_ms(amount)
+        time.sleep_ms(sustain_time)
 
         #retract
         self.servo.duty(left_duty)
-        time.sleep_ms(200)
+        time.sleep_ms(retract_time)
 
         #disable
         self.servo.duty(0)
