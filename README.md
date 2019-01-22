@@ -1,4 +1,4 @@
-# Automatic cat weighing system 
+# Automatic cat dieting system 
 
 ![logo](https://raw.githubusercontent.com/psy0rz/meowton/master/logo/normal.png)
 
