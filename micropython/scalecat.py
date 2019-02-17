@@ -73,6 +73,7 @@ class ScaleCat(scale.Scale):
         if self.cats.current_cat:
             self.cats.current_cat.update_weight(weight)
 
+
         #display stuff
         self.display.scale_weight_stable(weight)
         self.display.update_cat(self.cats.current_cat)

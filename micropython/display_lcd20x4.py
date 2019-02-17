@@ -26,6 +26,8 @@ class Display(display.Display):
         self.last_cat=None
         self.current_msg=""
 
+        self.msg("Starting...")
+
     def scale_weight_stable(self, weight):
         """called when a stable weight is detected on the cat scale """
         self.lcd.move_to(0,0)
@@ -110,7 +112,7 @@ class Display(display.Display):
             self.msg("")
             # self.lcd.move_to(0,3)
             # self.lcd.putstr("{:<20}".format(""))
-            # self.msg_timeout=None 
+            # self.msg_timeout=None
             # self.current_msg=""
 
 
@@ -125,3 +127,6 @@ class Display(display.Display):
             self.msg_timeout=timer.add(timer.timestamp, timeout*1000)
         else:
             self.msg_timeout=None
+
+        if txt:
+            print("# "+txt)

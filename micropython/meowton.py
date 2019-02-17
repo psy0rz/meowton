@@ -67,6 +67,9 @@ def n(name):
     cats.new(name)
 
 
+def cal():
+    scale_cat.recalibrate()
+    scale_food.recalibrate()
 
 
 

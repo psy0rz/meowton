@@ -34,6 +34,7 @@ class ScaleIO():
                     pins=[ pins[1], pins[0] ]
                     cell=HX711(*pins)
                     if not self.test(cell):
+                        # print("NOT FOUND {}".format(pins))
                         self.display.msg("Loadcell on {} not found!".format(pins))
                         return(None)
                 cells.append(cell)
