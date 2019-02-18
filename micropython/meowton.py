@@ -132,7 +132,7 @@ def loop(sched=None):
 
         ###  feed?
         if scale_food.should_feed():
-            scale_io.feed(config.servo_length)
+            scale_io.feed(config.servo_fade_time, config.servo_sustain_time, config.servo_retract_time)
             scale_food.fed()
 
 
