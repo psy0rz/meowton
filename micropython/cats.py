@@ -9,7 +9,7 @@ class Cats():
         self.current_cat=None
         self.display=display
 
-        self.cats=[] 
+        self.cats=[]
         try:
             os.mkdir(self.dbdir)
         except:
@@ -87,12 +87,12 @@ class Cats():
 
 
 
-    def quota_all(self):
-        '''determine if all cats have a positive quota'''
+    def quota_all(self, min=10):
+        '''determine if all cats have a quota of at least min'''
         yes=True
 
         for cat in self.cats:
-            if cat.get_quota()<0:
+            if cat.get_quota()<min:
                 yes=False
 
         return(yes)
