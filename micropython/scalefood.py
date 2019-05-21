@@ -52,8 +52,9 @@ class ScaleFood(scale.Scale):
 
         #ignore weight change after despensing food
         if not self.just_fed:
-            #ignore manually added food (>1g)
-            if diff>-1:
+            #ignore manually added food (>1g), or big jumps
+            #ignore huge jumps (>10g). cat probably stood or leaned against it
+            if diff>-1 or diff>2:
                 #known cat, update its quota
                 if self.cats.current_cat:
 

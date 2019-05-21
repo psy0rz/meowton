@@ -96,3 +96,9 @@ class Cats():
                 yes=False
 
         return(yes)
+
+
+    def reset_all(self, amount):
+        '''reset all food quotas'''
+        for cat in self.cats:
+            cat.state.feed_quota=amount

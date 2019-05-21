@@ -63,9 +63,13 @@ def q(name, quota):
 
 
 def n(name):
-    '''new cat or reset weight'''
+    '''new cat'''
     cats.new(name)
 
+def r(amount=0):
+    '''reset food quotas to 0'''
+    print("resetting all quotas to {}".format(amount))
+    cats.reset_all(amount)
 
 def cal():
     scale_cat.recalibrate()
