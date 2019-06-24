@@ -76,6 +76,9 @@ def cal():
     scale_food.recalibrate()
 
 
+def feed():
+    scale_io.feed(config.servo_fade_time, config.servo_sustain_time, config.servo_retract_time)
+    scale_food.fed()
 
 # prev=0
 
@@ -103,6 +106,33 @@ def cam_send(state):
             pass
     last_state=state
 
+
+################ webinterface
+
+import picoweb
+webapp = picoweb.WebApp(__name__)
+
+@webapp.route("/")
+def handle_index(req, resp):
+    yield from picoweb.start_response(resp)
+    yield from resp.awrite("""
+<header><meta http-equiv="refresh" content="1"></header>
+<a href='feed'><button>Feed</button></a>
+<a href='feed'><button>Settings</button></a>
+    """)
+
+
+@webapp.route("/feed")
+def handle_feed(req, resp):
+    feed()
+    yield from picoweb.start_response(resp, status="302", headers='Location: /')
+
+
+
+
+
+
+################ main loop
 cam_detect_count=0
 def loop(sched=None):
     global slow_check_timestamp
@@ -112,10 +142,9 @@ def loop(sched=None):
     ### read and update scales
     if scale_io.scales_ready():
 
-        # read, without irqs
+        #read all sensors and restart hx711 measurements (those take time, so restart them all at once)
         c=scale_io.read_cat()
         f=scale_io.read_food()
-        # print(f)
 
         if c:
             scale_cat.measurement(c)
@@ -136,8 +165,7 @@ def loop(sched=None):
 
         ###  feed?
         if scale_food.should_feed():
-            scale_io.feed(config.servo_fade_time, config.servo_sustain_time, config.servo_retract_time)
-            scale_food.fed()
+            feed()
 
 
         ### save settings
@@ -168,24 +196,12 @@ def loop(sched=None):
 
 
 
-    # if config.loop_async:
-    #     micropython.schedule(loop,None)
+
 
 
 ################################ INIT
-
 import config
-
-
-import sys
-def input_thread():
-    while True:
-        c=sys.stdin.read(1)
-        print("JA"+c)
-
-
 from machine import Timer
-
 def start():
 
     if not config.loop_async:
@@ -194,3 +210,11 @@ def start():
     else:
         tim = Timer(-1)
         tim.init(period=10, mode=Timer.PERIODIC, callback=loop)
+
+
+    #start webinterface
+    try:
+        webapp.run(debug=-1, host="0.0.0.0", port=80)
+    except KeyboardInterrupt:
+        tim.deinit()
+        raise
