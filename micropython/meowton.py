@@ -11,19 +11,24 @@ import usocket
 import config
 import network
 import re
-
 ### init
 
+from display_web import DisplayWeb
+from webserver import Webserver
 
+display_web=DisplayWeb()
+display=display_web
 
-try:
-    print("Init display...")
-    display=config.display_class()
-except Exception as e:
-    print("DISPLAY ERROR: "+str(e))
-    print("Falling back to serial display.")
-    import display
-    display=display.Display()
+webserver=Webserver(display_web)
+
+# try:
+#     print("Init display...")
+#     display=config.display_class()
+# except Exception as e:
+#     print("DISPLAY ERROR: "+str(e))
+#     print("Falling back to serial display.")
+#     import display
+#     display=display.Display()
 
 cats=Cats(display)
 db=db.Db(display)
@@ -139,63 +144,6 @@ def cam_send(state):
 #     yield from picoweb.start_response(resp, status="302", headers='Location: /')
 
 
-import uasyncio
-import picoweb
-
-
-# def index(req, resp):
-#     yield from picoweb.start_response(resp)
-#     yield from resp.awrite("""\
-# <!DOCTYPE html>
-# <html>
-# <head>
-# <script>
-# var source = new EventSource("events");
-# source.onmessage = function(event) {
-#     document.getElementById("result").innerHTML += event.data + "<br>";
-# }
-# source.onerror = function(error) {
-#     console.log(error);
-#     document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
-# }
-# </script>
-# </head>
-# <body>
-# <div id="result"></div>
-# </body>
-# </html>
-# """)
-
-def events(req, resp):
-    # print("Event source connected")
-    yield from resp.awrite("HTTP/1.0 200 OK\r\n")
-    yield from resp.awrite("Content-Type: text/event-stream\r\n")
-    yield from resp.awrite("\r\n")
-    i = 0
-    try:
-        while True:
-            yield from resp.awrite("data: %d\n\n" % i)
-            yield from uasyncio.sleep(1)
-            i += 1
-    except OSError:
-        # print("Event source connection closed")
-        yield from resp.aclose()
-
-
-
-ROUTES = [
-    ("/events", events),
-
-]
-
-
-import ulogging as logging
-# logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
-
-
-app = picoweb.WebApp(__name__, ROUTES)
-webapp=app
 
 
 
@@ -274,7 +222,7 @@ def loop(sched=None):
 
 
 ################################ INIT
-import config
+
 
 from machine import Timer
 def start():
@@ -289,7 +237,7 @@ def start():
 
     #start webinterface
     try:
-        webapp.run(debug=-1, host="0.0.0.0", port=80)
+        webserver.run()
 
 
     except KeyboardInterrupt:

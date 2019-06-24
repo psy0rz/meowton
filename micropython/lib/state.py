@@ -1,3 +1,5 @@
+#(C)2019 edwin@datux.nl - Released under GPL.
+
 import json
 
 class StateItems():
@@ -15,7 +17,7 @@ class State():
     # def __getstate__(self):
     #     return(self.state)
     #
-    # def __setstate__(self, state): 
+    # def __setstate__(self, state):
     #     self.state=state
 
 

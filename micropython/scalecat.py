@@ -84,6 +84,7 @@ class ScaleCat(scale.Scale):
 
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
+        # print(weight)
         pass
 
 

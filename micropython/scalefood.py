@@ -14,7 +14,8 @@ class ScaleFood(scale.Scale):
         self.stable_auto_tarre=600
         self.stable_measurements=2
         self.stable_skip_measurements=2
-        self.stable_range=0.2
+        self.stable_range=0.2 #production
+
 
         self.display=display
         self.cats=cats
