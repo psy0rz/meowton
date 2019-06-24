@@ -7,6 +7,7 @@ class DisplayWeb():
         self.state={
             'v': 0
         }
+        self.msg_timeout=0
 
 
     def send(self):
@@ -36,18 +37,18 @@ class DisplayWeb():
 
     def update_cat(self, cat):
         """called to update info about currently detected cat. called with None if cat has left"""
-        pass
-        # if cat:
-        #     self.print("{}: {:4.0f}g (ate {:4.2}g)".format(cat.state.name, cat.state.weight, cat.ate_session))
+        self.state['cat']=cat
+        self.send()
 
 
     def refresh(self):
         """called every second to update/refresh info on screen"""
+
         pass
 
 
 
     def msg(self, txt, timeout=10):
         """called to display a message on the screen"""
-        # self.print("Message: "+txt)
-        pass
+        self.state['msg']=txt
+        self.send()
