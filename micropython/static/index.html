@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+var source = new EventSource("/events");
+source.onmessage = function(event) {
+    document.getElementById("result").innerHTML += event.data + "<br>";
+}
+source.onerror = function(error) {
+    console.log(error);
+    document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
+}
+</script>
+</head>
+<body>
+<div id="result"></div>
+</body>
+</html>
