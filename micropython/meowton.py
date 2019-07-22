@@ -16,6 +16,7 @@ import re
 from display_web import DisplayWeb
 from webserver import Webserver
 
+#todo: via config
 display_web=DisplayWeb()
 display=display_web
 
@@ -217,6 +218,7 @@ def loop(sched=None):
             ip=wlan.ifconfig()[0]
             global last_ip
             if last_ip!=ip:
+                print(ip)
                 display.msg(ip)
                 last_ip=ip
 
