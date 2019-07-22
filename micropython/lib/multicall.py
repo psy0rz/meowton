@@ -1,26 +1,30 @@
-#(C)2019 edwin@datux.nl - Released under GPL.
-
+#!/usr/bin/python3
+"""MultiCall mem efficient version"""
+__author__ = 'Jan Klopper (jan@underdark.nl)'
+__version__ = 0.1
 class MultiCall():
-    """This class calls all methods in multiple other class objects.
-    (all classes should have the same methods and arguments)
+  def __init__(self, classes):
+    self.classes = classes
 
-    e.g.:
-     m=MultiCall([A(), B()])
+  def caller(self, fname, args, kwargs):
+    results = []
+    for c in self.classes:
+      results.append(c.__getattribute__(fname)(*args, **kwargs))
+    return results
 
-     m.msg("hi")
+  def __getattr__(self, fname):
+    setattr(self, fname, lambda *args,**kwargs: self.caller(fname, args, kwargs))
+    return self.__dict__[fname]
 
-     will result in a call to A.msg("hi") and B.msg("hi")
+if __name__ == '__main__':
+  class A(object):
+    def msg(self, string):
+      print('A:', string)
 
-    """
+  class B(object):
+    def msg(self, string):
+      print('B:', string)
 
-    def __init__(self, classes):
-
-        for fname in dir(classes[0]):
-            methods=[]
-            for cls in classes:
-                methods.append(getattr(cls, fname))
-                setattr(self, fname, lambda *args,**kwargs: self.call_all(methods, args, kwargs))
-
-    def call_all(self, methods, args, kwargs):
-        for method in methods:
-            method(*args, **kwargs)
+  m=MultiCall([A(), B()])
+  m.msg("hi")
+  
