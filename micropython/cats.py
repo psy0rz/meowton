@@ -69,7 +69,7 @@ class Cats():
 
         best_match=None
         for c in self.cats:
-            #new cat?
+            #new cat? 
             if c.state.weight==None:
                 c.state.weight=weight
                 self.display.msg("Learned {}".format(c.state.name))

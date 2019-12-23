@@ -10,26 +10,25 @@ from cats import Cats
 import usocket
 import config
 import network
-import re
+# import re
 ### init
 
-from display_web import DisplayWeb
-from webserver import Webserver
+# from display_web import DisplayWeb
+# from webserver import Webserver
 
 #todo: via config
-display_web=DisplayWeb()
-display=display_web
+# display_web=DisplayWeb()
+# display=display_web
+# webserver=Webserver(display_web)
 
-webserver=Webserver(display_web)
-
-# try:
-#     print("Init display...")
-#     display=config.display_class()
-# except Exception as e:
-#     print("DISPLAY ERROR: "+str(e))
-#     print("Falling back to serial display.")
-#     import display
-#     display=display.Display()
+try:
+    print("Init display...")
+    display=config.display_class()
+except Exception as e:
+    print("DISPLAY ERROR: "+str(e))
+    print("Falling back to serial display.")
+    import display
+    display=display.Display()
 
 cats=Cats(display)
 db=db.Db(display)
@@ -238,10 +237,10 @@ def start():
 
 
     #start webinterface
-    try:
-        webserver.run()
+    # try:
+    #     webserver.run()
 
 
-    except KeyboardInterrupt:
-        tim.deinit()
-        raise
+    # except KeyboardInterrupt:
+    #     tim.deinit()
+    #     raise
