@@ -96,6 +96,10 @@ def feed():
     scale_io.feed(config.servo_fade_time, config.servo_sustain_time, config.servo_retract_time)
     scale_food.fed()
 
+#pause
+def p():
+    Timer(-1).deinit()
+
 # prev=0
 
 

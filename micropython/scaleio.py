@@ -79,12 +79,12 @@ class ScaleIO():
         if not self.cells_cat:
             return None
 
-        state=machine.disable_irq()
+        # state=machine.disable_irq()
         c=[         self.cells_cat[0].read(),
                     self.cells_cat[1].read(),
                     self.cells_cat[2].read(),
                     self.cells_cat[3].read()]
-        machine.enable_irq(state)
+        # machine.enable_irq(state)
 
         return(c)
 
@@ -93,11 +93,11 @@ class ScaleIO():
         if not self.cells_food:
             return None
 
-        state=machine.disable_irq()
+        # state=machine.disable_irq()
         c=[
             self.cells_food[0].read(),
         ]
-        machine.enable_irq(state)
+        # machine.enable_irq(state)
         return(c)
 
 

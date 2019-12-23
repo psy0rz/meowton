@@ -38,6 +38,9 @@ class ScaleFood(scale.Scale):
         except Exception as e:
             print("Error loading scale food:"+str(e))
 
+        #for now we always tarre the foodscale since it seems to get messed up sometimes
+        self.tarre()
+
 
     def fed(self):
         '''indicate we should ignore the current weight change'''

@@ -33,8 +33,8 @@ class ScaleCat(scale.Scale):
         except Exception as e:
             print("Error loading scale cat:"+str(e))
 
-        #always tarre cat scale on boot for nopw
-        # self.tarre()
+        #always tarre cat scale on boot for now
+        self.tarre()
 
 
 
@@ -58,9 +58,9 @@ class ScaleCat(scale.Scale):
             if cat:
                 #reset ate_session for new cat:
                 cat.ate_session=0
-            else:
+            # else:
                 #doing my part :)
-                self.display.msg("Subscribe2Pewdiepie!",10)
+                # self.display.msg("Subscribe2Pewdiepie!",10)
 
 
         self.cats.select_cat(cat)
