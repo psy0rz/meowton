@@ -1,130 +1,72 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta name="keywords" content="jQuery Gauge, Gauge, Radial Gauge, jqxGauge" />
-    <meta name="description" content="In the following demo you can see how you can cuztomize jqxGauge's ranges. You can set range's start and end width, start and end distance from the gauge's bundaries and custom style." />
-    <title id='Description'>jqxGauge displays an indicator within a range of values. Gauges
-        can be used in a table or matrix to show the relative value of a field in a range
-        of values in the data region, for example, as a KPI</title>
-    <link rel="stylesheet" href="https://jqwidgets.com/public/jqwidgets/styles/jqx.base.css" type="text/css" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1 minimum-scale=1" />
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://jqwidgets.com/public/jqwidgets/jqx-all.js"></script>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <style type="text/css">
-        #gaugeValue {
-	        background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #fafafa), color-stop(100%, #f3f3f3));
-	        background-image: -webkit-linear-gradient(#fafafa, #f3f3f3);
-	        background-image: -moz-linear-gradient(#fafafa, #f3f3f3);
-	        background-image: -o-linear-gradient(#fafafa, #f3f3f3);
-	        background-image: -ms-linear-gradient(#fafafa, #f3f3f3);
-	        background-image: linear-gradient(#fafafa, #f3f3f3);
-	        -webkit-border-radius: 3px;
-	        -moz-border-radius: 3px;
-	        -ms-border-radius: 3px;
-	        -o-border-radius: 3px;
-	        border-radius: 3px;
-	        -webkit-box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
-	        -moz-box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
-	        box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
-	        padding: 10px;
-	    }
-    </style>
-    <script type="text/javascript">
-        $(document).ready(function () {
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
+    <title>Hello, world!</title>
+  </head>
+  <!-- <script>
+    var source = new EventSource("/events");
+    source.onmessage = function(event) {
+        document.getElementById("result").innerHTML = event.data + "<br>";
+    }
+    source.onerror = function(error) {
+        console.log(error);
+        document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
+    }
+    </script> -->
+    <body>
 
-
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <nav>
+        <!-- <div class="nav " id="nav-tab" role="tablist">
+          <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
+          <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Profile</a>
+          <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Contact</a>
+        </div>
+      </nav> -->
 
 
-            $('#gaugeContainer').jqxGauge({
-                ranges: [{ startValue: 0, endValue: 55, style: { fill: '#4bb648', stroke: '#4bb648' }, endWidth: 5, startWidth: 1 },
-                         { startValue: 55, endValue: 110, style: { fill: '#fbd109', stroke: '#fbd109' }, endWidth: 10, startWidth: 5 },
-                         { startValue: 110, endValue: 165, style: { fill: '#ff8000', stroke: '#ff8000' }, endWidth: 13, startWidth: 10 },
-                         { startValue: 165, endValue: 1000, style: { fill: '#e02629', stroke: '#e02629' }, endWidth: 16, startWidth: 13 }],
-                ticksMinor: { interval: 5, size: '5%' },
-                ticksMajor: { interval: 10, size: '9%' },
-                value: 0,
-                colorScheme: 'scheme05',
-                animationDuration: 1200,
-                max: 1000,
-            });
-            $('#gaugeContainer').on('valueChanging', function (e) {
-                $('#gaugeValue').text(Math.round(e.args.value) + ' mg');
-            });
-            $('#linearGauge').jqxLinearGauge({
-                orientation: 'vertical',
-                width: 100,
-                height: 350,
-                ticksMajor: { size: '10%', interval: 10 },
-                ticksMinor: { size: '5%', interval: 2.5, style: { 'stroke-width': 1, stroke: '#aaaaaa'} },
-                max: 60,
-                pointer: { size: '5%' },
-                colorScheme: 'scheme05',
-                labels: { interval: 20, formatValue: function (value, position) {
-                    if (position === 'far') {
-                        value = (9 / 5) * value + 32;
-                        if (value === -76) {
-                            return '°F';
-                        }
-                        return value + '°';
-                    }
-                    if (value === -60) {
-                        return '°C';
-                    }
-                    return value + '°';
-                }
-                },
-                ranges: [
-                { startValue: -10, endValue: 10, style: { fill: '#FFF157', stroke: '#FFF157'} },
-                { startValue: 10, endValue: 35, style: { fill: '#FFA200', stroke: '#FFA200'} },
-                { startValue: 35, endValue: 60, style: { fill: '#FF4800', stroke: '#FF4800'}}],
-                animationDuration: 1500
-            });
+      <nav class="navbar navbar-expand-lg navbar-light bg-light" role="tablist">
+            <a class="navbar-brand" href="#">Navbar</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav">
+                <li class="nav-item active">
+                  <a class="nav-link" ario-controls="nav-home" data-toggle="tab" href="#nav-home">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" aria-controls="nav-profile" data-toggle="tab" href="#nav-profile">profile</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" aria-controls="nav-contact" data-toggle="tab" href="#nav-contact">contact</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
 
 
-            /////////////////////////////events
-            var source = new EventSource("/events");
-            source.onmessage = function(event) {
-                console.log(event.data);
-                values=JSON.parse(event.data)
-                $('#gaugeContainer').jqxGauge('value', values.scale_weight);
 
-                // document.getElementById("result").innerHTML = event.data + "<br>";
-            }
-            source.onerror = function(error) {
-                console.log(error);
-                document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
-            }
-
-        });
-    </script>
-</head>
-<body style="background:white;">
-    <div id="demoWidget" style="position: relative;">
-	    <div style="float: left;" id="gaugeContainer"></div>
-        <div id="gaugeValue" style="position: absolute; top: 235px; left: 132px; font-family: Sans-Serif; text-align: center; font-size: 17px; width: 70px;"></div>
-        <div style="margin-left: 60px; float: left;" id="linearGauge"></div>
-    </div>
+      <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+            
+                aaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjslaaaa... safj lkfjs lkf lkjflk jlkf jlk jflks jflkfj lkjsl
+        
+        
+        </div>
+        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">...</div>
+        <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">vvvvv...</div>
+      </div> 
 </body>
 </html>
-
-<!-- <!DOCTYPE html>
-<html>
-<head>
-<script>
-var source = new EventSource("/events");
-source.onmessage = function(event) {
-    document.getElementById("result").innerHTML = event.data + "<br>";
-}
-source.onerror = function(error) {
-    console.log(error);
-    document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
-}
-</script>
-</head>
-<body>
-<div id="result"></div>
-</body>
-</html> -->
