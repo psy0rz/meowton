@@ -68,7 +68,7 @@ class ScaleFood(scale.Scale):
             self.display.alert(False)
 
             #ignore manually added food (>1g), or big jumps
-            if diff<-1 or diff>2:
+            if diff>-2 and diff<2:
                 #known cat, update its quota
                 if self.cats.current_cat:
 
@@ -83,9 +83,9 @@ class ScaleFood(scale.Scale):
 
                 else:
                     #unknown cat, store amount eaten temporary until we identify cat
-                    if self.scale_cat.last_realtime_weight>100:
-                        self.ate=self.ate+diff
-                        self.display.msg("Unknown ate: {}g".format(self.ate))
+                    # if self.scale_cat.last_realtime_weight>100:
+                    self.ate=self.ate+diff
+                    self.display.msg("Unknown ate: {:2.2f}g".format(self.ate))
 
 
         else:
