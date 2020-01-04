@@ -24,12 +24,16 @@ class ScaleFood(scale.Scale):
         #to calulate difference between measurements
         self.prev_weight=0
 
-        #keep count as when the cat isnt identified yet
+        #keep count when the cat isnt identified yet
         self.ate=0
 
         self.last_feed=0
 
         self.just_fed=True
+
+        #retry a max number of times, after that we give an alert.
+        self.feed_retries=0
+        self.feed_max_retries=3
 
         try:
             self.load("scale_food.state")
@@ -56,9 +60,15 @@ class ScaleFood(scale.Scale):
 
         #ignore weight change after despensing food
         if not self.just_fed:
+
+            #something bumped the food scale, so reset retry counter
+            #(we dont react the actual event created by the feeder, since the current of the motor always creates an extra event.)
+            self.feed_retries=0
+            #NOTE: alerts are only used here for now, so its safe to reset every time
+            self.display.alert(False)
+
             #ignore manually added food (>1g), or big jumps
-            #ignore huge jumps (>10g). cat probably stood or leaned against it
-            if diff>-1 or diff>2:
+            if diff<-1 or diff>2:
                 #known cat, update its quota
                 if self.cats.current_cat:
 
@@ -76,9 +86,10 @@ class ScaleFood(scale.Scale):
                     if self.scale_cat.last_realtime_weight>100:
                         self.ate=self.ate+diff
                         self.display.msg("Unknown ate: {}g".format(self.ate))
+
+
         else:
             self.just_fed=False
-
 
 
 
@@ -109,6 +120,8 @@ class ScaleFood(scale.Scale):
         '''should we put food in the bowl?'''
 
 
+
+
         if self.state.calibrating:
             return False
 
@@ -116,8 +129,16 @@ class ScaleFood(scale.Scale):
         if timer.diff(timer.timestamp,self.last_feed)>5000:
             #bowl is stable and empty?
             if self.stable and self.last_stable_weight<0.5:
-            # if self.stable and self.last_stable_weight<2:
                 # all cats may have food, or current cat may have food?
                 if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
                     self.last_feed=timer.timestamp
-                    return True
+                    #if we have to retry too often, the feed silo is empty
+                    self.feed_retries=self.feed_retries+1
+                    if self.feed_retries<=self.feed_max_retries:
+                        return True #feed
+                    else:
+                        #empty
+                        self.display.msg("PLEASE REFILL!")
+                        self.display.alert(True)
+
+        return False #dont feed

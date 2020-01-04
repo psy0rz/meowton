@@ -5,7 +5,7 @@ from machine import I2C, Pin
 from esp8266_i2c_lcd import I2cLcd
 
 class Display(display.Display):
-    """standard LCD2004 20x4 display via I2C"""
+    """standard LCD2004 16x4 display via I2C"""
 
     def __init__(self):
         super().__init__()
@@ -27,6 +27,8 @@ class Display(display.Display):
         self.current_msg=""
 
         self.msg("Starting...")
+
+        
 
     def scale_weight_stable(self, weight):
         """called when a stable weight is detected on the cat scale """
@@ -115,6 +117,15 @@ class Display(display.Display):
             # self.msg_timeout=None
             # self.current_msg=""
 
+        #blink?
+        if self._alerting:
+            if self.lcd.backlight:
+                self.lcd.backlight_off()
+            else:
+                self.lcd.backlight_on()
+        else:
+            if not self.lcd.backlight:
+                self.lcd.backlight_on()
 
 
 

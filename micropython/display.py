@@ -4,6 +4,7 @@ class Display():
     """base display class. will print messages to stdout. subclass this to use other displays"""
 
     def __init__(self):
+        self._alerting=False
         pass
 
     def print(self, txt):
@@ -44,3 +45,6 @@ class Display():
     def msg(self, txt, timeout=10):
         """called to display a message on the screen"""
         self.print("Message: "+txt)
+
+    def alert(self, enabled):
+        self._alerting=enabled
