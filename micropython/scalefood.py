@@ -75,6 +75,7 @@ class ScaleFood(scale.Scale):
                     #unknown cat, store amount eaten temporary until we identify cat
                     if self.scale_cat.last_realtime_weight>100:
                         self.ate=self.ate+diff
+                        self.display.msg("Unknown ate: {}g".format(self.ate))
         else:
             self.just_fed=False
 
