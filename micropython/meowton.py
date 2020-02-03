@@ -182,12 +182,16 @@ def loop(sched=None):
             global oldvalue
             led.value(oldvalue)
             oldvalue=not oldvalue
-        else:
-            led.value(0)
 
 
     #stuff that doesnt have  to be done every loop
     if timer.diff(timer.timestamp,slow_check_timestamp)>1000:
+
+        #heartbeat
+        global oldvalue
+        led.value(oldvalue)
+        oldvalue=not oldvalue
+
 
         ###  feed?
         if scale_food.should_feed():
