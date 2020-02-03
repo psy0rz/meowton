@@ -62,14 +62,19 @@ class ScaleIO():
         self.servo = machine.PWM(machine.Pin(config.servo_pin), freq=50)
         self.servo.duty(0)
 
+        self.prev_cat_sensor=[0] * len(self.cells_cat)
+        self.prev_food_sensor=0
+
 
     def scales_ready(self):
         if self.cells_food and not self.cells_food[0].is_ready():
+            # print("food not ready")
             return False
 
         if self.cells_cat:
             for cell in self.cells_cat:
                 if not cell.is_ready():
+                    # print("cell not ready="+str(cell.d_out_pin))
                     return False
 
         return True
@@ -79,26 +84,42 @@ class ScaleIO():
         if not self.cells_cat:
             return None
 
-        # state=machine.disable_irq()
+        state=machine.disable_irq()
         c=[         self.cells_cat[0].read(),
                     self.cells_cat[1].read(),
                     self.cells_cat[2].read(),
                     self.cells_cat[3].read()]
-        # machine.enable_irq(state)
+        machine.enable_irq(state)
 
-        return(c)
+        read_error=False
+        for i in range(0,len(c)):
+            if abs(self.prev_cat_sensor[i]-c[i])>10000:
+                read_error=True
+            self.prev_cat_sensor[i]=c[i]
+
+        if not read_error:
+            return(c)
+        else:
+            return(False)
 
 
     def read_food(self):
         if not self.cells_food:
             return None
 
-        # state=machine.disable_irq()
+        state=machine.disable_irq()
         c=[
             self.cells_food[0].read(),
         ]
-        # machine.enable_irq(state)
-        return(c)
+        machine.enable_irq(state)
+
+        diff=abs(self.prev_food_sensor-c[0])
+        self.prev_food_sensor=c[0]
+
+        if diff<10000:
+            return(c)
+        else:
+            return(False)
 
 
 
