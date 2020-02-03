@@ -13,13 +13,6 @@ import network
 # import re
 ### init
 
-# from display_web import DisplayWeb
-# from webserver import Webserver
-
-#todo: via config
-# display_web=DisplayWeb()
-# display=display_web
-# webserver=Webserver(display_web)
 
 try:
     print("Init display...")
@@ -30,6 +23,11 @@ except Exception as e:
     import display
     display=display.Display()
 
+if config.run_webserver:
+    from webserver import Webserver
+    webserver=Webserver(display)
+
+
 cats=Cats(display)
 db=db.Db(display)
 scale_cat=scalecat.ScaleCat(display, cats, db)
@@ -37,9 +35,17 @@ scale_food=scalefood.ScaleFood(display, cats, scale_cat)
 scale_io=scaleio.ScaleIO(display)
 
 # wifi setup
-wlan = network.WLAN(network.STA_IF) # get current object, without changing the mode
-wlan.active(True)
-wlan.connect(config.wifi_essid, config.wifi_password)
+
+if config.wifi_essid:
+    print("Configuring wifi {}".format(config.wifi_essid))
+    wlan = network.WLAN(network.STA_IF) # get current object, without changing the mode
+    wlan.active(True)
+    wlan.connect(config.wifi_essid, config.wifi_password)
+else:
+    print("Running as wifi Access Point")
+    wlan = network.WLAN(network.AP_IF)
+    wlan.active(True)
+
 last_ip=""
 
 
@@ -240,11 +246,13 @@ def start():
         tim.init(period=10, mode=Timer.PERIODIC, callback=loop)
 
 
-    #start webinterface
-    # try:
-    #     webserver.run()
+    
+    # start webinterface?
+    if config.run_webserver:
+        try:
+            webserver.run()
 
-
-    # except KeyboardInterrupt:
-    #     tim.deinit()
-    #     raise
+        # stop everything on webserver-stop
+        except KeyboardInterrupt:
+            tim.deinit()
+            raise

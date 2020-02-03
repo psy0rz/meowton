@@ -1,4 +1,5 @@
-
+ 
+ 
 
 class Display():
     """base display class. will print messages to stdout. subclass this to use other displays"""

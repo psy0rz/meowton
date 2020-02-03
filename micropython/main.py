@@ -13,8 +13,8 @@ esp.osdebug(None)
 # # wlan.ifconfig(config.network)
 # wlan.connect(config.wifi_essid, config.wifi_password)
 
-import webrepl
-webrepl.start()
+# import webrepl
+# webrepl.start()
 
 
 

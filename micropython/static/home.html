@@ -1,0 +1,30 @@
+<ons-page id="home">
+    <script>
+        const openMenu = () => {
+            document.querySelector('#menu').open();
+        };
+
+
+        // document.addEventListener('prechange', ({ target, tabItem }) => {
+        //     if (target.matches('#tabbar')) {
+        //         document.querySelector('#home-toolbar .center').innerHTML = tabItem.getAttribute('label');
+        //     }
+        // });
+    </script>
+
+    <ons-toolbar id="home-toolbar">
+        <div class="center">Meowton</div>
+
+        <div class="left">
+            <ons-toolbar-button onclick="openMenu()">
+                <ons-icon icon="md-menu"></ons-icon>
+            </ons-toolbar-button>
+        </div>
+    </ons-toolbar>
+
+    <ons-tabbar id="tabbar">
+        <ons-tab page="status.html" label="Status">
+        </ons-tab>
+        <ons-tab page="saved.html" label="Saved"></ons-tab>
+    </ons-tabbar>
+</ons-page>

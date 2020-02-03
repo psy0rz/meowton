@@ -1,4 +1,6 @@
-wifi_essid = "BLA"
+
+#when empty, meowton will run as accesspoint
+wifi_essid = ""
 wifi_password="BLA"
 
 #scale id

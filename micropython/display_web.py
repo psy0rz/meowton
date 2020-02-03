@@ -1,6 +1,6 @@
+import display_base
 
-
-class DisplayWeb():
+class Display(display_base.Display):
     """merely collects data that you want the webserver to send to the browser"""
 
     def __init__(self):
