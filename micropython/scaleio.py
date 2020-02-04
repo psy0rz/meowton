@@ -96,7 +96,8 @@ class ScaleIO():
 
         read_error=False
         for i in range(0,len(c)):
-            if abs(self.prev_cat_sensor[i]-c[i])>100000:
+            # if abs(self.prev_cat_sensor[i]-c[i])>100000:
+            if c[i]==-1:
                 print("read-error scale")
                 read_error=True
             self.prev_cat_sensor[i]=c[i]
@@ -117,10 +118,11 @@ class ScaleIO():
         ]
         # machine.enable_irq(state)
 
-        diff=abs(self.prev_food_sensor-c[0])
+        # diff=abs(self.prev_food_sensor-c[0])
         self.prev_food_sensor=c[0]
 
-        if diff<100000:
+        # if diff<100000:
+        if c[0]!=-1:
             return(c)
         else:
             print("read error food")

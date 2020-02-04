@@ -197,7 +197,7 @@ class Scale(State):
                 if sensors[i]>self.cal_states[i]['max']:
                     self.cal_states[i]['max']=sensors[i]
 
-            self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
+            # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
 
 
             ### Step 2: determining noise range and start average:
@@ -209,7 +209,7 @@ class Scale(State):
                     #done, store start_average and noise, continue to next step
                     for cal_state in self.cal_states:
                         cal_state['start_avg']=cal_state['avg']
-                        cal_state['noise']=abs(cal_state['max']-cal_state['min'])*5 #add huge margin
+                        cal_state['noise']=abs(cal_state['max']-cal_state['min'])*2 #add huge margin
                     self.cal_count==0
 
             else:
@@ -219,6 +219,7 @@ class Scale(State):
                 for i in range(0,self.sensor_count):
                     if abs(self.cal_states[i]['avg']-sensors[i])>self.cal_states[i]['noise']:
                         self.cal_count=0
+                        self.cal_states[i]['avg']=sensors[i] #start averaging from here on
                         # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
 
                 if self.cal_count==1:
@@ -240,6 +241,9 @@ class Scale(State):
                         self.tarre()
                         self.msg("Calbration done")
                         self.save()
+                
+                else:
+                    print("Cal {}".format(self.cal_count))
 
 
         return True

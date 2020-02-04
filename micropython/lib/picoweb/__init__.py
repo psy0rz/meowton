@@ -268,7 +268,7 @@ class WebApp:
         tmpl = self._load_template(tmpl_name)
         return ''.join(tmpl(*args))
 
-    def sendfile(self, writer, fname, content_type=None, headers=None):
+    def sendfile(self, writer, fname, content_type=None, headers="Cache-Control: max-age=800000000\r\n"):
         if not content_type:
             content_type = get_mime_type(fname)
         try:
