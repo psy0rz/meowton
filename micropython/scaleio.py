@@ -9,7 +9,8 @@ class ScaleIO():
     def test(self, cell):
         """test loadcell by detecting noise"""
 
-        print("Loadcell: Testing with DT={} SCK={}".format(cell.d_out_pin,cell.pd_sck_pin))
+        # print("Loadcell: Testing with DT={} SCK={}".format(cell.d_out_pin,cell.pd_sck_pin))
+        print("Loadcell: Testing with DT={} SCK={}".format(cell.pSCK, cell.pOUT))
 
         start=cell.read()
         count=0
@@ -28,11 +29,11 @@ class ScaleIO():
         cells=[]
         try:
             for pins in pin_list:
-                cell=HX711(*pins)
+                cell=HX711(pins[0], pins[1], 18)
                 if not self.test(cell):
                     #reverse pins?
                     pins=[ pins[1], pins[0] ]
-                    cell=HX711(*pins)
+                    cell=HX711(pins[0], pins[1], 18)
                     if not self.test(cell):
                         # print("NOT FOUND {}".format(pins))
                         self.display.msg("Loadcell on {} not found!".format(pins))
@@ -67,6 +68,8 @@ class ScaleIO():
 
 
     def scales_ready(self):
+        
+
         if self.cells_food and not self.cells_food[0].is_ready():
             # print("food not ready")
             return False
@@ -84,16 +87,17 @@ class ScaleIO():
         if not self.cells_cat:
             return None
 
-        state=machine.disable_irq()
+        # state=machine.disable_irq()
         c=[         self.cells_cat[0].read(),
                     self.cells_cat[1].read(),
                     self.cells_cat[2].read(),
                     self.cells_cat[3].read()]
-        machine.enable_irq(state)
+        # machine.enable_irq(state)
 
         read_error=False
         for i in range(0,len(c)):
-            if abs(self.prev_cat_sensor[i]-c[i])>10000:
+            if abs(self.prev_cat_sensor[i]-c[i])>100000:
+                print("read-error scale")
                 read_error=True
             self.prev_cat_sensor[i]=c[i]
 
@@ -107,18 +111,19 @@ class ScaleIO():
         if not self.cells_food:
             return None
 
-        state=machine.disable_irq()
+        # state=machine.disable_irq()
         c=[
             self.cells_food[0].read(),
         ]
-        machine.enable_irq(state)
+        # machine.enable_irq(state)
 
         diff=abs(self.prev_food_sensor-c[0])
         self.prev_food_sensor=c[0]
 
-        if diff<10000:
+        if diff<100000:
             return(c)
         else:
+            print("read error food")
             return(False)
 
 
@@ -170,3 +175,4 @@ class ScaleIO():
         #
         # #disable
         # self.servo.duty(0)
+

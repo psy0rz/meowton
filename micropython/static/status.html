@@ -1,4 +1,16 @@
 <ons-page id="status">
+    <script>
+        var source = new EventSource("/events");
+        source.onmessage = function (event) {
+            console.log(event.data);
+            // document.getElementById("result").innerHTML = event.data + "<br>";
+        }
+        source.onerror = function (error) {
+            console.log(error);
+            // document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
+        }
+    </script>
+
     <ons-list>
         <ons-list-header>Actual status</ons-list-header>
 

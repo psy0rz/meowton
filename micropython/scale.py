@@ -171,10 +171,12 @@ class Scale(State):
             return False
 
         self.cal_count=self.cal_count+1
+        # self.msg(str(self.cal_count));
+
 
         ### Step 1: just started, init with current sensor values
         if not self.cal_states:
-            self.msg("Calibrating...")
+            self.msg("Hold still...")
             for sensor in sensors:
                 self.cal_states.append({
                     'min': sensor,
@@ -187,7 +189,7 @@ class Scale(State):
             # keep track of averages and min/max range, per sensor
             for i in range(0,self.sensor_count):
 
-                self.cal_states[i]['avg']*0.9+sensors[i]*0.1
+                self.cal_states[i]['avg']=self.cal_states[i]['avg']*0.9+sensors[i]*0.1
 
                 if sensors[i]<self.cal_states[i]['min']:
                     self.cal_states[i]['min']=sensors[i]
@@ -195,37 +197,39 @@ class Scale(State):
                 if sensors[i]>self.cal_states[i]['max']:
                     self.cal_states[i]['max']=sensors[i]
 
+            self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
+
+
             ### Step 2: determining noise range and start average:
             if self.cal_states[0]['start_avg']==None:
 
-                # wait until we have 10 measurements:
-                if self.cal_count==100:
+                # wait until we have 30 measurements:
+                # self.msg("check"+str(self.cal_count))
+                if self.cal_count==50:
                     #done, store start_average and noise, continue to next step
                     for cal_state in self.cal_states:
                         cal_state['start_avg']=cal_state['avg']
-                        cal_state['noise']=abs(cal_state['max']-cal_state['min'])
+                        cal_state['noise']=abs(cal_state['max']-cal_state['min'])*5 #add huge margin
                     self.cal_count==0
-                    self.msg("Place cal. {:2.0f}g".format(self.calibrate_weight))
 
             else:
-                ### Step 3: detect calibration weight:
+                ### Step 3: detect calibration weights:
 
+                #restart averaging when there is a big change
                 for i in range(0,self.sensor_count):
-                    # big change of 10x noise?
-                    if abs(self.cal_states[i]['avg']-sensors[i])>self.cal_states[i]['noise']*2:
-                        # reset average and count
-                        self.cal_states[i]['avg']=sensors[i]
+                    if abs(self.cal_states[i]['avg']-sensors[i])>self.cal_states[i]['noise']:
                         self.cal_count=0
+                        # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
 
-                if self.cal_count==0:
-                    self.msg("Place cal. weight")
+                if self.cal_count==1:
+                    self.msg("Place cal. {:2.0f}g".format(self.calibrate_weight))
 
                 # stable for a while?
                 if self.cal_count==30:
                     for i in range(0,self.sensor_count):
-                        # all averages that are still >10x compared to start average can be calibrated now:
+                        # all sensors that are > noise are calibrated now
                         diff=self.cal_states[i]['avg']-self.cal_states[i]['start_avg']
-                        if abs(diff)>self.cal_states[i]['noise']*2:
+                        if abs(diff)>self.cal_states[i]['noise']:
                             self.state.calibrate_factors[i]=self.calibrate_weight/diff
                             self.msg("Calibrated {}".format(i))
 

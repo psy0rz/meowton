@@ -10,6 +10,7 @@ from cats import Cats
 import usocket
 import config
 import network
+import gc
 # import re
 ### init
 
@@ -161,27 +162,32 @@ def cam_send(state):
 ################ main loop
 cam_detect_count=0
 def loop(sched=None):
+
+
     global slow_check_timestamp
+    
+
+    gc.collect()
 
     timer.update()
 
     ### read and update scales
-    if scale_io.scales_ready():
+    # if scale_io.scales_ready():
 
-        #read all sensors and restart hx711 measurements (those take time, so restart them all at once)
-        c=scale_io.read_cat()
-        f=scale_io.read_food()
+    #read all sensors and restart hx711 measurements (those take time, so restart them all at once)
+    c=scale_io.read_cat()
+    f=scale_io.read_food()
 
-        if c:
-            scale_cat.measurement(c)
-        if f:
-            scale_food.measurement(f)
+    if c:
+        scale_cat.measurement(c)
+    if f:
+        scale_food.measurement(f)
 
 
-        if not wlan.isconnected():
-            global oldvalue
-            led.value(oldvalue)
-            oldvalue=not oldvalue
+    if not wlan.isconnected():
+        global oldvalue
+        led.value(oldvalue)
+        oldvalue=not oldvalue
 
 
     #stuff that doesnt have  to be done every loop
@@ -235,6 +241,8 @@ def loop(sched=None):
                 display.msg(ip)
                 last_ip=ip
 
+    sched.init(period=10, mode=Timer.ONE_SHOT, callback=loop)
+
 
 ################################ INIT
 
@@ -247,7 +255,7 @@ def start():
             loop()
     else:
         tim = Timer(-1)
-        tim.init(period=10, mode=Timer.PERIODIC, callback=loop)
+        tim.init(period=100, mode=Timer.ONE_SHOT, callback=loop)
 
 
     
