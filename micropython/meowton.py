@@ -11,7 +11,9 @@ import usocket
 import config
 import network
 import gc
-# import re
+import uasyncio
+
+
 ### init
 
 
@@ -113,7 +115,6 @@ def p():
 led=machine.Pin(5,machine.Pin.OUT)
 oldvalue=True
 
-slow_check_timestamp=timer.timestamp
 
 global last_state
 last_state="bla"
@@ -134,64 +135,36 @@ def cam_send(state):
     last_state=state
 
 
-################ webinterface
-
-# import picoweb
-# webapp = picoweb.WebApp(__name__)
-#
-# @webapp.route("/")
-# def handle_index(req, resp):
-#     yield from picoweb.start_response(resp)
-#     yield from resp.awrite("""
-# <header><meta http-equiv="refresh" content="1"></header>
-# <a href='feed'><button>Feed</button></a>
-# <a href='feed'><button>Settings</button></a>
-#     """)
-#
-#
-# @webapp.route("/feed")
-# def handle_feed(req, resp):
-#     feed()
-#     yield from picoweb.start_response(resp, status="302", headers='Location: /')
-
-
-
-
-
-
-################ main loop
+################ read sensors, fast stuff
 cam_detect_count=0
-def loop(sched=None):
+def read_sensor_loop():
+
+    while True:
+        timer.update()
+
+        ### read and update scales
+
+        #read all sensors and restart hx711 measurements (those take time, so restart them all at once)
+        c=scale_io.read_cat()
+        f=scale_io.read_food()
+
+        if c:
+            scale_cat.measurement(c)
+        if f:
+            scale_food.measurement(f)
+
+        await uasyncio.sleep_ms(100)
 
 
-    global slow_check_timestamp
-    
+################# loop that checks slow stuff every second or so
+def check_loop():
+    while True:
+        if not wlan.isconnected():
+            global oldvalue
+            led.value(oldvalue)
+            oldvalue=not oldvalue
 
-    gc.collect()
-
-    timer.update()
-
-    ### read and update scales
-    # if scale_io.scales_ready():
-
-    #read all sensors and restart hx711 measurements (those take time, so restart them all at once)
-    c=scale_io.read_cat()
-    f=scale_io.read_food()
-
-    if c:
-        scale_cat.measurement(c)
-    if f:
-        scale_food.measurement(f)
-
-
-    if not wlan.isconnected():
-        global oldvalue
-        led.value(oldvalue)
-        oldvalue=not oldvalue
-
-
-    #stuff that doesnt have  to be done every loop
-    if timer.diff(timer.timestamp,slow_check_timestamp)>1000:
+        gc.collect()
 
         #heartbeat
         global oldvalue
@@ -202,7 +175,6 @@ def loop(sched=None):
         ###  feed?
         if scale_food.should_feed():
             feed()
-
 
         ### save settings
         if scale_cat.should_save and scale_cat.stable and abs(scale_cat.last_stable_weight)<5:
@@ -216,8 +188,6 @@ def loop(sched=None):
         display.refresh()
         slow_check_timestamp=timer.timestamp
 
-
-
         global cam_detect_count
         ### cat cam hack
         if scale_cat.stable and scale_cat.last_stable_weight<100 and scale_cat.state.stable_count>300:
@@ -230,8 +200,6 @@ def loop(sched=None):
                 if cam_detect_count==3:
                     cam_send("true")
 
-
-
         ### display IP
         if wlan.isconnected():
             ip=wlan.ifconfig()[0]
@@ -241,7 +209,7 @@ def loop(sched=None):
                 display.msg(ip)
                 last_ip=ip
 
-    sched.init(period=10, mode=Timer.ONE_SHOT, callback=loop)
+        await uasyncio.sleep(1)
 
 
 ################################ INIT
@@ -250,21 +218,13 @@ def loop(sched=None):
 from machine import Timer
 def start():
 
-    if not config.loop_async:
-        while True:
-            loop()
-    else:
-        tim = Timer(-1)
-        tim.init(period=100, mode=Timer.ONE_SHOT, callback=loop)
-
-
-    
+    event_loop=uasyncio.get_event_loop()
+    event_loop.create_task(read_sensor_loop())
+    event_loop.create_task(check_loop())
+   
     # start webinterface?
     if config.run_webserver:
-        try:
-            webserver.run()
+        webserver.run()
+    else:
+        event_loop.run_forever()
 
-        # stop everything on webserver-stop
-        except KeyboardInterrupt:
-            tim.deinit()
-            raise
