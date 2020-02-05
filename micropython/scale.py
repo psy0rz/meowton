@@ -174,9 +174,8 @@ class Scale(State):
         # self.msg(str(self.cal_count));
 
 
-        ### Step 1: just started, init with current sensor values
+        # just started, init with current sensor values
         if not self.cal_states:
-            self.msg("Hold still...")
             for sensor in sensors:
                 self.cal_states.append({
                     'min': sensor,
@@ -200,12 +199,12 @@ class Scale(State):
             # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
 
 
-            ### Step 2: determining noise range and start average:
+            ### Step 1: determining noise range and start average:
             if self.cal_states[0]['start_avg']==None:
-
-                # wait until we have 30 measurements:
-                # self.msg("check"+str(self.cal_count))
-                if self.cal_count==50:
+                # wait until we have enough measurements:
+                cal_count_needed=50
+                self.msg("Measuring noise: {}%".format(int(self.cal_count*100/cal_count_needed)))
+                if self.cal_count==cal_count_needed:
                     #done, store start_average and noise, continue to next step
                     for cal_state in self.cal_states:
                         cal_state['start_avg']=cal_state['avg']
@@ -213,7 +212,7 @@ class Scale(State):
                     self.cal_count==0
 
             else:
-                ### Step 3: detect calibration weights:
+                ### Step 2: detect calibration weights:
 
                 #restart averaging when there is a big change
                 for i in range(0,self.sensor_count):

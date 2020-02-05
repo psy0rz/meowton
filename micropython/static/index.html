@@ -7,6 +7,50 @@
     <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
 </head>
 <script>
+
+    //call a python function via our simple rpc interface
+
+    function rpc(cmd, load_handler) {
+
+        var req = new XMLHttpRequest();
+
+        // oReq.addEventListener("progress", updateProgress);
+        req.addEventListener("load", function (event) {
+
+            if (req.status==200)
+            {
+                console.debug("rpc result 200", req);
+                if (load_handler)
+                    load_handler(req);
+            }
+            else
+            {
+                console.error("rpc result NON 200", req);
+                ons.notification.toast('Error: '+req.responseText, {timeout: 2000});
+
+            }
+        });
+
+        req.addEventListener("error", function (event) {
+            console.error("rpc error", req)
+            ons.notification.toast('Error during action.', { timeout: 2000 });
+        });
+
+        // oReq.addEventListener("abort", transferCanceled);
+
+        req.open('GET', "/rpc/" + cmd);
+        req.send();
+
+        return(req);
+
+    }
+
+    function menu_rpc(cmd)
+    {
+        document.querySelector('#menu').close();
+        rpc(cmd);
+    }
+
     const loadPage = (page) => {
         document.querySelector('#menu').close();
         document.querySelector('#navigator').bringPageTop(page);
@@ -18,8 +62,8 @@
 
         document.querySelector('#reconnecting').hide();
 
-        console.log(event.data);
-        data=JSON.parse(event.data);
+        console.debug(event.data);
+        data = JSON.parse(event.data);
         // console.log(data);
 
         document.querySelector('#msg').textContent = data.msg;
@@ -42,6 +86,14 @@
         // document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
     }
 
+    //show loader
+    ons.ready(function () {
+        // document.querySelector('#reconnecting').show();
+        ;
+
+    });
+
+
 </script>
 
 
@@ -56,7 +108,10 @@
             <ons-page>
                 <ons-list>
                     <ons-list-item>
-                        <ons-button onclick="calibrate">Calibrate scale</ons-button>
+                        <ons-button onclick="menu_rpc('scale_cat.recalibrate')">Calibrate scale</ons-button>
+                    </ons-list-item>
+                    <ons-list-item>
+                        <ons-button onclick="menu_rpc('scale_food.recalibrate')">Calibrate food</ons-button>
                     </ons-list-item>
                     <ons-list-item onclick="loadPage('about.html')">
                         About
@@ -72,10 +127,10 @@
         </ons-splitter-content>
     </ons-splitter>
 
-    <ons-modal direction="up" id='reconnecting'>
+    <ons-modal direction="up" id='reconnecting' >
         <div style="text-align: center">
             <p>
-                <ons-icon icon="md-spinner" size="28px" spin></ons-icon>Reconnecting...
+                <ons-icon icon="md-spinner" size="28px" spin></ons-icon>Connecting...
             </p>
         </div>
     </ons-modal>
