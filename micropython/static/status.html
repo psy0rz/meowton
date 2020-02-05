@@ -1,30 +1,14 @@
 <ons-page id="status">
     <script>
-        var source = new EventSource("/events");
-        source.onmessage = function (event) {
-            console.log(event.data);
-            data=JSON.parse(event.data);
-            console.log(data);
-
-            // document.getElementById("result").innerHTML = event.data + "<br>";
-            document.querySelector('#cat-weight').textContent=data.scale_weight;
-            if (data.scale_weight_unstable===true)
-                document.querySelector("#cat-weight-unstable").style.display="";
-            else
-                document.querySelector("#cat-weight-unstable").style.display="none";
-            
-
-            // document.querySelector('#food-weight').textContent=data.food_weight;
-
-        }
-        source.onerror = function (error) {
-            console.log(error);
-            // document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
-        }
+        
     </script>
 
     <ons-list>
         <ons-list-header>Actual status</ons-list-header>
+
+        <ons-list-item id="msg">
+
+        </ons-list-item>
 
         <ons-list-item>
             <div class="left">
@@ -40,7 +24,7 @@
 
         <ons-list-item>
             <div class="left">
-                <ons-icon icon="spinner" spin class="list-item__icon"></ons-icon>
+                <ons-icon icon="spinner" spin class="list-item__icon" id='food-weight-unstable'></ons-icon>
             </div>
             <div class="center">
                 Food scale

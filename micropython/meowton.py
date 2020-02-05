@@ -16,7 +16,7 @@ import uasyncio
 
 ### init
 
-
+# Init display
 try:
     print("Init display...")
     display=config.display_class()
@@ -26,19 +26,22 @@ except Exception as e:
     import display
     display=display.Display()
 
-if config.run_webserver:
-    from webserver import Webserver
-    webserver=Webserver(display)
 
-
+# Init classes
 cats=Cats(display)
 db=db.Db(display)
 scale_cat=scalecat.ScaleCat(display, cats, db)
 scale_food=scalefood.ScaleFood(display, cats, scale_cat)
 scale_io=scaleio.ScaleIO(display)
 
-# wifi setup
 
+# webserver?
+if config.run_webserver:
+    from webserver import Webserver
+    webserver=Webserver(display)
+
+
+# wifi setup
 if config.wifi_essid:
     print("Configuring wifi {}".format(config.wifi_essid))
     wlan = network.WLAN(network.STA_IF) # get current object, without changing the mode

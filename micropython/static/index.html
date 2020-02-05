@@ -11,6 +11,37 @@
         document.querySelector('#menu').close();
         document.querySelector('#navigator').bringPageTop(page);
     };
+
+    //listen to events from esp
+    var source = new EventSource("/events");
+    source.onmessage = function (event) {
+
+        document.querySelector('#reconnecting').hide();
+
+        console.log(event.data);
+        data=JSON.parse(event.data);
+        // console.log(data);
+
+        document.querySelector('#msg').textContent = data.msg;
+
+        document.querySelector('#cat-weight').textContent = data.scale_weight;
+        if (data.scale_weight_unstable === true)
+            document.querySelector("#cat-weight-unstable").style.display = "";
+        else
+            document.querySelector("#cat-weight-unstable").style.display = "none";
+
+        document.querySelector('#food-weight').textContent = data.food_weight;
+        if (data.food_weight_unstable === true)
+            document.querySelector("#food-weight-unstable").style.display = "";
+        else
+            document.querySelector("#food-weight-unstable").style.display = "none";
+    }
+    source.onerror = function (error) {
+        console.log(error);
+        document.querySelector('#reconnecting').show();
+        // document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
+    }
+
 </script>
 
 
@@ -24,9 +55,13 @@
         <ons-splitter-side id="menu" collapse>
             <ons-page>
                 <ons-list>
+                    <ons-list-item>
+                        <ons-button onclick="calibrate">Calibrate scale</ons-button>
+                    </ons-list-item>
                     <ons-list-item onclick="loadPage('about.html')">
                         About
                     </ons-list-item>
+
                 </ons-list>
             </ons-page>
         </ons-splitter-side>
@@ -36,6 +71,15 @@
             <ons-navigator id="navigator" page="home.html"></ons-navigator>
         </ons-splitter-content>
     </ons-splitter>
+
+    <ons-modal direction="up" id='reconnecting'>
+        <div style="text-align: center">
+            <p>
+                <ons-icon icon="md-spinner" size="28px" spin></ons-icon>Reconnecting...
+            </p>
+        </div>
+    </ons-modal>
+
 </body>
 
 
