@@ -70,15 +70,15 @@
 
         document.querySelector('#cat-weight').textContent = data.scale_weight;
         if (data.scale_weight_unstable === true)
-            document.querySelector("#cat-weight-unstable").style.display = "";
+            document.querySelector("#cat-weight-unstable").style.visibility = "visible";
         else
-            document.querySelector("#cat-weight-unstable").style.display = "none";
+            document.querySelector("#cat-weight-unstable").style.visibility = "hidden";
 
         document.querySelector('#food-weight').textContent = data.food_weight;
         if (data.food_weight_unstable === true)
-            document.querySelector("#food-weight-unstable").style.display = "";
+            document.querySelector("#food-weight-unstable").style.visibility = "visible";
         else
-            document.querySelector("#food-weight-unstable").style.display = "none";
+            document.querySelector("#food-weight-unstable").style.visibility = "hidden";
     }
     source.onerror = function (error) {
         console.log(error);
@@ -111,7 +111,13 @@
                         <ons-button onclick="menu_rpc('scale_cat.recalibrate')">Calibrate scale</ons-button>
                     </ons-list-item>
                     <ons-list-item>
+                        <ons-button onclick="menu_rpc('scale_cat.tarre')">Tarre scale</ons-button>
+                    </ons-list-item>
+                    <ons-list-item>
                         <ons-button onclick="menu_rpc('scale_food.recalibrate')">Calibrate food</ons-button>
+                    </ons-list-item>
+                    <ons-list-item>
+                        <ons-button onclick="menu_rpc('scale_food.tarre')">Tarre food</ons-button>
                     </ons-list-item>
                     <ons-list-item onclick="loadPage('about.html')">
                         About

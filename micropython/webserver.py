@@ -54,4 +54,4 @@ class Webserver():
 
 
     def run(self):
-        self.webapp.run(debug=-1, host="0.0.0.0", port=80)
+        self.webapp.run(debug=0, host="0.0.0.0", port=80)

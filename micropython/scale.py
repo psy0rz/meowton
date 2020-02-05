@@ -295,6 +295,7 @@ class Scale(State):
 
     def tarre(self):
         '''re-tarre scale as soon as possible (takes 10 measurements)'''
+        self.msg("Tarring...")
         self.stable_reset(0)
         self.state.no_tarre=True
 
@@ -375,8 +376,10 @@ class Scale(State):
             (self.state.no_tarre and self.state.stable_totals_count == 10)
         ):
             # print("TARRE")
+            self.msg("Tarred.")
             self.state.offsets=self.get_average()
             self.state.no_tarre=False
+            self.stable_reset()
 
         # generate measuring event
         if self.state.stable_totals_count == self.stable_measurements and not self.state.no_tarre:
