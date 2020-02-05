@@ -10,7 +10,7 @@ class ScaleCat(scale.Scale):
         super().__init__([0.00219]*4)
         self.calibrate_weight=200
         self.stable_auto_tarre_max=1000
-        self.stable_auto_tarre=6000
+        self.stable_auto_tarre=60000
 
         # self.stable_measurements=25
         # self.stable_skip_measurements=10

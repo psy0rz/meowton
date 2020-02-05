@@ -11,7 +11,7 @@ class ScaleFood(scale.Scale):
         super().__init__([0.00219])
         self.calibrate_weight=10
         self.stable_auto_tarre_max=0.1
-        self.stable_auto_tarre=600
+        self.stable_auto_tarre=60000
         self.stable_measurements=2
         self.stable_skip_measurements=2
         self.stable_range=0.2 #production

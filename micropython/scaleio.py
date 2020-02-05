@@ -29,7 +29,7 @@ class ScaleIO():
         cells=[]
         try:
             for pins in pin_list:
-                cell=HX711(pins[0], pins[1], 18)
+                cell=HX711(pins[0], pins[1], 18, gain=128)
                 if not self.test(cell):
                     #reverse pins?
                     pins=[ pins[1], pins[0] ]
