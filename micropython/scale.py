@@ -203,46 +203,56 @@ class Scale(State):
             if self.cal_states[0]['start_avg']==None:
                 # wait until we have enough measurements:
                 cal_count_needed=50
-                self.msg("Measuring noise: {}%".format(int(self.cal_count*100/cal_count_needed)))
+                self.msg("Measuring noise ({}%)".format(int(self.cal_count*100/cal_count_needed)))
                 if self.cal_count==cal_count_needed:
                     #done, store start_average and noise, continue to next step
                     for cal_state in self.cal_states:
                         cal_state['start_avg']=cal_state['avg']
                         cal_state['noise']=abs(cal_state['max']-cal_state['min'])*2 #add huge margin
-                    self.cal_count==0
+                    self.cal_count=0
 
             else:
                 ### Step 2: detect calibration weights:
+                cal_count_needed=30
 
-                #restart averaging when there is a big change
+                #restart averaging when there is a big change on a sensor
                 for i in range(0,self.sensor_count):
                     if abs(self.cal_states[i]['avg']-sensors[i])>self.cal_states[i]['noise']:
                         self.cal_count=0
                         self.cal_states[i]['avg']=sensors[i] #start averaging from here on
                         # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
 
-                if self.cal_count==1:
-                    self.msg("Place cal. {:2.0f}g".format(self.calibrate_weight))
 
-                # stable for a while?
-                if self.cal_count==30:
-                    for i in range(0,self.sensor_count):
-                        # all sensors that are > noise are calibrated now
-                        diff=self.cal_states[i]['avg']-self.cal_states[i]['start_avg']
-                        if abs(diff)>self.cal_states[i]['noise']:
+                i=0
+                self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
+
+                #there is something on a sensor?
+                for i in range(0,self.sensor_count):
+                    if abs(self.cal_states[i]['start_avg']-sensors[i])>self.cal_states[i]['noise']:
+                        #calibrating..
+                        if self.cal_count<cal_count_needed:
+                            self.msg("Calibrating sensor {} ({}%)".format(i, int(self.cal_count*100/cal_count_needed)))
+                        #done...
+                        if self.cal_count==cal_count_needed:
+                            #this sensor is done now:
+                            diff=self.cal_states[i]['avg']-self.cal_states[i]['start_avg']
                             self.state.calibrate_factors[i]=self.calibrate_weight/diff
-                            self.msg("Calibrated {}".format(i))
+                        #please remove..
+                        if self.cal_count>cal_count_needed:
+                            self.msg("Remove weight from sensor {}".format(i))
 
-                    # done?
-                    if not None in self.state.calibrate_factors:
-                        self.state.calibrating=False
-                        self.cal_states=None
-                        self.tarre()
-                        self.msg("Calbration done")
-                        self.save()
+                        return True
+
+                #there is nothing on a sensor?
+                self.msg("Place {}g on next sensor.".format(self.calibrate_weight))
+
+                if not None in self.state.calibrate_factors:
+                    self.state.calibrating=False
+                    self.cal_states=None
+                    self.tarre()
+                    self.msg("Calbration done")
+                    self.save()
                 
-                else:
-                    print("Cal {}".format(self.cal_count))
 
 
         return True
