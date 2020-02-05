@@ -1,36 +1,33 @@
-<ons-page id="status">
+<ons-page id="cats">
     <script>
-
+        
     </script>
 
     <ons-list>
-        <ons-list-header>Actual status</ons-list-header>
+        <ons-list-header>My cats</ons-list-header>
 
-        <ons-list-item>
-            <div id="msg" style='font-weight: bold;'>
-                Loading...
-            </div>
+        <ons-list-item id="msg">
+
         </ons-list-item>
 
         <ons-list-item>
             <div class="left">
-                Cat scale
+                <ons-icon icon="spinner" spin class="list-item__icon" id='cat-weight-unstable'></ons-icon>
             </div>
             <div class="center">
-                <ons-icon icon="spinner" spin class="list-item__icon" id='cat-weight-unstable'></ons-icon>
+                Cat scale
             </div>
             <div class="right" id='cat-weight'>
                 ...
             </div>
-
         </ons-list-item>
 
         <ons-list-item>
             <div class="left">
-                Food scale
+                <ons-icon icon="spinner" spin class="list-item__icon" id='food-weight-unstable'></ons-icon>
             </div>
             <div class="center">
-                <ons-icon icon="spinner" spin class="list-item__icon" id='food-weight-unstable'></ons-icon>
+                Food scale
             </div>
             <div class="right" id='food-weight'>
                 ...

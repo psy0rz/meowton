@@ -5,6 +5,15 @@ import ujson
 import meowton
 import re
 
+
+class ExcWebApp(picoweb.WebApp):
+
+    async def handle_exc(self, req, resp, exc):
+        # Per API contract, handle_exc() must not raise exceptions
+        # (unless we want the whole webapp to terminate).
+        print("Webserver exception: "+repr(exc))
+
+
 class Webserver():
     def __init__(self, display_web):
         ROUTES = [
@@ -16,7 +25,7 @@ class Webserver():
         # logging.basicConfig(level=logging.DEBUG)
 
         self.display_web=display_web
-        self.webapp = picoweb.WebApp(__name__, ROUTES)
+        self.webapp = ExcWebApp(__name__, ROUTES)
 
     #send events with scale updates to client
     def events(self, req, resp):
@@ -54,4 +63,4 @@ class Webserver():
 
 
     def run(self):
-        self.webapp.run(debug=0, host="0.0.0.0", port=80)
+        self.webapp.run(debug=1, host="0.0.0.0", port=80)
