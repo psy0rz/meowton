@@ -1,39 +1,51 @@
 <ons-page id="cats">
     <script>
-        const page = document.querySelector("#cats");
-        const list = page.querySelector('#cats-list');
+        const page = ons.getScriptPage();
+        const list = page.querySelector('ons-list');
+        const progress = page.querySelector('ons-progress-bar');
 
-        page.addEventListener('show', function () {
+        //tab is shown
+        page.onShow = function () {
+
+            progress.style.visibility = 'visible';
+
+            //get new list data
             rpc("cats.get_all", function (result) {
+
+                //clear list
+                list.querySelectorAll('ons-list-item').forEach(e => e.remove());
+
+                //fill it
                 result.forEach(cat => {
-                    ons.createElement("template-cat-list-item").then(function(element)
-                    {
-                        list.appendChild(element);
-                    })
+                    e = ons.createElement(/*html*/`
+                    <ons-list-item>
+                        <div class="center">
+                            ${cat.name}
+                        </div>
+                        <div class="right">
+                            ${cat.weight}
+                        </div>
+                    </ons-list-item>
+                    `)
+
+                    list.append(e);
                 });
+
+                progress.style.visibility = 'hidden';
+
             })
-        });
 
-
-
+        };
     </script>
 
-    <ons-list id="cats-list">
+    <ons-list>
         <ons-list-header>My cats</ons-list-header>
-
-
+        <ons-progress-bar indeterminate></ons-progress-bar>
     </ons-list>
 
+    <ons-fab position="bottom right">
+        <ons-icon icon="md-plus"></ons-icon>
+    </ons-fab>
 
-    <template id="template-cat-list-item">
-        <ons-list-item>
-            <div class="center">
-                ${cat.name}
-            </div>
-            <div class="right">
-                ${cat.weight}
-            </div>
-        </ons-list-item>
-    </template>
 
 </ons-page>
