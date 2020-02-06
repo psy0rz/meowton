@@ -37,7 +37,13 @@ class Display(display_base.Display):
 
     def update_cat(self, cat):
         """called to update info about currently detected cat. called with None if cat has left"""
-        self.state['cat']=cat.get_state()
+
+        if cat:
+            self.state['cat']=cat.get_state() 
+            self.state['cat_state']='Eating'
+        else:
+            #keep state of cat in userinterface, after its gone
+            self.state['cat_state']='Done'
 
         self.send()
 

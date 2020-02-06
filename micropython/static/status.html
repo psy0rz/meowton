@@ -1,5 +1,42 @@
 <ons-page id="status">
     <script>
+        //listen to events from esp
+        var source = new EventSource("/events");
+        source.onmessage = function (event) {
+
+            document.querySelector('#reconnecting').hide();
+
+            console.debug(event.data);
+            data = JSON.parse(event.data);
+            // console.log(data);
+
+            //scale stuff
+            document.querySelector('#msg').textContent = data.msg;
+            document.querySelector('#scale-weight').textContent = data.scale_weight;
+            document.querySelector('#food-weight').textContent = data.food_weight;
+
+            if (data.scale_weight_unstable === true)
+                document.querySelector("#scale-weight-unstable").style.visibility = "visible";
+            else
+                document.querySelector("#scale-weight-unstable").style.visibility = "hidden";
+
+            if (data.food_weight_unstable === true)
+                document.querySelector("#food-weight-unstable").style.visibility = "visible";
+            else
+                document.querySelector("#food-weight-unstable").style.visibility = "hidden";
+
+            //cat info
+            document.querySelector('#cat-name').textContent = data.cat.name;
+            document.querySelector('#cat-weight').textContent = data.cat.weight;
+            document.querySelector('#cat-state').textContent = data.cat_state;
+            document.querySelector('#cat-ate-session').textContent = data.cat.ate_session;
+
+        }
+        source.onerror = function (error) {
+            console.log(error);
+            document.querySelector('#reconnecting').show();
+            // document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
+        }
 
     </script>
 
@@ -17,9 +54,9 @@
                 Cat scale
             </div>
             <div class="center">
-                <ons-icon icon="spinner" spin class="list-item__icon" id='cat-weight-unstable'></ons-icon>
+                <ons-icon icon="spinner" spin class="list-item__icon" id='scale-weight-unstable'></ons-icon>
             </div>
-            <div class="right" id='cat-weight'>
+            <div class="right" id='scale-weight'>
                 ...
             </div>
 
@@ -38,13 +75,13 @@
         </ons-list-item>
 
 
-        <ons-list-header>Cat</ons-list-header>
+        <ons-list-header>Last cat</ons-list-header>
 
         <ons-list-item>
             <div class="center">
                 Status
             </div>
-            <div class="right" id='cat-weight'>
+            <div class="right" id='cat-state'>
                 Gone
             </div>
         </ons-list-item>
@@ -53,7 +90,7 @@
             <div class="center">
                 Name
             </div>
-            <div class="right" id='cat-weight'>
+            <div class="right" id='cat-name'>
                 ...
             </div>
         </ons-list-item>
@@ -71,7 +108,7 @@
             <div class="center">
                 Ate
             </div>
-            <div class="right" id='cat-weight'>
+            <div class="right" id='cat-ate-session'>
                 ...
             </div>
         </ons-list-item>

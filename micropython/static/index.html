@@ -17,16 +17,14 @@
         // oReq.addEventListener("progress", updateProgress);
         req.addEventListener("load", function (event) {
 
-            if (req.status==200)
-            {
+            if (req.status == 200) {
                 console.debug("rpc result 200", req);
                 if (load_handler)
                     load_handler(req);
             }
-            else
-            {
+            else {
                 console.error("rpc result NON 200", req);
-                ons.notification.toast('Error: '+req.responseText, {timeout: 2000});
+                ons.notification.toast('Error: ' + req.responseText, { timeout: 2000 });
 
             }
         });
@@ -41,12 +39,11 @@
         req.open('GET', "/rpc/" + cmd);
         req.send();
 
-        return(req);
+        return (req);
 
     }
 
-    function menu_rpc(cmd)
-    {
+    function menu_rpc(cmd) {
         document.querySelector('#menu').close();
         rpc(cmd);
     }
@@ -56,42 +53,7 @@
         document.querySelector('#navigator').bringPageTop(page);
     };
 
-    //listen to events from esp
-    var source = new EventSource("/events");
-    source.onmessage = function (event) {
 
-        document.querySelector('#reconnecting').hide();
-
-        console.debug(event.data);
-        data = JSON.parse(event.data);
-        // console.log(data);
-
-        document.querySelector('#msg').textContent = data.msg;
-
-        document.querySelector('#cat-weight').textContent = data.scale_weight;
-        if (data.scale_weight_unstable === true)
-            document.querySelector("#cat-weight-unstable").style.visibility = "visible";
-        else
-            document.querySelector("#cat-weight-unstable").style.visibility = "hidden";
-
-        document.querySelector('#food-weight').textContent = data.food_weight;
-        if (data.food_weight_unstable === true)
-            document.querySelector("#food-weight-unstable").style.visibility = "visible";
-        else
-            document.querySelector("#food-weight-unstable").style.visibility = "hidden";
-    }
-    source.onerror = function (error) {
-        console.log(error);
-        document.querySelector('#reconnecting').show();
-        // document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
-    }
-
-    //show loader
-    ons.ready(function () {
-        // document.querySelector('#reconnecting').show();
-        ;
-
-    });
 
 
 </script>
@@ -136,7 +98,7 @@
         </ons-splitter-content>
     </ons-splitter>
 
-    <ons-modal direction="up" id='reconnecting' >
+    <ons-modal direction="up" id='reconnecting'>
         <div style="text-align: center">
             <p>
                 <ons-icon icon="md-spinner" size="28px" spin></ons-icon>Connecting...

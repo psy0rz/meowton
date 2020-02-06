@@ -1,68 +1,24 @@
 <ons-page id="cats">
     <script>
+        const list = document.querySelector('#cats-list');
+
         
+
+        // newPokemon.forEach(name => {
+        //     list.appendChild(ons.createElement(`
+        //   <ons-list-item expandable>
+        //     ${nextPokenumber} ${name}
+        //     <div class="expandable-content">
+        //       <ons-button onclick="savePokemon(${nextPokenumber}, this)">Save</ons-button>
+        //     </div>
+        //   </ons-list-item>
+        // `));
+
+
     </script>
 
-    <ons-list>
+    <ons-list id="cats-list">
         <ons-list-header>My cats</ons-list-header>
-
-        <ons-list-item id="msg">
-
-        </ons-list-item>
-
-        <ons-list-item>
-            <div class="left">
-                <ons-icon icon="spinner" spin class="list-item__icon" id='cat-weight-unstable'></ons-icon>
-            </div>
-            <div class="center">
-                Cat scale
-            </div>
-            <div class="right" id='cat-weight'>
-                ...
-            </div>
-        </ons-list-item>
-
-        <ons-list-item>
-            <div class="left">
-                <ons-icon icon="spinner" spin class="list-item__icon" id='food-weight-unstable'></ons-icon>
-            </div>
-            <div class="center">
-                Food scale
-            </div>
-            <div class="right" id='food-weight'>
-                ...
-            </div>
-        </ons-list-item>
-
-
-        <ons-list-header>Cat</ons-list-header>
-
-        <ons-list-item>
-            <div class="center">
-                Status
-            </div>
-            <div class="right" id='cat-weight'>
-                Gone
-            </div>
-        </ons-list-item>
-
-        <ons-list-item>
-            <div class="center">
-                Name
-            </div>
-            <div class="right" id='cat-weight'>
-                ...
-            </div>
-        </ons-list-item>
-
-        <ons-list-item>
-            <div class="center">
-                Average weight
-            </div>
-            <div class="right" id='cat-weight'>
-                ...
-            </div>
-        </ons-list-item>
 
         <ons-list-item>
             <div class="center">

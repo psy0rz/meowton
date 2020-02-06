@@ -2,8 +2,9 @@ from state import State
 import timer
 
 class Cat(State):
-    def __init__(self):
+    def __init__(self, name=None):
         super().__init__()
+        self.state.name=name
         self.state.feed_daily=0
         self.state.feed_quota=0
         self.state.feed_quota_timestamp=0

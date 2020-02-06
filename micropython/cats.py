@@ -29,14 +29,12 @@ class Cats():
         c=self.by_name(name)
 
         if not c:
-            c=cat.Cat()
+            c=cat.Cat(name)
             self.cats.append(c)
             c.save_file_name(self.dbdir+"/"+name)
 
 
-        c.state.name=name
-        c.state.weight=None
-
+ 
         self.display.msg("Place {}".format(name))
         return(c)
 
