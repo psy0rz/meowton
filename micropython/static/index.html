@@ -9,7 +9,6 @@
 <script>
 
     //call a python function via our simple rpc interface
-
     function rpc(cmd, load_handler) {
 
         var req = new XMLHttpRequest();
@@ -19,14 +18,17 @@
 
             if (req.status == 200) {
                 console.debug("rpc result 200", req);
-                if (load_handler)
-                    load_handler(req);
+                if (load_handler) {
+                    result = JSON.parse(req.response);
+                    load_handler(result);
+                }
             }
             else {
                 console.error("rpc result NON 200", req);
                 ons.notification.toast('Error: ' + req.responseText, { timeout: 2000 });
 
             }
+
         });
 
         req.addEventListener("error", function (event) {

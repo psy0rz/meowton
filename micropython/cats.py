@@ -83,6 +83,12 @@ class Cats():
     def select_cat(self, cat):
         self.current_cat=cat
 
+    def get_all(self):
+        ret=[]
+        for cat in self.cats:
+            ret.append(cat.get_state())
+        
+        return(ret)
 
 
     def quota_all(self, min=10):

@@ -1,18 +1,19 @@
 <ons-page id="cats">
     <script>
-        const list = document.querySelector('#cats-list');
+        const page = document.querySelector("#cats");
+        const list = page.querySelector('#cats-list');
 
-        
+        page.addEventListener('show', function () {
+            rpc("cats.get_all", function (result) {
+                result.forEach(cat => {
+                    ons.createElement("template-cat-list-item").then(function(element)
+                    {
+                        list.appendChild(element);
+                    })
+                });
+            })
+        });
 
-        // newPokemon.forEach(name => {
-        //     list.appendChild(ons.createElement(`
-        //   <ons-list-item expandable>
-        //     ${nextPokenumber} ${name}
-        //     <div class="expandable-content">
-        //       <ons-button onclick="savePokemon(${nextPokenumber}, this)">Save</ons-button>
-        //     </div>
-        //   </ons-list-item>
-        // `));
 
 
     </script>
@@ -20,18 +21,19 @@
     <ons-list id="cats-list">
         <ons-list-header>My cats</ons-list-header>
 
-        <ons-list-item>
-            <div class="center">
-                Ate
-            </div>
-            <div class="right" id='cat-weight'>
-                ...
-            </div>
-        </ons-list-item>
-
 
     </ons-list>
 
 
+    <template id="template-cat-list-item">
+        <ons-list-item>
+            <div class="center">
+                ${cat.name}
+            </div>
+            <div class="right">
+                ${cat.weight}
+            </div>
+        </ons-list-item>
+    </template>
 
 </ons-page>
