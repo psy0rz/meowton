@@ -12,8 +12,8 @@
 
             //scale stuff
             document.querySelector('#msg').textContent = data.msg;
-            document.querySelector('#scale-weight').textContent = data.scale_weight;
-            document.querySelector('#food-weight').textContent = data.food_weight;
+            document.querySelector('#scale-weight').textContent = data.scale_weight.toFixed(0)+"g";
+            document.querySelector('#food-weight').textContent = data.food_weight.toFixed(1)+"g";
 
             if (data.scale_weight_unstable === true)
                 document.querySelector("#scale-weight-unstable").style.visibility = "visible";
@@ -27,7 +27,7 @@
 
             //cat info
             document.querySelector('#cat-name').textContent = data.cat.name;
-            document.querySelector('#cat-weight').textContent = data.cat.weight;
+            document.querySelector('#cat-weight').textContent = data.cat.weight.toFixed(0)+"g";
             document.querySelector('#cat-state').textContent = data.cat_state;
             document.querySelector('#cat-ate-session').textContent = data.cat.ate_session;
 
