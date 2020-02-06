@@ -40,3 +40,12 @@ class State():
             d=dict(json.load(fh))
             for (key,value) in d.items():
                 setattr(self.state,key,value)
+
+    def get_state(self):
+        """get state as normal dict"""
+        return(self.state.__dict__)
+    
+    def set_state(self, d):
+        """set state from a normal dict (doesnt remove attributes)"""
+        for (key,value) in d.items():
+            setattr(self.state,key,value)
