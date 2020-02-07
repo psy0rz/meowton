@@ -17,6 +17,7 @@ class ExcWebApp(picoweb.WebApp):
 class Webserver():
     def __init__(self, display_web):
         ROUTES = [
+            ("/", self.index),
             ("/events", self.events),
             (re.compile("^/rpc/(.+)"), self.rpc),
         ]
@@ -26,6 +27,11 @@ class Webserver():
 
         self.display_web=display_web
         self.webapp = ExcWebApp(__name__, ROUTES)
+
+    def index(self, req, resp):
+        headers = {"Location": "/static/index.html"}
+        yield from picoweb.start_response(resp, status="303", headers=headers)
+
 
     #send events with scale updates to client
     def events(self, req, resp):
