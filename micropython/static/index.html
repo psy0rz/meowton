@@ -1,22 +1,44 @@
 <!DOCTYPE html>
 <html>
-
+<title>Meowton</title>
 <head>
     <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
     <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
     <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
 </head>
 <script>
+
+    //global progress indication
+    progress_count=0;
+    function progress_start()
+    {
+        progress_count++;
+        document.querySelectorAll('.global-progress').forEach(e => e.style.visibility='visible');
+    }
+
+    function progress_done()
+    {
+        progress_count--;
+        if (progress_count<=0)
+        {
+            progress_count=0;
+            document.querySelectorAll('.global-progress').forEach(e => e.style.visibility='hidden');
+        }
+    }
     
+    ons.ready(function(){
+        progress_done();
+    });
 
     //call a python function via our simple rpc interface
     function rpc(cmd, load_handler) {
 
+        progress_start();
         var req = new XMLHttpRequest();
 
         // oReq.addEventListener("progress", updateProgress);
         req.addEventListener("load", function (event) {
-
+            progress_done();
             if (req.status == 200) {
                 console.debug("rpc result 200", req);
                 if (load_handler) {
@@ -33,6 +55,7 @@
         });
 
         req.addEventListener("error", function (event) {
+            progress_done();
             console.error("rpc error", req)
             ons.notification.toast('Error during action.', { timeout: 2000 });
         });
@@ -97,6 +120,7 @@
 
         <!-- Everything not in the side menu -->
         <ons-splitter-content>
+
             <ons-navigator id="navigator" page="home.html"></ons-navigator>
         </ons-splitter-content>
     </ons-splitter>

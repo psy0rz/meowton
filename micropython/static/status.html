@@ -1,5 +1,6 @@
 <ons-page id="status">
     <script>
+
         //listen to events from esp
         var source = new EventSource("/events");
         source.onmessage = function (event) {
@@ -38,10 +39,13 @@
             // document.getElementById("result").innerHTML += "EventSource error:" + error + "<br>";
         }
 
+        progress_done();
+
     </script>
 
     <ons-list>
         <ons-list-header>Actual status</ons-list-header>
+        <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
 
         <ons-list-item>
             <div id="msg" style='font-weight: bold;'>

@@ -2,12 +2,11 @@
     <script>
         const page = ons.getScriptPage();
         const list = page.querySelector('ons-list');
-        const progress = page.querySelector('ons-progress-bar');
 
         //tab is shown
         page.onShow = function () {
 
-            progress.style.visibility = 'visible';
+            progress_start();
 
             //get new list data
             rpc("cats.get_all", function (result) {
@@ -31,7 +30,7 @@
                     list.append(e);
                 });
 
-                progress.style.visibility = 'hidden';
+                progress_done();
 
             })
 
@@ -40,7 +39,7 @@
 
     <ons-list>
         <ons-list-header>My cats</ons-list-header>
-        <ons-progress-bar indeterminate></ons-progress-bar>
+        <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
     </ons-list>
 
     <ons-fab position="bottom right">
