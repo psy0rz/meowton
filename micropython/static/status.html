@@ -13,8 +13,17 @@
 
             //scale stuff
             document.querySelector('#msg').textContent = data.msg;
-            document.querySelector('#scale-weight').textContent = data.scale_weight.toFixed(0)+"g";
-            document.querySelector('#food-weight').textContent = data.food_weight.toFixed(1)+"g";
+
+            if  (data.scale_weight===undefined)
+                document.querySelector('#scale-weight').textContent="?";
+            else
+                document.querySelector('#scale-weight').textContent = data.scale_weight.toFixed(0)+"g";
+
+
+            if (data.food_weight===undefined)
+                document.querySelector('#food-weight').textContent = "?";
+            else
+                document.querySelector('#food-weight').textContent = data.food_weight.toFixed(1)+"g";
 
             if (data.scale_weight_unstable === true)
                 document.querySelector("#scale-weight-unstable").style.visibility = "visible";
