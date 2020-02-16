@@ -18,10 +18,12 @@ esp.osdebug(None)
 
 
 
+print("Press CTRL-C to cancel boot...")
+import time
+time.sleep(0.25)
+print("Continuing boot.")
 
 
 import meowton
 from meowton import *
-
-
 start()

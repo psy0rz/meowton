@@ -1,0 +1,47 @@
+wifi_essid = "DatuX"
+wifi_password="raggenmetdiezooi"
+
+#scale id
+id="test"
+
+#influx db url
+db="http://192.168.13.22:8086/write?db=meowton2"
+
+#scale loadcell pinouts
+scale_pins=(
+    #hx711 cell 1 data, clock
+    (34,32),
+    # #hx711 cell 2 data, clock
+    (33,25),
+    # #hx711 cell 3 data, clock
+    (26,27),
+    # #hx711 cell 4 data, clock
+    # (14,12),
+    (18,23), #gang
+)
+
+#food loadcell pinout
+food_pins=(
+    # (22, 23),
+    (12, 14), #gang
+)
+
+#servo config
+#MG995 servo:
+#brown: gnd
+#red: USB/5vcc
+#orange: servo_pin
+servo_pin=13
+# servo_pin=11 #gang
+servo_fade_time=300
+servo_sustain_time=300
+servo_retract_time=100
+
+
+#display configuration
+#(will automaticly fallback to serial display if not detected)
+import display_lcd20x4
+lcd_pins=(21, 22) #data,clock
+display_class=display_lcd20x4.Display
+
+loop_async=False

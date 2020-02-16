@@ -1,0 +1,108 @@
+<ons-page id="hardware">
+    <script>
+        ons.ready(function () {
+
+            var page = ons.getScriptPage();
+            var list = page.querySelector('ons-list');
+
+            //tab is shown
+            page.onShow = function () {
+
+                //get new list data
+                rpc("scale_io.get_config", function (result) {
+
+                    // clear pin options
+                    list.querySelectorAll('.pin-select-option').forEach(e => e.remove());
+
+                    // fill it
+                    result.selectable_pins.forEach(pin => {
+
+                        list.querySelectorAll('.pin-select .select-input').forEach(e => {
+                            option_element = ons.createElement(/*html*/`
+                                <option class='pin-select-option' value="${pin}">${pin}</option>
+                            `)
+                            e.append(option_element);
+                        });
+                    });
+                })
+
+            };
+        });
+    </script>
+
+    <style>
+        .pin-select {
+            margin-left: 1em;
+        }
+    </style>
+
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button></ons-back-button>
+        </div>
+        <div class="center">Hardware settings</div>
+
+
+    </ons-toolbar>
+
+
+    <ons-list>
+        <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
+
+        <ons-list-header>Scale load cells</ons-list-header>
+        <ons-list-item>
+            <div class="center">
+                Cell 1 pins
+            </div>
+            <div class="right">
+                <ons-select class='pin-select' id="cell_1_pin_1">
+                </ons-select>
+                <ons-select class='pin-select' id="cell_1_pin_2">
+                </ons-select>
+            </div>
+        </ons-list-item>
+
+        <ons-list-item>
+            <div class="center">
+                Cell 2 pins
+            </div>
+            <div class="right">
+                <ons-select class='pin-select' id="cell_2_pin_1">
+                </ons-select>
+                <ons-select class='pin-select' id="cell_2_pin_2">
+                </ons-select>
+            </div>
+        </ons-list-item>
+
+        <ons-list-item>
+            <div class="center">
+                Cell 3 pins
+            </div>
+            <div class="right">
+                <ons-select class='pin-select' id="cell_3_pin_1">
+                </ons-select>
+                <ons-select class='pin-select' id="cell_3_pin_2">
+                </ons-select>
+            </div>
+        </ons-list-item>
+
+        <ons-list-item>
+            <div class="center">
+                Cell 4 pins
+            </div>
+            <div class="right">
+                <ons-select class='pin-select' id="cell_4_pin_1">
+                </ons-select>
+                <ons-select class='pin-select' id="cell_4_pin_2">
+                </ons-select>
+            </div>
+        </ons-list-item>
+
+
+    </ons-list>
+
+    <p>
+        <ons-button>Test and save</ons-button>
+    </p>
+
+</ons-page>

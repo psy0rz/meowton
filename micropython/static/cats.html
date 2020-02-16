@@ -6,7 +6,6 @@
         //tab is shown
         page.onShow = function () {
 
-            progress_start();
 
             //get new list data
             rpc("cats.get_all", function (result) {
@@ -30,7 +29,6 @@
                     list.append(e);
                 });
 
-                progress_done();
 
             })
 

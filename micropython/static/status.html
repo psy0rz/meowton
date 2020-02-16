@@ -14,16 +14,16 @@
             //scale stuff
             document.querySelector('#msg').textContent = data.msg;
 
-            if  (data.scale_weight===undefined)
-                document.querySelector('#scale-weight').textContent="?";
+            if (data.scale_weight === undefined)
+                document.querySelector('#scale-weight').textContent = "?";
             else
-                document.querySelector('#scale-weight').textContent = data.scale_weight.toFixed(0)+"g";
+                document.querySelector('#scale-weight').textContent = data.scale_weight.toFixed(0) + "g";
 
 
-            if (data.food_weight===undefined)
+            if (data.food_weight === undefined)
                 document.querySelector('#food-weight').textContent = "?";
             else
-                document.querySelector('#food-weight').textContent = data.food_weight.toFixed(1)+"g";
+                document.querySelector('#food-weight').textContent = data.food_weight.toFixed(1) + "g";
 
             if (data.scale_weight_unstable === true)
                 document.querySelector("#scale-weight-unstable").style.visibility = "visible";
@@ -36,11 +36,12 @@
                 document.querySelector("#food-weight-unstable").style.visibility = "hidden";
 
             //cat info
-            document.querySelector('#cat-name').textContent = data.cat.name;
-            document.querySelector('#cat-weight').textContent = data.cat.weight.toFixed(0)+"g";
-            document.querySelector('#cat-state').textContent = data.cat_state;
-            document.querySelector('#cat-ate-session').textContent = data.cat.ate_session;
-
+            if (data.cat) {
+                document.querySelector('#cat-name').textContent = data.cat.name;
+                document.querySelector('#cat-weight').textContent = data.cat.weight.toFixed(0) + "g";
+                document.querySelector('#cat-state').textContent = data.cat_state;
+                document.querySelector('#cat-ate-session').textContent = data.cat.ate_session;
+            }
         }
         source.onerror = function (error) {
             console.log(error);

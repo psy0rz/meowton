@@ -2,9 +2,52 @@ import time
 import machine
 from hx711 import HX711
 import config
+from lib.state import State
 
-class ScaleIO():
+
+class ScaleIO(State):
     """deals with reading raw loadcell input from HX711 modules"""
+
+    def __init__(self, display):
+        super().__init__()
+
+        self.display=display
+
+        try:
+            self.load("scale_io.state")
+            print("Loaded scale io config")
+            self.stable_reset()
+        except Exception as e:
+            print("Error loading scale io config:"+str(e))
+            #defaults
+            self.state.scale_pins=[]
+            self.state.food_pins=[]
+
+            self.state.servo_pin=None
+            self.state.servo_fade_time=300
+            self.state.servo_sustain_time=300
+            self.state.servo_retract_time=100
+
+        self.configure()
+
+    def configure(self):
+        """(re)configure hardware """
+
+        ### config cat scale pins
+        self.cells_cat=self._config_loadcells(self.state.scale_pins)
+
+        ### config food scale pins
+        self.cells_food=self._config_loadcells(self.state.food_pins)
+
+
+        ### config servo
+        # self.servo = machine.PWM(machine.Pin(17), freq=50)
+        if self.state.servo_pin:
+            self.servo = machine.PWM(machine.Pin(self.state.servo_pin), freq=50)
+            self.servo.duty(0)
+        else:
+            self.servo=None
+
 
     def test(self, cell):
         """test loadcell by detecting noise"""
@@ -24,8 +67,8 @@ class ScaleIO():
         return(True)
 
 
-    def config_loadcells(self, pin_list):
-        """tests and config loadcells, returns array of HX711 objects or None when failed"""
+    def _config_loadcells(self, pin_list):
+        """swaps pins if needed, returns array of HX711 objects or None when failed"""
         cells=[]
         try:
             for pins in pin_list:
@@ -46,25 +89,6 @@ class ScaleIO():
             return(None)
 
 
-    def __init__(self, display):
-        self.display=display
-        # self.display.msg("Scale IO init")
-
-
-        ### config cat scale pins
-        self.cells_cat=self.config_loadcells(config.scale_pins)
-
-        ### config food scale pins
-        self.cells_food=self.config_loadcells(config.food_pins)
-
-
-        ### config servo
-        # self.servo = machine.PWM(machine.Pin(17), freq=50)
-        self.servo = machine.PWM(machine.Pin(config.servo_pin), freq=50)
-        self.servo.duty(0)
-
-        self.prev_cat_sensor=[0] * len(self.cells_cat)
-        self.prev_food_sensor=0
 
 
     def scales_ready(self):
@@ -100,7 +124,7 @@ class ScaleIO():
             if c[i]==-1:
                 print("read-error scale")
                 read_error=True
-            self.prev_cat_sensor[i]=c[i]
+            # self.prev_cat_sensor[i]=c[i]
 
         if not read_error:
             return(c)
@@ -119,7 +143,7 @@ class ScaleIO():
         # machine.enable_irq(state)
 
         # diff=abs(self.prev_food_sensor-c[0])
-        self.prev_food_sensor=c[0]
+        # self.prev_food_sensor=c[0]
 
         # if diff<100000:
         if c[0]!=-1:
@@ -130,51 +154,55 @@ class ScaleIO():
 
 
 
-    def fade(self, pwm, start_duty, end_duty, fade_time):
+    def _fade(self, start_duty, end_duty, fade_time):
         '''pwm duty-cycle fader'''
         start_time=time.ticks_ms()
         passed_time=0
         while passed_time<fade_time:
             value=int(start_duty + (end_duty-start_duty)*(passed_time/fade_time))
-            pwm.duty(value)
+            self.servo.duty(value)
             passed_time=time.ticks_diff(time.ticks_ms(),start_time)
 
-        pwm.duty(end_duty)
+        self.servo.duty(end_duty)
 
-    def feed(self, fade_time, sustain_time, retract_time):
+    def feed(self):
         '''ramp up the feeder, stay there for amount mS, and then ramp back'''
 
+        if not self.servo:
+            return
+
+        #TODO: make configurable?
         left_duty=90
         middle_duty=77
         # right_duty=67
         right_duty=60
-        self.servo.duty(0)
 
-        #feed
-        self.fade(self.servo, middle_duty, right_duty, fade_time)
+        #ramp to right turn
+        self.fade(middle_duty, right_duty, self.state.servo_fade_time)
 
-        self.servo.duty(right_duty)
-        time.sleep_ms(sustain_time)
+        #sustain
+        time.sleep_ms(self.state.servo_sustain_time)
 
-        #retract
-        self.servo.duty(left_duty)
-        time.sleep_ms(retract_time)
+        #ramp to stop
+        self.fade(right_duty, middle_duty, self.state.servo_fade_time)
+
+        #ramp to left turn
+        self.fade(middle_duty, left_duty, self.state.servo_fade_time)
+
+        #sustain
+        time.sleep_ms(self.state.servo_retract_time)
+
+        #ramp to stop
+        self.fade(left_duty, middle_duty, self.state.servo_fade_time)
+
 
         #disable
         self.servo.duty(0)
 
 
-
-        # #feed
-        # self.fade(self.servo, middle_duty, right_duty, 100)
-        # time.sleep_ms(amount)
-        #
-        # self.fade(self.servo, right_duty, middle_duty, 100)
-        #
-        # # ### retract
-        # self.fade(self.servo, middle_duty, left_duty, 100)
-        # self.fade(self.servo, left_duty, middle_duty, 100)
-        #
-        # #disable
-        # self.servo.duty(0)
+    def get_config(self):
+        return({
+            'selectable_pins': config.selectable_pins,
+            'config': self.get_state()
+        })
 
