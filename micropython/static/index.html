@@ -62,7 +62,7 @@
 
         // oReq.addEventListener("abort", transferCanceled);
 
-        req.open('GET', "/rpc/" + cmd);
+        req.open('POST', "/rpc/" + cmd);
         req.send();
 
         return (req);
@@ -124,7 +124,7 @@
         <!-- Everything not in the side menu -->
         <ons-splitter-content>
 
-            <ons-navigator id="navigator" page="home.html"></ons-navigator>
+            <ons-navigator id="navigator" page="hardware.html"></ons-navigator>
         </ons-splitter-content>
     </ons-splitter>
 

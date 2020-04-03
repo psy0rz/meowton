@@ -55,12 +55,21 @@ class Webserver():
         try:
             attributes=req.url_match.group(1).split(".")
 
+            #read and parse post-data json
+            size = int(req.headers[b"Content-Length"])
+            if size:
+                data = yield from req.reader.readexactly(size)
+                data=ujson.loads(data)
+            else:
+                data={}
+
+            #determine function
             current_attribute=meowton
             for attribute in attributes:
                 current_attribute=getattr(current_attribute, attribute)
 
-            #call the last one and return json
-            yield from picoweb.jsonify(resp, current_attribute())
+            #call the function one and return json
+            yield from picoweb.jsonify(resp, current_attribute(**data))
 
         except Exception as e:
             yield from picoweb.start_response(resp, status=500)

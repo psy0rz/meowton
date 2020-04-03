@@ -20,7 +20,7 @@ class ScaleIO(State):
         except Exception as e:
             print("Error loading scale io config:"+str(e))
             #defaults
-            self.state.scale_pins=[]
+            self.state.scale_pins=[[],[],[],[]] # 4 cells
             self.state.food_pins=[]
 
             self.state.servo_pin=None
