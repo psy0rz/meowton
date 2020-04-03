@@ -9,7 +9,7 @@
             page.onShow = function () {
                 console.log("show");
                 //get new list data
-                rpc("scale_io.get_config", function (result) {
+                rpc("scale_io.get_config", {}, function (result) {
 
                     // clear pin options
                     list.querySelectorAll('.pin-select-option').forEach(e => e.remove());
@@ -25,7 +25,7 @@
                         });
                     });
 
-                    //file in scale_pins                    
+                    //fill in scale_pins                    
                     for (cell = 0; cell <= 3; cell++) {
                         for (pin = 0; pin <= 1; pin++) {
                             var e = list.querySelector('#cell_' + cell + '_pin_' + pin);
@@ -36,9 +36,17 @@
 
                     // save
                     page.querySelector('.save').onclick = function (event) {
-                        console.log(event);
-                        // rpc("scale_io.put_config", function (result) {
 
+                        //update previous result 
+                        for (cell = 0; cell <= 3; cell++) {
+                            for (pin = 0; pin <= 1; pin++) {
+                                var e = list.querySelector('#cell_' + cell + '_pin_' + pin);
+                                console.log(e);
+                                result.config.scale_pins[cell][pin]=e.value;
+                            }
+                        }
+
+                        rpc("scale_io.update_config", {config: result.config });
                     };
 
                 })

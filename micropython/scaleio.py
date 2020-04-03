@@ -16,7 +16,6 @@ class ScaleIO(State):
         try:
             self.load("scale_io.state")
             print("Loaded scale io config")
-            self.stable_reset()
         except Exception as e:
             print("Error loading scale io config:"+str(e))
             #defaults
@@ -206,3 +205,6 @@ class ScaleIO(State):
             'config': self.get_state()
         })
 
+    def update_config(self, config):
+        self.update_state(config)
+        # self.save()

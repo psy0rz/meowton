@@ -45,7 +45,7 @@ class State():
         """get state as normal dict"""
         return(self.state.__dict__)
     
-    def set_state(self, d):
-        """set state from a normal dict (doesnt remove attributes)"""
+    def update_state(self, d):
+        """update state from a normal dict """
         for (key,value) in d.items():
             setattr(self.state,key,value)

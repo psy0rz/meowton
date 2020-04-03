@@ -31,7 +31,7 @@
     });
 
     //call a python function via our simple rpc interface
-    function rpc(cmd, load_handler) {
+    function rpc(cmd, pars, load_handler) {
 
         progress_start();
         var req = new XMLHttpRequest();
@@ -63,8 +63,7 @@
         // oReq.addEventListener("abort", transferCanceled);
 
         req.open('POST', "/rpc/" + cmd);
-        req.send();
-
+        req.send(JSON.stringify(pars));
         return (req);
 
     }

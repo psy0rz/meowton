@@ -8,7 +8,7 @@
 
 
             //get new list data
-            rpc("cats.get_all", function (result) {
+            rpc("cats.get_all", {}, function (result) {
 
                 //clear list
                 list.querySelectorAll('ons-list-item').forEach(e => e.remove());
