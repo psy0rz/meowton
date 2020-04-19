@@ -83,6 +83,8 @@ class Scale(State):
         self.sensor_count=len(default_factors)
         # self.state.calibrate_factors=default_factors.copy()
         self.recalibrate()
+        self.state.calibrating=False
+
 
         self.state.last_timestamp=0
 
@@ -404,6 +406,10 @@ class Scale(State):
 
     def calibrated_weights(self, sensors):
         '''return calibrated weight values of specified raw sensor values (dont forget to offset first)'''
+
+        if None in self.state.calibrate_factors:
+            return([0]*len(self.state.calibrate_factors))
+
         weights=[]
         sensor_nr=0
         for sensor in sensors:
