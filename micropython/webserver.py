@@ -22,7 +22,7 @@ class Webserver():
             (re.compile("^/rpc/(.+)"), self.rpc),
         ]
 
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.WARNING)
         # logging.basicConfig(level=logging.DEBUG)
 
         self.display_web=display_web

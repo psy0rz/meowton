@@ -44,7 +44,7 @@ class ScaleFood(scale.Scale):
             print("Error loading scale food:"+str(e))
 
         #for now we always tarre the foodscale since it seems to get messed up sometimes
-        self.tarre()
+        # self.tarre()
 
 
     def fed(self):

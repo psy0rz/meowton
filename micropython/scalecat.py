@@ -34,7 +34,7 @@ class ScaleCat(scale.Scale):
             print("Error loading scale cat:"+str(e))
 
         #always tarre cat scale on boot for now
-        self.tarre()
+        # self.tarre()
 
 
 

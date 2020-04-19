@@ -134,6 +134,7 @@ class ScaleIO(State):
             else:
                 c.append(0)
         # machine.enable_irq(state)
+        # print(c)
 
         read_error=False
         for i in range(0,len(c)):
@@ -161,7 +162,6 @@ class ScaleIO(State):
             else:
                 c.append(0)
                 
-
         # machine.enable_irq(state)
 
         # diff=abs(self.prev_food_sensor-c[0])
@@ -194,10 +194,10 @@ class ScaleIO(State):
             return
 
         #TODO: make configurable?
-        left_duty=90
+        right_duty=90
         middle_duty=77
         # right_duty=67
-        right_duty=60
+        left_duty=60
 
         #ramp to right turn
         self._fade(middle_duty, right_duty, self.state.servo_fade_time)
