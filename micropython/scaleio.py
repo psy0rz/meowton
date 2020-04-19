@@ -69,38 +69,34 @@ class ScaleIO(State):
         while start==cell.read():
             count=count+1
             if count>3:
-                return(False)
+                raise(Exception("No cell at pins {},{}".format(cell.pSCK, cell.pOUT)))
 
         print("Loadcell: Found")
-        return(True)
 
 
     def _config_loadcells(self, pin_list):
         """swaps pins if needed, returns array of HX711 objects or None when failed"""
         cells=[]
-        try:
-            for pins in pin_list:
-                if pins[0]==None or pins[1]==None:
-                    cells.append(None)
-                else:
-
+        # try:
+        for pins in pin_list:
+            if pins[0]==None or pins[1]==None:
+                cells.append(None)
+            else:
+                try:
                     cell=HX711(pins[0], pins[1], 18, gain=128)
-                    if not self.test(cell):
-                        #reverse pins?
-                        pins=[ pins[1], pins[0] ]
-                        cell=HX711(pins[0], pins[1], 18)
-                        if not self.test(cell):
-                            # print("NOT FOUND {}".format(pins))
-                            raise(Exception("Loadcell on {} not found!".format(pins)))
-                            # self.display.msg("Loadcell on {} not found!".format(pins))
-                            # return(None)
-                    cells.append(cell)
-            return(cells)
-        except Exception as e:
-            # print("CANT CONFIG PINS {}: {}".format(pins,str(e)))
-            raise(Exception("Error configuring pins {} ({})".format(pins,str(e))))
-            # self.display.msg("Loadcell on {} not found!".format(pins))
-            # return(None)
+                    self.test(cell)
+                except:
+                    #reverse pins?
+                    pins=[ pins[1], pins[0] ]
+                    cell=HX711(pins[0], pins[1], 18, gain=128)
+                    self.test(cell)
+                cells.append(cell)
+        return(cells)
+        # except Exception as e:
+        #     # print("CANT CONFIG PINS {}: {}".format(pins,str(e)))
+        #     raise(Exception("Error configuring pins {} ({})".format(pins,str(e))))
+        #     # self.display.msg("Loadcell on {} not found!".format(pins))
+        #     # return(None)
 
 
 
@@ -130,6 +126,8 @@ class ScaleIO(State):
         for cell in self.cells_cat:
             if cell:
                 c.append(cell.read())
+            else:
+                c.append(0)
         # machine.enable_irq(state)
 
         read_error=False
@@ -155,6 +153,9 @@ class ScaleIO(State):
         for cell in self.cells_food:
             if cell:
                 c.append(cell.read())
+            else:
+                c.append(0)
+                
 
         # machine.enable_irq(state)
 

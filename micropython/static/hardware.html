@@ -29,8 +29,15 @@
                     for (cell = 0; cell <= 3; cell++) {
                         for (pin = 0; pin <= 1; pin++) {
                             var e = list.querySelector('#cell_' + cell + '_pin_' + pin);
-                            console.log(e);
-                            e.value = result.config.scale_pins[cell][pin];
+                            // console.log(e);
+                            // if (result.config.scale_pins[cell][pin]===undefined)
+                            // {
+                            //     e.value="";
+                            // }
+                            // else
+                            {
+                                e.value = result.config.scale_pins[cell][pin];
+                            }
                         }
                     }
 
@@ -85,10 +92,10 @@
             </div>
             <div class="right">
                 <ons-select class='pin-select' id="cell_0_pin_0">
-                    <option value=''>None</option>
+                    <option value='null'>None</option>
                 </ons-select>
                 <ons-select class='pin-select' id="cell_0_pin_1">
-                    <option value=''>None</option>
+                    <option value='null'>None</option>
                 </ons-select>
             </div>
         </ons-list-item>
@@ -99,10 +106,10 @@
             </div>
             <div class="right">
                 <ons-select class='pin-select' id="cell_1_pin_0">
-                    <option value=''>None</option>
+                    <option value='null'>None</option>
                 </ons-select>
                 <ons-select class='pin-select' id="cell_1_pin_1">
-                    <option value=''>None</option>
+                    <option value='null'>None</option>
                 </ons-select>
             </div>
         </ons-list-item>
@@ -113,10 +120,10 @@
             </div>
             <div class="right">
                 <ons-select class='pin-select' id="cell_2_pin_0">
-                    <option value=''>None</option>
+                    <option value='null'>None</option>
                 </ons-select>
                 <ons-select class='pin-select' id="cell_2_pin_1">
-                    <option value=''>None</option>
+                    <option value='null'>None</option>
                 </ons-select>
             </div>
         </ons-list-item>
@@ -127,10 +134,10 @@
             </div>
             <div class="right">
                 <ons-select class='pin-select' id="cell_3_pin_0">
-                    <option value=''>None</option>
+                    <option value='null'>None</option>
                 </ons-select>
                 <ons-select class='pin-select' id="cell_3_pin_1">
-                    <option value=''>None</option>
+                    <option value='null'>None</option>
                 </ons-select>
             </div>
         </ons-list-item>
