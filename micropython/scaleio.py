@@ -64,12 +64,17 @@ class ScaleIO(State):
         print("Loadcell: Testing with DT={} SCK={}".format(cell.pSCK, cell.pOUT))
 
         start=cell.read()
-        count=0
+        
+        # print(start)
+        # count=0
 
-        while start==cell.read():
-            count=count+1
-            if count>3:
-                raise(Exception("No cell at pins {},{}".format(cell.pSCK, cell.pOUT)))
+        # while start==cell.read():
+        #     count=count+1
+        #     if count>3:
+
+        if start==0:
+            print("Loadcell: Not found")
+            raise(Exception("No cell at pins {},{}".format(cell.pSCK, cell.pOUT)))
 
         print("Loadcell: Found")
 
@@ -226,5 +231,8 @@ class ScaleIO(State):
     def update_config(self, config):
         self.update_state(config)
         self.configure()
+        self.feed()
         #hardware didnt hang so its safe to save now :)
         self.save()
+
+    # def test_servo(self, config):
