@@ -39,8 +39,18 @@
             if (data.cat) {
                 document.querySelector('#cat-name').textContent = data.cat.name;
                 document.querySelector('#cat-weight').textContent = data.cat.weight.toFixed(0) + "g";
-                document.querySelector('#cat-state').textContent = data.cat_state;
-                document.querySelector('#cat-ate-session').textContent = data.cat.ate_session;
+                document.querySelector('#cat-status').textContent = data.cat.status;
+                document.querySelector('#cat-ate-session').textContent = data.cat.ate_session.toFixed(1)+"g";
+                document.querySelector('#cat-quota').textContent = data.cat.quota.toFixed(0)+"g";
+                document.querySelector('#cat-time').textContent = Math.abs(data.cat.time).toFixed(0)+" minutes";
+                if (data.cat.time>=0)
+                {
+                    document.querySelector('#cat-time-text').textContent='Time saved up';
+                }
+                else
+                {
+                    document.querySelector('#cat-time-text').textContent='Time until next portion';
+                }
             }
         }
         source.onerror = function (error) {
@@ -95,7 +105,7 @@
             <div class="center">
                 Status
             </div>
-            <div class="right" id='cat-state'>
+            <div class="right" id='cat-status'>
                 Gone
             </div>
         </ons-list-item>
@@ -127,6 +137,22 @@
             </div>
         </ons-list-item>
 
+        <ons-list-item>
+            <div class="center">
+                Quota left
+            </div>
+            <div class="right" id='cat-quota'>
+                ...
+            </div>
+        </ons-list-item>
+
+        <ons-list-item>
+            <div class="center" id='cat-time-text'>
+            </div>
+            <div class="right" id='cat-time'>
+                ...
+            </div>
+        </ons-list-item>
 
     </ons-list>
 

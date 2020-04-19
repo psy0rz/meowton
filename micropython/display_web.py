@@ -5,10 +5,18 @@ class Display(display_base.Display):
 
     def __init__(self):
         self.state={
-            'v': 0
+            'v': 0,
+            'cat': {
+                'status': 'Eating',
+                'name': '',
+                'weight': 0,
+                'ate_session': 0,
+                'quota': 0,
+                'time': 0
+            }
         }
         self.msg_timeout=0
-
+        
 
     def send(self):
         self.state['v']=self.state['v']+1
@@ -39,11 +47,16 @@ class Display(display_base.Display):
         """called to update info about currently detected cat. called with None if cat has left"""
 
         if cat:
-            self.state['cat']=cat.get_state() 
-            self.state['cat_state']='Eating'
+            self.state['cat']={
+                'status': 'Eating',
+                'name': cat.state.name,
+                'weight': cat.state.weight,
+                'ate_session': cat.ate_session,
+                'quota': cat.get_quota(),
+                'time': cat.time()
+            }
         else:
-            #keep state of cat in userinterface, after its gone
-            self.state['cat_state']='Done'
+            self.state['cat']['status']='Done'
 
         self.send()
 
