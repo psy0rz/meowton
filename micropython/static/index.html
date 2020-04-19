@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <title>Meowton</title>
+
 <head>
     <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
     <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
@@ -9,24 +10,29 @@
 <script>
 
     //global progress indication
-    progress_count=0;
-    function progress_start()
-    {
+    progress_count = 0;
+    function progress_start() {
         progress_count++;
-        document.querySelectorAll('.global-progress').forEach(e => e.style.visibility='visible');
+        document.querySelectorAll('.global-progress').forEach(e => e.style.visibility = 'visible');
     }
 
-    function progress_done()
-    {
+    function progress_done() {
         progress_count--;
-        if (progress_count<=0)
-        {
-            progress_count=0;
-            document.querySelectorAll('.global-progress').forEach(e => e.style.visibility='hidden');
+        if (progress_count <= 0) {
+            progress_count = 0;
+            document.querySelectorAll('.global-progress').forEach(e => e.style.visibility = 'hidden');
         }
     }
-    
-    ons.ready(function(){
+
+    ons.ready(function () {
+
+        ons.disableDeviceBackButtonHandler();
+        ons.setDefaultDeviceBackButtonListener(function () {
+
+            document.querySelector('ons-navigator').popPage();
+        });
+
+
         progress_done();
     });
 
@@ -123,7 +129,7 @@
         <!-- Everything not in the side menu -->
         <ons-splitter-content>
 
-            <ons-navigator id="navigator" page="hardware.html"></ons-navigator>
+            <ons-navigator id="navigator" page="home.html"></ons-navigator>
         </ons-splitter-content>
     </ons-splitter>
 
