@@ -16,7 +16,7 @@ class ScaleIO(State):
 
         #defaults
         self.state.scale_pins=[[],[],[],[]] # 4 cells
-        self.state.food_pins=[]
+        self.state.food_pins=[[]] #1 cell
 
         self.state.servo_pin=None
         self.state.servo_fade_time=300

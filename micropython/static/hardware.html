@@ -29,31 +29,42 @@
                     for (cell = 0; cell <= 3; cell++) {
                         for (pin = 0; pin <= 1; pin++) {
                             var e = list.querySelector('#cell_' + cell + '_pin_' + pin);
-                            // console.log(e);
-                            // if (result.config.scale_pins[cell][pin]===undefined)
-                            // {
-                            //     e.value="";
-                            // }
-                            // else
                             {
                                 e.value = result.config.scale_pins[cell][pin];
                             }
                         }
                     }
 
-                    // save
+                    //food pins
+                    for (pin = 0; pin <= 1; pin++) {
+                        var e = list.querySelector('#food_pin_' + pin);
+                        {
+                            e.value = result.config.food_pins[pin];
+                        }
+                    }
+
+                    // when save is pressed
                     page.querySelector('.save').onclick = function (event) {
 
-                        //update previous result 
+                        //update previous results
+
+                        //scale pins
                         for (cell = 0; cell <= 3; cell++) {
                             for (pin = 0; pin <= 1; pin++) {
                                 var e = list.querySelector('#cell_' + cell + '_pin_' + pin);
-                                console.log(e);
-                                result.config.scale_pins[cell][pin]=parseInt(e.value);
+                                result.config.scale_pins[cell][pin] = parseInt(e.value);
                             }
                         }
 
-                        rpc("scale_io.update_config", {config: result.config });
+                        //food pins
+                        for (pin = 0; pin <= 1; pin++) {
+                            var e = list.querySelector('#food_pin_' + pin);
+                            result.config.food_pins[0][pin] = parseInt(e.value);
+                        }
+
+                        rpc("scale_io.update_config", { config: result.config }, function () {
+                            ons.notification.toast("All tests OK", { timeout: 5000 });
+                        });
                     };
 
                 })
@@ -85,7 +96,7 @@
     <ons-list>
         <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
 
-        <ons-list-header>Scale load cells</ons-list-header>
+        <ons-list-header>Cat scale</ons-list-header>
         <ons-list-item>
             <div class="center">
                 Cell 1 pins
@@ -137,6 +148,21 @@
                     <option value='null'>None</option>
                 </ons-select>
                 <ons-select class='pin-select' id="cell_3_pin_1">
+                    <option value='null'>None</option>
+                </ons-select>
+            </div>
+        </ons-list-item>
+
+        <ons-list-header>Food scale</ons-list-header>
+        <ons-list-item>
+            <div class="center">
+                Cell pins
+            </div>
+            <div class="right">
+                <ons-select class='pin-select' id="food_pin_0">
+                    <option value='null'>None</option>
+                </ons-select>
+                <ons-select class='pin-select' id="food_pin_1">
                     <option value='null'>None</option>
                 </ons-select>
             </div>
