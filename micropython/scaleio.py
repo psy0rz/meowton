@@ -195,22 +195,22 @@ class ScaleIO(State):
         right_duty=60
 
         #ramp to right turn
-        self.fade(middle_duty, right_duty, self.state.servo_fade_time)
+        self._fade(middle_duty, right_duty, self.state.servo_fade_time)
 
         #sustain
         time.sleep_ms(self.state.servo_sustain_time)
 
         #ramp to stop
-        self.fade(right_duty, middle_duty, self.state.servo_fade_time)
+        self._fade(right_duty, middle_duty, self.state.servo_fade_time)
 
         #ramp to left turn
-        self.fade(middle_duty, left_duty, self.state.servo_fade_time)
+        self._fade(middle_duty, left_duty, self.state.servo_fade_time)
 
         #sustain
         time.sleep_ms(self.state.servo_retract_time)
 
         #ramp to stop
-        self.fade(left_duty, middle_duty, self.state.servo_fade_time)
+        self._fade(left_duty, middle_duty, self.state.servo_fade_time)
 
 
         #disable

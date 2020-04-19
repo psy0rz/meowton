@@ -111,7 +111,7 @@ def cal():
 
 
 def feed():
-    scale_io.feed(config.servo_fade_time, config.servo_sustain_time, config.servo_retract_time)
+    scale_io.feed()
     scale_food.fed()
 
 #pause
