@@ -48,7 +48,7 @@
             }
             else {
                 console.error("rpc result NON 200", req);
-                ons.notification.toast('Error: ' + req.responseText, { timeout: 2000 });
+                ons.notification.toast('Error: ' + req.responseText, { timeout: 10000 });
 
             }
 
@@ -57,7 +57,7 @@
         req.addEventListener("error", function (event) {
             progress_done();
             console.error("rpc error", req)
-            ons.notification.toast('Error during action.', { timeout: 2000 });
+            ons.notification.toast('Error during action.', { timeout: 10000 });
         });
 
         // oReq.addEventListener("abort", transferCanceled);

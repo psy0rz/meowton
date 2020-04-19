@@ -32,7 +32,13 @@ cats=Cats(display)
 db=db.Db(display)
 scale_cat=scalecat.ScaleCat(display, cats, db)
 scale_food=scalefood.ScaleFood(display, cats, scale_cat)
-scale_io=scaleio.ScaleIO(display)
+scale_io=scaleio.ScaleIO()
+
+try:
+    scale_io.start()
+except Exception as e:
+    # scale_io=None
+    display.msg("Scale IO error: "+str(e))
 
 
 # webserver?

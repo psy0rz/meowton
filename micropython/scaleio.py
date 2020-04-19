@@ -8,24 +8,33 @@ from lib.state import State
 class ScaleIO(State):
     """deals with reading raw loadcell input from HX711 modules"""
 
-    def __init__(self, display):
+    def __init__(self):
         super().__init__()
 
-        self.display=display
+        
+        # self.display=display
+
+        #defaults
+        self.state.scale_pins=[[],[],[],[]] # 4 cells
+        self.state.food_pins=[]
+
+        self.state.servo_pin=None
+        self.state.servo_fade_time=300
+        self.state.servo_sustain_time=300
+        self.state.servo_retract_time=100
+
+        self.cells_food=None
+        self.cells_cat=None
+        self.servo=None
+
+    def start(self):
+        """load initial config and configure. raises exceptions on errors"""
 
         try:
             self.load("scale_io.state")
             print("Loaded scale io config")
         except Exception as e:
-            print("Error loading scale io config:"+str(e))
-            #defaults
-            self.state.scale_pins=[[],[],[],[]] # 4 cells
-            self.state.food_pins=[]
-
-            self.state.servo_pin=None
-            self.state.servo_fade_time=300
-            self.state.servo_sustain_time=300
-            self.state.servo_retract_time=100
+            raise(Exception("Error loading scale io config:"+str(e)))
 
         self.configure()
 
@@ -71,21 +80,27 @@ class ScaleIO(State):
         cells=[]
         try:
             for pins in pin_list:
-                cell=HX711(pins[0], pins[1], 18, gain=128)
-                if not self.test(cell):
-                    #reverse pins?
-                    pins=[ pins[1], pins[0] ]
-                    cell=HX711(pins[0], pins[1], 18)
+                if pins[0]==None or pins[1]==None:
+                    cells.append(None)
+                else:
+
+                    cell=HX711(pins[0], pins[1], 18, gain=128)
                     if not self.test(cell):
-                        # print("NOT FOUND {}".format(pins))
-                        self.display.msg("Loadcell on {} not found!".format(pins))
-                        return(None)
-                cells.append(cell)
+                        #reverse pins?
+                        pins=[ pins[1], pins[0] ]
+                        cell=HX711(pins[0], pins[1], 18)
+                        if not self.test(cell):
+                            # print("NOT FOUND {}".format(pins))
+                            raise(Exception("Loadcell on {} not found!".format(pins)))
+                            # self.display.msg("Loadcell on {} not found!".format(pins))
+                            # return(None)
+                    cells.append(cell)
             return(cells)
         except Exception as e:
-            print("CANT CONFIG PINS {}: {}".format(pins,str(e)))
-            self.display.msg("Loadcell on {} not found!".format(pins))
-            return(None)
+            # print("CANT CONFIG PINS {}: {}".format(pins,str(e)))
+            raise(Exception("Error configuring pins {} ({})".format(pins,str(e))))
+            # self.display.msg("Loadcell on {} not found!".format(pins))
+            # return(None)
 
 
 
@@ -111,10 +126,10 @@ class ScaleIO(State):
             return None
 
         # state=machine.disable_irq()
-        c=[         self.cells_cat[0].read(),
-                    self.cells_cat[1].read(),
-                    self.cells_cat[2].read(),
-                    self.cells_cat[3].read()]
+        c=[]
+        for cell in self.cells_cat:
+            if cell:
+                c.append(cell.read())
         # machine.enable_irq(state)
 
         read_error=False
@@ -136,9 +151,11 @@ class ScaleIO(State):
             return None
 
         # state=machine.disable_irq()
-        c=[
-            self.cells_food[0].read(),
-        ]
+        c=[]
+        for cell in self.cells_food:
+            if cell:
+                c.append(cell.read())
+
         # machine.enable_irq(state)
 
         # diff=abs(self.prev_food_sensor-c[0])
@@ -207,4 +224,6 @@ class ScaleIO(State):
 
     def update_config(self, config):
         self.update_state(config)
-        # self.save()
+        self.configure()
+        #hardware didnt hang so its safe to save now :)
+        self.save()
