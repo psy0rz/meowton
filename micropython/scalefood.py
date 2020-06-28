@@ -15,7 +15,7 @@ class ScaleFood(scale.Scale):
         self.stable_measurements=2
         self.stable_skip_measurements=2
         self.stable_range=0.2 #production
-        self.stable_range=2 #test
+        # self.stable_range=2 #test
 
 
         self.display=display
@@ -128,8 +128,8 @@ class ScaleFood(scale.Scale):
 
         #wait between feeds, to prevent mayhem ;)
         if timer.diff(timer.timestamp,self.last_feed)>5000:
-            #bowl is stable and empty?
-            if self.stable and self.last_stable_weight<0.5:
+            #bowl is stable and empty and not removed (<-5) and cat scale is also not removed (>-100)?
+            if self.stable and self.last_stable_weight<0.5 and self.last_stable_weight>-5 and self.scale_cat.last_stable_weight>-100:
                 # all cats may have food, or current cat may have food?
                 if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
                     self.last_feed=timer.timestamp
