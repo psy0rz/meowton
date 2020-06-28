@@ -24,6 +24,8 @@ class Cats():
             c.state.feed_quota_timestamp=timer.timestamp
             self.display.update_cat(c)
 
+    def __repr__(self):
+        return(self.cats)
 
     def new(self, name):
         c=self.by_name(name)

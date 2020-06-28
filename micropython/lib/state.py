@@ -3,7 +3,11 @@
 import json
 
 class StateItems():
-    pass
+
+    def __repr__(self):
+        return(repr(self.__dict__))
+
+
 
 
 class State():
@@ -20,6 +24,8 @@ class State():
     # def __setstate__(self, state):
     #     self.state=state
 
+    def __repr__(self):
+        return(self._state_file_name+": "+repr(self.state.__dict__))
 
     def save_file_name(self, file_name):
         self._state_file_name=file_name

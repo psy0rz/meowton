@@ -19,9 +19,13 @@ class ScaleIO(State):
         self.state.food_pins=[[]] #1 cell
 
         self.state.servo_pin=None
-        self.state.servo_fade_time=300
-        self.state.servo_sustain_time=300
+        self.state.servo_fade_time=100
+        self.state.servo_sustain_time=200
         self.state.servo_retract_time=100
+
+        self.state.servo_right_duty=90
+        self.state.servo_middle_duty=77
+        self.state.servo_left_duty=60
 
         self.cells_food=None
         self.cells_cat=None
@@ -193,29 +197,24 @@ class ScaleIO(State):
         if not self.servo:
             return
 
-        #TODO: make configurable?
-        right_duty=90
-        middle_duty=77
-        # right_duty=67
-        left_duty=60
-
+        
         #ramp to right turn
-        self._fade(middle_duty, right_duty, self.state.servo_fade_time)
+        self._fade(self.state.servo_middle_duty, self.state.servo_right_duty, self.state.servo_fade_time)
 
         #sustain
         time.sleep_ms(self.state.servo_sustain_time)
 
         #ramp to stop
-        self._fade(right_duty, middle_duty, self.state.servo_fade_time)
+        self._fade(self.state.servo_right_duty, self.state.servo_middle_duty, self.state.servo_fade_time)
 
         #ramp to left turn
-        self._fade(middle_duty, left_duty, self.state.servo_fade_time)
+        self._fade(self.state.servo_middle_duty, self.state.servo_left_duty, self.state.servo_fade_time)
 
         #sustain
         time.sleep_ms(self.state.servo_retract_time)
 
         #ramp to stop
-        self._fade(left_duty, middle_duty, self.state.servo_fade_time)
+        self._fade(self.state.servo_left_duty, self.state.servo_middle_duty, self.state.servo_fade_time)
 
 
         #disable
