@@ -23,9 +23,9 @@ class ScaleIO(State):
         self.state.servo_sustain_time=200
         self.state.servo_retract_time=100
 
-        self.state.servo_right_duty=90
+        self.state.servo_right_duty=60
         self.state.servo_middle_duty=77
-        self.state.servo_left_duty=60
+        self.state.servo_left_duty=90
 
         self.cells_food=None
         self.cells_cat=None
