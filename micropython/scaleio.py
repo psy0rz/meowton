@@ -230,6 +230,12 @@ class ScaleIO(State):
         self.servo.duty(0)
 
 
+    def servo_test(self, pwm_value):
+        self.servo.duty(pwm_value);
+        time.sleep_ms(1000);
+        self.servo.duty(0)
+
+
     def get_config(self):
         return({
             'selectable_pins': config.selectable_pins,

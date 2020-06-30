@@ -34,7 +34,6 @@
                         });
                     };
 
-
                     //save is pressed
                     page.querySelector('#save').onclick = function (event) {
 
@@ -47,6 +46,28 @@
                             document.querySelector('ons-navigator').popPage();
                         });
                     };
+
+                    //servo duty test middle
+                    page.querySelector('#servo_middle_duty').onchange = function (event) {
+                        ons.notification.toast("Testing, servo should be quiet.", { timeout: 1000 });
+                        var pwm_value = parseInt(event.target.value);
+                        rpc("scale_io.servo_test", { pwm_value: pwm_value });
+                    };
+
+                    //servo duty test left
+                    page.querySelector('#servo_left_duty_offset').onchange = function (event) {
+                        ons.notification.toast("Testing, servo should turn left.", { timeout: 1000 });
+                        var pwm_value = parseInt(page.querySelector('#servo_middle_duty').value) + parseInt(event.target.value);
+                        rpc("scale_io.servo_test", { pwm_value: pwm_value });
+                    };
+
+                    //servo duty test right
+                    page.querySelector('#servo_right_duty_offset').onchange = function (event) {
+                        ons.notification.toast("Testing, servo should turn right.", { timeout: 1000 });
+                        var pwm_value = parseInt(page.querySelector('#servo_middle_duty').value) + parseInt(event.target.value);
+                        rpc("scale_io.servo_test", { pwm_value: pwm_value });
+                    };
+
 
                 })
 
