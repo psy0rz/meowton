@@ -23,9 +23,8 @@ class ScaleIO(State):
         self.state.servo_sustain_time=200
         self.state.servo_retract_time=100
 
-        self.state.servo_right_duty_offset=60
-        self.state.servo_middle_duty=77
-        self.state.servo_left_duty_offset=90
+        self.state.servo_middle_duty=80
+        self.state.servo_speed=-20
 
         self.cells_food=None
         self.cells_cat=None
@@ -209,29 +208,35 @@ class ScaleIO(State):
             
    
         #ramp to right turn
-        self._fade(config.servo_middle_duty, config.servo_middle_duty+config.servo_right_duty_offset, config.servo_fade_time)
+        self._fade(config.servo_middle_duty, config.servo_middle_duty+config.servo_speed, config.servo_fade_time)
 
         #sustain
         time.sleep_ms(config.servo_sustain_time)
 
         #ramp to stop
-        self._fade(config.servo_middle_duty+config.servo_right_duty_offset, config.servo_middle_duty, config.servo_fade_time)
+        self._fade(config.servo_middle_duty+config.servo_speed, config.servo_middle_duty, config.servo_fade_time)
 
         #ramp to left turn
-        self._fade(config.servo_middle_duty, config.servo_middle_duty+config.servo_left_duty_offset, config.servo_fade_time)
+        self._fade(config.servo_middle_duty, config.servo_middle_duty-config.servo_speed, config.servo_fade_time)
 
         #sustain
         time.sleep_ms(config.servo_retract_time)
 
         #ramp to stop
-        self._fade(config.servo_middle_duty+config.servo_left_duty_offset, config.servo_middle_duty, config.servo_fade_time)
+        self._fade(config.servo_middle_duty-config.servo_speed, config.servo_middle_duty, config.servo_fade_time)
 
         #disable
         self.servo.duty(0)
 
 
-    def servo_test(self, pwm_value):
-        self.servo.duty(pwm_value);
+    def servo_test(self, config):
+        self.servo.duty(config['servo_middle_duty']+config['servo_speed']); #right
+        time.sleep_ms(1000);
+
+        self.servo.duty(0) #pauze
+        time.sleep_ms(100);
+
+        self.servo.duty(config['servo_middle_duty']-config['servo_speed']); #left
         time.sleep_ms(1000);
         self.servo.duty(0)
 

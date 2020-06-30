@@ -22,17 +22,29 @@
                     //store data into form
                     set_form_values(list, result.config);
 
-                    //test is pressed
-                    page.querySelector('#test').onclick = function (event) {
+                    //servo test is pressed
+                    page.querySelector('#test_servo').onclick = function (event) {
 
                         //read data from form
                         get_form_values(list, result.config);
 
                         //test
-                        rpc("scale_io.feed", { test_config: result.config }, function () {
-                            //
-                        });
+                        ons.notification.toast("Servo should turn RIGHT and then return.", { timeout: 3000 });
+                        rpc("scale_io.servo_test", { config: result.config });
                     };
+
+
+                    //feed test is pressed
+                    page.querySelector('#test_feed').onclick = function (event) {
+
+                        //read data from form
+                        get_form_values(list, result.config);
+
+                        //test
+                        ons.notification.toast("Running feed cycle", { timeout: 1000 });
+                        rpc("scale_io.feed", { test_config: result.config });
+                    };
+
 
                     //save is pressed
                     page.querySelector('#save').onclick = function (event) {
@@ -45,27 +57,6 @@
                             // ons.notification.toast("All tests OK", { timeout: 5000 });
                             document.querySelector('ons-navigator').popPage();
                         });
-                    };
-
-                    //servo duty test middle
-                    page.querySelector('#servo_middle_duty').onchange = function (event) {
-                        ons.notification.toast("Testing, servo should be quiet.", { timeout: 1000 });
-                        var pwm_value = parseInt(event.target.value);
-                        rpc("scale_io.servo_test", { pwm_value: pwm_value });
-                    };
-
-                    //servo duty test left
-                    page.querySelector('#servo_left_duty_offset').onchange = function (event) {
-                        ons.notification.toast("Testing, servo should turn left.", { timeout: 1000 });
-                        var pwm_value = parseInt(page.querySelector('#servo_middle_duty').value) + parseInt(event.target.value);
-                        rpc("scale_io.servo_test", { pwm_value: pwm_value });
-                    };
-
-                    //servo duty test right
-                    page.querySelector('#servo_right_duty_offset').onchange = function (event) {
-                        ons.notification.toast("Testing, servo should turn right.", { timeout: 1000 });
-                        var pwm_value = parseInt(page.querySelector('#servo_middle_duty').value) + parseInt(event.target.value);
-                        rpc("scale_io.servo_test", { pwm_value: pwm_value });
                     };
 
 
@@ -96,9 +87,6 @@
     <ons-list>
 
         <ons-list-header>Servo duty cycle</ons-list-header>
-        <ons-list-item>
-            Note: a one second test will be done every time you change the duty cycle.
-        </ons-list-item>
 
         <ons-list-item>
             Servo middle:
@@ -107,16 +95,15 @@
         </ons-list-item>
 
         <ons-list-item>
-            Rotate right offset:
-            <ons-range id='servo_right_duty_offset' style="width: 100%;" min=-30 max=30></ons-range>
+            Servo direction and speed:
+            <ons-range id='servo_speed' style="width: 100%;" min=-30 max=30></ons-range>
             <span></span>
         </ons-list-item>
 
         <ons-list-item>
-            Rotate left offset:
-            <ons-range id='servo_left_duty_offset' style="width: 100%;" min=-30 max=30></ons-range>
-            <span></span>
+            <ons-button id='test_servo'>Test servo</ons-button>
         </ons-list-item>
+
 
         <ons-list-header>Feed cycle timing</ons-list-header>
 
@@ -139,7 +126,7 @@
         </ons-list-item>
 
         <ons-list-item>
-            <ons-button id='test'>Test</ons-button>
+            <ons-button id='test_feed'>Test feed</ons-button>
         </ons-list-item>
 
     </ons-list>
