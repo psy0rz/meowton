@@ -23,9 +23,9 @@ class ScaleIO(State):
         self.state.servo_sustain_time=200
         self.state.servo_retract_time=100
 
-        self.state.servo_right_duty=60
+        self.state.servo_right_duty_offset=60
         self.state.servo_middle_duty=77
-        self.state.servo_left_duty=90
+        self.state.servo_left_duty_offset=90
 
         self.cells_food=None
         self.cells_cat=None
@@ -199,22 +199,22 @@ class ScaleIO(State):
 
         
         #ramp to right turn
-        self._fade(self.state.servo_middle_duty, self.state.servo_right_duty, self.state.servo_fade_time)
+        self._fade(self.state.servo_middle_duty, self.state.servo_middle_duty+self.state.servo_right_duty_offset, self.state.servo_fade_time)
 
         #sustain
         time.sleep_ms(self.state.servo_sustain_time)
 
         #ramp to stop
-        self._fade(self.state.servo_right_duty, self.state.servo_middle_duty, self.state.servo_fade_time)
+        self._fade(self.state.servo_middle_duty+self.state.servo_right_duty_offset, self.state.servo_middle_duty, self.state.servo_fade_time)
 
         #ramp to left turn
-        self._fade(self.state.servo_middle_duty, self.state.servo_left_duty, self.state.servo_fade_time)
+        self._fade(self.state.servo_middle_duty, self.state.servo_middle_duty+self.state.servo_left_duty_offset, self.state.servo_fade_time)
 
         #sustain
         time.sleep_ms(self.state.servo_retract_time)
 
         #ramp to stop
-        self._fade(self.state.servo_left_duty, self.state.servo_middle_duty, self.state.servo_fade_time)
+        self._fade(self.state.servo_middle_duty+self.state.servo_left_duty_offset, self.state.servo_middle_duty, self.state.servo_fade_time)
 
 
         #disable

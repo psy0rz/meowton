@@ -68,7 +68,7 @@
                         result.config.servo_pin = parseInt(e.value);
 
                         rpc("scale_io.update_config", { config: result.config }, function () {
-                            ons.notification.toast("All tests OK", { timeout: 5000 });
+                            ons.notification.toast("All tests OK. Saved.", { timeout: 5000 });
                             // document.querySelector('ons-navigator').popPage();
                         });
                     };
@@ -98,9 +98,9 @@
 
     </ons-toolbar>
 
+    <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
 
     <ons-list>
-        <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
 
 
         <ons-list-item>

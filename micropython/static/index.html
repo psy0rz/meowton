@@ -24,6 +24,33 @@
         }
     }
 
+    //stores data from hash-array into a form and triggers input-events. 
+    //id should be #<key>
+    function set_form_values(context, data) {
+
+        Object.keys(data).forEach(key => {
+            var element = context.querySelector('#' + key);
+            if (element) {
+                element.value = data[key];
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
+    }
+
+    //updates fields in data with values from form. 
+    function get_form_values(context, data) {
+
+        Object.keys(data).forEach(key => {
+            var element = context.querySelector('#' + key);
+            if (element) {
+                if (typeof (data[key]) == 'number')
+                    data[key] = parseFloat(element.value);
+                else
+                    data[key] = element.value;
+            }
+        });
+    }
+
     ons.ready(function () {
 
         ons.disableDeviceBackButtonHandler();
@@ -118,6 +145,9 @@
                     <ons-list-item onclick="loadPage('hardware.html')">
                         Hardware settings
                     </ons-list-item>
+                    <ons-list-item onclick="loadPage('servo.html')">
+                        Feeder settings
+                    </ons-list-item>
                     <ons-list-item onclick="loadPage('about.html')">
                         About
                     </ons-list-item>
@@ -129,7 +159,7 @@
         <!-- Everything not in the side menu -->
         <ons-splitter-content>
 
-            <ons-navigator id="navigator" page="home.html"></ons-navigator>
+            <ons-navigator id="navigator" page="servo.html"></ons-navigator>
         </ons-splitter-content>
     </ons-splitter>
 
