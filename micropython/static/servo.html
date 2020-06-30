@@ -22,6 +22,19 @@
                     //store data into form
                     set_form_values(list, result.config);
 
+                    //test is pressed
+                    page.querySelector('#test').onclick = function (event) {
+
+                        //read data from form
+                        get_form_values(list, result.config);
+
+                        //test
+                        rpc("scale_io.feed", { test_config: result.config }, function () {
+                            //
+                        });
+                    };
+
+
                     //save is pressed
                     page.querySelector('#save').onclick = function (event) {
 

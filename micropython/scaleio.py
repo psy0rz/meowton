@@ -56,6 +56,9 @@ class ScaleIO(State):
         # self.servo = machine.PWM(machine.Pin(17), freq=50)
         if self.state.servo_pin:
             self.servo = machine.PWM(machine.Pin(self.state.servo_pin), freq=50)
+            #do this so we actually test the pin and verify it doesnt crash the esp before saving:
+            self.servo.duty(self.state.servo_middle_duty);
+            time.sleep_ms(60);
             self.servo.duty(0)
         else:
             self.servo=None
@@ -191,31 +194,37 @@ class ScaleIO(State):
 
         self.servo.duty(end_duty)
 
-    def feed(self):
+    def feed(self, test_config=None):
         '''ramp up the feeder, stay there for amount mS, and then ramp back'''
 
         if not self.servo:
             return
 
-        
+        if not test_config:
+            config=self.state
+        else:
+            config=State()
+            config.update_state(test_config) #convert dict to state
+            config=config.state
+            
+   
         #ramp to right turn
-        self._fade(self.state.servo_middle_duty, self.state.servo_middle_duty+self.state.servo_right_duty_offset, self.state.servo_fade_time)
+        self._fade(config.servo_middle_duty, config.servo_middle_duty+config.servo_right_duty_offset, config.servo_fade_time)
 
         #sustain
-        time.sleep_ms(self.state.servo_sustain_time)
+        time.sleep_ms(config.servo_sustain_time)
 
         #ramp to stop
-        self._fade(self.state.servo_middle_duty+self.state.servo_right_duty_offset, self.state.servo_middle_duty, self.state.servo_fade_time)
+        self._fade(config.servo_middle_duty+config.servo_right_duty_offset, config.servo_middle_duty, config.servo_fade_time)
 
         #ramp to left turn
-        self._fade(self.state.servo_middle_duty, self.state.servo_middle_duty+self.state.servo_left_duty_offset, self.state.servo_fade_time)
+        self._fade(config.servo_middle_duty, config.servo_middle_duty+config.servo_left_duty_offset, config.servo_fade_time)
 
         #sustain
-        time.sleep_ms(self.state.servo_retract_time)
+        time.sleep_ms(config.servo_retract_time)
 
         #ramp to stop
-        self._fade(self.state.servo_middle_duty+self.state.servo_left_duty_offset, self.state.servo_middle_duty, self.state.servo_fade_time)
-
+        self._fade(config.servo_middle_duty+config.servo_left_duty_offset, config.servo_middle_duty, config.servo_fade_time)
 
         #disable
         self.servo.duty(0)
@@ -230,7 +239,6 @@ class ScaleIO(State):
     def update_config(self, config):
         self.update_state(config)
         self.configure()
-        self.feed()
         #hardware didnt hang so its safe to save now :)
         self.save()
 
