@@ -159,8 +159,12 @@ def read_sensor_loop():
 
         if c:
             scale_cat.measurement(c)
+            weights=scale_cat.calibrated_weights(scale_cat.offset(c))
+
         if f:
             scale_food.measurement(f)
+
+        print(" cat0 = {:4.0f}   cat1 = {:4.0f}   cat2 = {:4.0f}   cat3 = {:4.0f}   food = {:3.2f}".format(weights[0], weights[1], weights[2], weights[3], scale_food.last_realtime_weight))
 
         await uasyncio.sleep_ms(100)
 

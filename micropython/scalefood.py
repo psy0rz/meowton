@@ -103,7 +103,7 @@ class ScaleFood(scale.Scale):
 
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
-        # print(weight)
+        # print("food = {:.2f}g".format(weight))
         pass
 
 
