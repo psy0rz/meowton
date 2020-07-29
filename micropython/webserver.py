@@ -20,17 +20,26 @@ class Webserver():
             ("/", self.index),
             ("/events", self.events),
             (re.compile("^/rpc/(.+)"), self.rpc),
+            (re.compile("^/(static/.+)"), self.handle_static)
         ]
-
+ 
         logging.basicConfig(level=logging.WARNING)
         # logging.basicConfig(level=logging.DEBUG)
 
         self.display_web=display_web
-        self.webapp = ExcWebApp(__name__, ROUTES)
+        self.webapp = ExcWebApp(__name__, ROUTES, serve_static=False)
+
+    def handle_static(self, req, resp):
+        path = req.url_match.group(1)
+        if ".." in path:
+            yield from self.webapp.http_error(resp, "403")
+            return
+        yield from self.webapp.sendfile(resp, path, headers="Cache-Control: public, max-age=6048000, immutable\r\n")
+
 
     def index(self, req, resp):
-        headers = {"Location": "/static/index.html"}
-        yield from picoweb.start_response(resp, status="303", headers=headers)
+        headers="Cache-Control: public, max-age=6048000, immutable\r\nLocation: /static/index.html"
+        yield from picoweb.start_response(resp, status="301", headers=headers)
 
 
     #send events with scale updates to client
@@ -78,4 +87,4 @@ class Webserver():
 
 
     def run(self):
-        self.webapp.run(debug=1, host="0.0.0.0", port=80)
+        self.webapp.run(debug=0, host="0.0.0.0", port=80)

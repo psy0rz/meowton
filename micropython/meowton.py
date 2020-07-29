@@ -50,12 +50,15 @@ if config.run_webserver:
 # wifi setup
 if config.wifi_essid:
     print("Configuring wifi {}".format(config.wifi_essid))
-    wlan = network.WLAN(network.STA_IF) # get current object, without changing the mode
+    wlan = network.WLAN(network.STA_IF) #station mode
+    
     wlan.active(True)
     wlan.connect(config.wifi_essid, config.wifi_password)
 else:
     print("Running as wifi Access Point")
-    wlan = network.WLAN(network.AP_IF)
+    print("NOTE: You cant use the webinterface in this mode.")
+    wlan = network.WLAN(network.AP_IF) #AP mode
+    wlan.config(essid='meowton')
     wlan.active(True)
 
 last_ip=""
@@ -159,12 +162,14 @@ def read_sensor_loop():
 
         if c:
             scale_cat.measurement(c)
-            weights=scale_cat.calibrated_weights(scale_cat.offset(c))
 
         if f:
             scale_food.measurement(f)
 
-        print(" cat0 = {:4.0f}   cat1 = {:4.0f}   cat2 = {:4.0f}   cat3 = {:4.0f}   food = {:3.2f}".format(weights[0], weights[1], weights[2], weights[3], scale_food.last_realtime_weight))
+        #realtime test output
+        # if c and f:
+        #     weights=scale_cat.calibrated_weights(scale_cat.offset(c))
+        #     print(" cat0 = {:4.0f}   cat1 = {:4.0f}   cat2 = {:4.0f}   cat3 = {:4.0f}   food = {:3.2f}".format(weights[0], weights[1], weights[2], weights[3], scale_food.last_realtime_weight))
 
         await uasyncio.sleep_ms(100)
 
