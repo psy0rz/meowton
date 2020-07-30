@@ -12,7 +12,10 @@
             // console.log(data);
 
             //scale stuff
-            document.querySelector('#msg').textContent = data.msg;
+            document.querySelectorAll('.msg').forEach(e => {
+                e.textContent = data.msg;
+            });
+
 
             if (data.scale_weight === undefined)
                 document.querySelector('#scale-weight').textContent = "?";
@@ -68,7 +71,7 @@
         <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
 
         <ons-list-item>
-            <div id="msg" style='font-weight: bold;'>
+            <div class="msg" style='font-weight: bold;'>
                 Loading...
             </div>
         </ons-list-item>

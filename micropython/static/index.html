@@ -9,6 +9,8 @@
 </head>
 <script>
 
+    //////////////// GENERIC STUFF
+
     //global progress indication
     progress_count = 0;
     function progress_start() {
@@ -52,13 +54,11 @@
     }
 
     ons.ready(function () {
-
         ons.disableDeviceBackButtonHandler();
         ons.setDefaultDeviceBackButtonListener(function () {
 
             document.querySelector('ons-navigator').popPage();
         });
-
 
         progress_done();
     });
@@ -113,6 +113,48 @@
 
 
 
+    /////////////////// APP SPECIFIC STUFF
+    const show_calibrate_menu = () => {
+        document.querySelector('#menu').close();
+        ons.openActionSheet({
+            title: 'Calibration',
+            cancelable: true,
+            buttons: [
+                'Tarre cat scale',
+                'Tarre food scale',
+                {
+                    label: 'Recalibrate cat scale',
+                    modifier: 'destructive'
+                },
+                {
+                    label: 'Recalibrate cat food',
+                    modifier: 'destructive'
+                },
+                {
+                    label: 'Cancel',
+                    icon: 'md-close'
+                }
+            ]
+        }).then(function (index) {
+            switch (index) {
+                case 0:
+                    rpc("scale_cat.tarre");
+                    break;
+                case 1:
+                    rpc("scale_food.tarre");
+                    break;
+                case 2:
+                    ons.notification.confirm("Remove scale plate and press OK to start cat-scale calibration.").then((index) => { if (index == 1) rpc("scale_cat.recalibrate"); });
+                    break;
+                case 3:
+                    ons.notification.confirm("Remove food and start OK to start food-scale calibration.").then((index) => { if (index == 1) rpc("scale_food.recalibrate"); });
+                    break;
+
+            }
+        });
+    }
+
+
 
 </script>
 
@@ -127,28 +169,16 @@
         <ons-splitter-side id="menu" collapse>
             <ons-page>
                 <ons-list>
-                    <ons-list-item onclick="loadPage('cats.html')">
-                        My cats
-                    </ons-list-item>
-                    <ons-list-item>
-                        <ons-button onclick="menu_rpc('scale_cat.recalibrate')">Calibrate scale</ons-button>
-                    </ons-list-item>
-                    <ons-list-item>
-                        <ons-button onclick="menu_rpc('scale_cat.tarre')">Tarre scale</ons-button>
-                    </ons-list-item>
-                    <ons-list-item>
-                        <ons-button onclick="menu_rpc('scale_food.recalibrate')">Calibrate food</ons-button>
-                    </ons-list-item>
-                    <ons-list-item>
-                        <ons-button onclick="menu_rpc('scale_food.tarre')">Tarre food</ons-button>
-                    </ons-list-item>
-                    <ons-list-item onclick="loadPage('hardware.html')">
+                    <ons-list-item modifier="chevron tappable" onclick="loadPage('hardware.html')">
                         Hardware settings
                     </ons-list-item>
-                    <ons-list-item onclick="loadPage('servo.html')">
+                    <ons-list-item modifier="chevron tappable" onclick="loadPage('servo.html')">
                         Feeder settings
                     </ons-list-item>
-                    <ons-list-item onclick="loadPage('about.html')">
+                    <ons-list-item modifier="chevron tappable" onclick="show_calibrate_menu()">
+                        Calibration
+                    </ons-list-item>
+                    <ons-list-item modifier="chevron tappable" onclick="loadPage('about.html')">
                         About
                     </ons-list-item>
 
