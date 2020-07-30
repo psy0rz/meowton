@@ -70,6 +70,6 @@ class Display(display_base.Display):
 
     def msg(self, txt, timeout=10):
         """called to display a message on the screen"""
-        print(txt)
+        print("DISPLAY: "+txt)
         self.state['msg']=txt
         self.send()

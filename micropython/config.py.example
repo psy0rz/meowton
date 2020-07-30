@@ -1,29 +1,20 @@
-wifi_essid = "BLA"
-wifi_password="123"
+## Your wifi settings here:
+wifi_essid = "BLAH"
+wifi_password="1234"
 
-#scale id
-id="test"
-
-#influx db url
-db="http://192.168.13.22:8086/write?db=meowton2"
-
+## Add/remove pins that are valid for your ESP. 
 selectable_pins=[
-    #using 18 for loadcells gave noise/weirdness somehow? 
-    0,2,4,5,12,13,14,15,19,21,22,23,25,26,27,32,33,34
+    0,2,4,5,12,13,14,15,18,19,21,22,23,25,26,27,32,33,34
 ]
 
+## Influx db url (optional)
+#db="http://192.168.13.22:8086/write?db=meowton2"
+db=""
 
+## Influx db scale id
+id="test"
 
-#display configuration
-#(will automaticly fallback to serial display if not detected)
-
-# import display_lcd20x4
-# lcd_pins=(21, 22) #data,clock
-# display_class=display_lcd20x4.Display
-
+## Dont change this (for now)
 import display_web
 display_class=display_web.Display
 run_webserver=True
-
-# must be true for webserver mode
-loop_async=False

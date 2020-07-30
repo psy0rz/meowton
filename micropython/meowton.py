@@ -1,3 +1,10 @@
+try:
+    import config
+except:
+    print("#### MEOWTON: config.py is missing, cant boot!")
+    import sys
+    sys.exit(1)
+
 import machine
 import time
 import utime
@@ -8,7 +15,7 @@ import timer
 import db
 from cats import Cats
 import usocket
-import config
+
 import network
 import gc
 import uasyncio
@@ -223,7 +230,7 @@ def check_loop():
             ip=wlan.ifconfig()[0]
             global last_ip
             if last_ip!=ip:
-                print(ip)
+                print("MEOWTON: Interface at http://"+ip)
                 display.msg(ip)
                 last_ip=ip
 
@@ -239,7 +246,8 @@ def start():
     event_loop=uasyncio.get_event_loop()
     event_loop.create_task(read_sensor_loop())
     event_loop.create_task(check_loop())
-   
+
+    print("MEOWTON: Boot complete.")
     # start webinterface?
     if config.run_webserver:
         webserver.run()

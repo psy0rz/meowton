@@ -9,6 +9,9 @@ class Db():
         def store(self, cat):
             '''store cat statistics in db'''
 
+            if not config.db:
+                return
+
              # POST data to influxdb
             try:
                 self.display.msg("Uploading...")
