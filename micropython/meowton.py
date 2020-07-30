@@ -16,10 +16,9 @@ import db
 from cats import Cats
 import usocket
 
-import network
 import gc
 import uasyncio
-
+import sys
 
 ### init
 
@@ -55,18 +54,20 @@ if config.run_webserver:
 
 
 # wifi setup
-if config.wifi_essid:
-    print("Configuring wifi {}".format(config.wifi_essid))
-    wlan = network.WLAN(network.STA_IF) #station mode
-    
-    wlan.active(True)
-    wlan.connect(config.wifi_essid, config.wifi_password)
-else:
-    print("Running as wifi Access Point")
-    print("NOTE: You cant use the webinterface in this mode.")
-    wlan = network.WLAN(network.AP_IF) #AP mode
-    wlan.config(essid='meowton')
-    wlan.active(True)
+if sys.platform=='esp32':
+    import network
+    if config.wifi_essid:
+        print("Configuring wifi {}".format(config.wifi_essid))
+        wlan = network.WLAN(network.STA_IF) #station mode
+        
+        wlan.active(True)
+        wlan.connect(config.wifi_essid, config.wifi_password)
+    else:
+        print("Running as wifi Access Point")
+        print("NOTE: You cant use the webinterface in this mode.")
+        wlan = network.WLAN(network.AP_IF) #AP mode
+        wlan.config(essid='meowton')
+        wlan.active(True)
 
 last_ip=""
 
@@ -131,8 +132,6 @@ def p():
 # prev=0
 
 
-led=machine.Pin(5,machine.Pin.OUT)
-oldvalue=True
 
 
 global last_state
@@ -174,27 +173,37 @@ def read_sensor_loop():
             scale_food.measurement(f)
 
         #realtime test output
-        # if c and f:
-        #     weights=scale_cat.calibrated_weights(scale_cat.offset(c))
-        #     print(" cat0 = {:4.0f}   cat1 = {:4.0f}   cat2 = {:4.0f}   cat3 = {:4.0f}   food = {:3.2f}".format(weights[0], weights[1], weights[2], weights[3], scale_food.last_realtime_weight))
+        if config.print_weights and  c and f:
+            weights=scale_cat.calibrated_weights(scale_cat.offset(c))
+            print(" cat0 = {:4.0f}   cat1 = {:4.0f}   cat2 = {:4.0f}   cat3 = {:4.0f}   food = {:3.2f}".format(weights[0], weights[1], weights[2], weights[3], scale_food.last_realtime_weight))
 
         await uasyncio.sleep_ms(100)
 
 
 ################# loop that checks slow stuff every second or so
 def check_loop():
+    if sys.platform=='esp32':
+        led=machine.Pin(5,machine.Pin.OUT)
+        oldvalue=True
+
     while True:
-        if not wlan.isconnected():
-            global oldvalue
+        if sys.platform=='esp32':
+            if not wlan.isconnected():
+                led.value(oldvalue)
+                oldvalue=not oldvalue
+            else:
+                ip=wlan.ifconfig()[0]
+                global last_ip
+                if last_ip!=ip:
+                    print("MEOWTON: Interface at http://"+ip)
+                    display.msg(ip)
+                    last_ip=ip
+
+            #heartbeat
             led.value(oldvalue)
             oldvalue=not oldvalue
 
         gc.collect()
-
-        #heartbeat
-        global oldvalue
-        led.value(oldvalue)
-        oldvalue=not oldvalue
 
 
         ###  feed?
@@ -225,14 +234,6 @@ def check_loop():
                 if cam_detect_count==3:
                     cam_send("true")
 
-        ### display IP
-        if wlan.isconnected():
-            ip=wlan.ifconfig()[0]
-            global last_ip
-            if last_ip!=ip:
-                print("MEOWTON: Interface at http://"+ip)
-                display.msg(ip)
-                last_ip=ip
 
         await uasyncio.sleep(1)
 
@@ -240,7 +241,7 @@ def check_loop():
 ################################ INIT
 
 
-from machine import Timer
+# from machine import Timer
 def start():
 
     event_loop=uasyncio.get_event_loop()

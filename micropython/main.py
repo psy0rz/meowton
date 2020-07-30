@@ -1,8 +1,8 @@
 # bare minimum to initalize webrepl and start meowton
 
 # disable debug
-import esp
-esp.osdebug(None)
+# import esp
+# esp.osdebug(None)
 
 ### network stuff
 # import config
