@@ -173,7 +173,7 @@ def read_sensor_loop():
             scale_food.measurement(f)
 
         #realtime test output
-        if config.print_weights and  c and f:
+        if config.print_weights and c and f:
             weights=scale_cat.calibrated_weights(scale_cat.offset(c))
             print(" cat0 = {:4.0f}   cat1 = {:4.0f}   cat2 = {:4.0f}   cat3 = {:4.0f}   food = {:3.2f}".format(weights[0], weights[1], weights[2], weights[3], scale_food.last_realtime_weight))
 

@@ -4,7 +4,7 @@ import sys
 
 if sys.platform=='esp32':
     from hx711 import HX711
-    
+
 import config
 from lib.state import State
 
