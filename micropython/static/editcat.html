@@ -1,0 +1,96 @@
+<ons-page id="editcat">
+    <script>
+
+        ons.ready(function () {
+
+            var page = ons.getScriptPage();
+            var list = page.querySelector('ons-list');
+
+            //page is shown
+            page.onShow = function () {
+
+                //slider value display update
+                page.oninput = function (event) {
+                    if (event.target.type == 'range') {
+                        event.target.parentElement.parentElement.querySelector('span').innerText = event.target.value;
+                    }
+                };
+
+                //get data from device
+                rpc("cats.get_cat_state", { 'name': page.data.name }, function (result) {
+
+                    //store data into form
+                    set_form_values(list, result);
+
+                    //save is pressed
+                    page.querySelector('#save').onclick = function (event) {
+
+                        //read data from form
+                        get_form_values(list, result);
+
+                        //store data into device
+                        rpc("cats.update_cat_state", { state: result }, function () {
+                            // ons.notification.toast("All tests OK", { timeout: 5000 });
+                            document.querySelector('ons-navigator').popPage();
+                        });
+                    };
+                })
+
+
+            };
+
+
+
+        });
+
+    </script>
+
+    <style>
+    </style>
+
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button></ons-back-button>
+        </div>
+        <div class="center">Edit cat</div>
+    </ons-toolbar>
+
+    <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
+
+    <ons-list>
+
+        <ons-list-item>
+            Name:
+            <ons-input readonly id='name' style="width: 100%;"></ons-input>
+            <span></span>
+        </ons-list-item>
+
+        <ons-list-item>
+            Current weight:
+            <ons-input id='weight' style="width: 100%;"></ons-input>
+            <span></span>
+        </ons-list-item>
+
+        <ons-list-header>Feed quota</ons-list-header>
+
+        <ons-list-item>
+            Daily quota:
+            <ons-range id='feed_daily' style="width: 100%;" min=0 max=100></ons-range>
+            <span></span>g
+        </ons-list-item>
+
+        <ons-list-item>
+            Current quota:
+            <ons-range id='feed_quota' style="width: 100%;" min=-100 max=100></ons-range>
+            <span></span>g
+        </ons-list-item>
+
+
+    </ons-list>
+
+    <p>
+        <ons-button id='save'>Save</ons-button>
+        <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
+    </p>
+
+</ons-page>

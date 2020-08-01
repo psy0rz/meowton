@@ -3,6 +3,27 @@
         const page = ons.getScriptPage();
         const list = page.querySelector('ons-list');
 
+        function edit_cat(name) {
+
+        }
+
+
+        function new_cat() {
+
+            ons.notification.prompt({
+                message: "Enter new cat's name",
+                title: "'New cat",
+                cancelable: true,
+                buttonLabels: ["Cancel", "OK"]
+            }).then(name => {
+                if (name) {
+                    rpc("cats.new", { name: name }, result => {
+                        loadPage('editcat.html', { 'data': { 'name': name } });
+                    });
+                }
+            })
+        }
+
         //tab is shown
         page.onShow = function () {
 
@@ -21,8 +42,9 @@
                             ${cat.name}
                         </div>
                         <div class="right">
-                            ${cat.weight.toFixed(0)+"g"}
+                            ${cat.weight.toFixed(0) + "g"}
                         </div>
+                        <div>moi</div>
                     </ons-list-item>
                     `)
 
@@ -34,13 +56,17 @@
 
         };
     </script>
+    <div class="msg" style='font-weight: bold;'>
+        Loading...
+    </div>
+
 
     <ons-list>
         <ons-list-header>My cats</ons-list-header>
         <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
     </ons-list>
 
-    <ons-fab position="bottom right">
+    <ons-fab position="bottom right" onClick="new_cat()">
         <ons-icon icon="md-plus"></ons-icon>
     </ons-fab>
 

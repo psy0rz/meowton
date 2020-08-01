@@ -29,7 +29,6 @@
     //stores data from hash-array into a form and triggers input-events. 
     //id should be #<key>
     function set_form_values(context, data) {
-
         Object.keys(data).forEach(key => {
             var element = context.querySelector('#' + key);
             if (element) {
@@ -73,7 +72,9 @@
         req.addEventListener("load", function (event) {
             progress_done();
             if (req.status == 200) {
-                console.debug("rpc result 200", req);
+                // console.debug("rpc result 200", req);
+                console.debug("RPC", cmd, pars, req.response);
+
                 if (load_handler) {
                     result = JSON.parse(req.response);
                     load_handler(result);
@@ -94,21 +95,20 @@
         });
 
         // oReq.addEventListener("abort", transferCanceled);
-
         req.open('POST', "/rpc/" + cmd);
         req.send(JSON.stringify(pars));
         return (req);
 
     }
 
-    function menu_rpc(cmd) {
-        document.querySelector('#menu').close();
-        rpc(cmd);
-    }
+    // function menu_rpc(cmd) {
+    //     document.querySelector('#menu').close();
+    //     rpc(cmd);
+    // }
 
-    const loadPage = (page) => {
+    const loadPage = (page, options) => {
         document.querySelector('#menu').close();
-        document.querySelector('#navigator').bringPageTop(page);
+        document.querySelector('#navigator').bringPageTop(page, options);
     };
 
 
@@ -147,7 +147,7 @@
                     ons.notification.confirm("Remove scale plate and press OK to start cat-scale calibration.").then((index) => { if (index == 1) rpc("scale_cat.recalibrate"); });
                     break;
                 case 3:
-                    ons.notification.confirm("Remove food and start OK to start food-scale calibration.").then((index) => { if (index == 1) rpc("scale_food.recalibrate"); });
+                    ons.notification.confirm("Remove press OK to start food-scale calibration.").then((index) => { if (index == 1) rpc("scale_food.recalibrate"); });
                     break;
 
             }

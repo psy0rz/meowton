@@ -30,15 +30,15 @@ class Cats():
     def new(self, name):
         c=self.by_name(name)
 
-        if not c:
-            c=cat.Cat(name)
-            self.cats.append(c)
-            c.save_file_name(self.dbdir+"/"+name)
+        if c:
+            raise(Exception("Cat already exists"))
 
-
+        c=cat.Cat(name)
+        self.cats.append(c)
+        c.save_file_name(self.dbdir+"/"+name)
  
         self.display.msg("Place {}".format(name))
-        return(c)
+
 
     def remove(self, name):
 
@@ -61,6 +61,15 @@ class Cats():
             if cat.state.name==name:
                 return cat
 
+        return(None)
+
+    def get_cat_state(self, name):
+        return(self.by_name(name).get_state())
+
+    def update_cat_state(self, state):
+        self.by_name(state['name']).update_state(state)
+        self.by_name(state['name']).save()
+
 
     def by_weight(self, weight):
 
@@ -70,7 +79,7 @@ class Cats():
         best_match=None
         for c in self.cats:
             #new cat? 
-            if c.state.weight==None:
+            if c.state.weight==0:
                 c.state.weight=weight
                 self.display.msg("Learned {}".format(c.state.name))
                 return c

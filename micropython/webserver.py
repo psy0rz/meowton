@@ -83,6 +83,7 @@ class Webserver():
         except Exception as e:
             yield from picoweb.start_response(resp, status=500)
             yield from resp.awrite(str(e))
+            raise
 
 
 

@@ -10,7 +10,7 @@ class Cat(State):
         self.state.feed_quota_timestamp=0
         self.state.feed_quota_max=0
         self.state.feed_quota_min=0
-        self.state.weight=None
+        self.state.weight=0
 
         #aten during this feeding session (usually ends when cat leaves and uploaded to database)
         self.ate_session=0
