@@ -68,8 +68,16 @@ class ScaleFood(scale.Scale):
             #NOTE: alerts are only used here for now, so its safe to reset every time
             self.display.alert(False)
 
-            #ignore manually added food (>1g), or big jumps
-            if diff>-2 and diff<2:
+            #If more than this is added to the scale, its probably cheating or falling from the feeder somehow and not added to cats quota. 
+            #Otherwise we assume food felt back from the cats mouth into the scale, so its added back to the cats quota. (since he didnt eat it)
+            cheat_threshold=0.5 
+
+            #Assume the cat can not remove more than this in one time, so dont substract from quota.
+            #This can happen when the bowl is removed. (When its added it usually more than the cheat threshold so its ignored again)
+            remove_threshold=4
+            #>0 means food was lost from scale
+            #<0 means food was added to scale
+            if diff>-cheat_threshold and diff<remove_threshold:  
                 #known cat, update its quota
                 if self.cats.current_cat:
 
@@ -86,7 +94,8 @@ class ScaleFood(scale.Scale):
                     #unknown cat, store amount eaten temporary until we identify cat
                     # if self.scale_cat.last_realtime_weight>100:
                     self.ate=self.ate+diff
-                    self.display.msg("Unknown ate: {:2.2f}g".format(self.ate))
+            else:
+                self.display.msg("Ignored food change: {:2.2f}g".format(diff))
 
 
         else:
