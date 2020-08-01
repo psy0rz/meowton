@@ -45,10 +45,6 @@ class Cats():
         self.cats.remove(self.by_name(name))
         os.remove(self.dbdir+"/"+name)
         self.display.msg("Removed {}".format(name))
-    # for catnr in  range(0, len(self.cats)):
-    #         if self.cats[catnr].state.name==name:
-    #             self.cats.remove(catnr)
-
 
 
     def save(self):

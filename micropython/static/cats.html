@@ -3,13 +3,7 @@
         const page = ons.getScriptPage();
         const list = page.querySelector('ons-list');
 
-        function edit_cat(name) {
-
-        }
-
-
-        function new_cat() {
-
+        page.querySelector('#new').onclick = function (event) {
             ons.notification.prompt({
                 message: "Enter new cat's name",
                 title: "'New cat",
@@ -37,14 +31,15 @@
                 //fill it
                 result.forEach(cat => {
                     e = ons.createElement(/*html*/`
-                    <ons-list-item>
+                    <ons-list-item  modifier="chevron tappable" onclick="loadPage('editcat.html', { 'data': { 'name': '${cat.name}' } })">
                         <div class="center">
-                            ${cat.name}
+                            <span class="list-item__title">${cat.name}</span>
+                            <span class="list-item__subtitle">${cat.feed_quota.toFixed(0)}g of ${cat.feed_daily}g food left.</span>
                         </div>
                         <div class="right">
-                            ${cat.weight.toFixed(0) + "g"}
+                            ${cat.weight.toFixed(0)}g
                         </div>
-                        <div>moi</div>
+
                     </ons-list-item>
                     `)
 
@@ -66,7 +61,7 @@
         <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
     </ons-list>
 
-    <ons-fab position="bottom right" onClick="new_cat()">
+    <ons-fab id='new' position="bottom right">
         <ons-icon icon="md-plus"></ons-icon>
     </ons-fab>
 

@@ -34,13 +34,19 @@
                             document.querySelector('ons-navigator').popPage();
                         });
                     };
-                })
 
+                    page.querySelector('#delete').onclick = function (event) {
+                        // :(   lets call it item instead of cat to make it less harsh 
+                        ons.notification.confirm("Do you want to delete this item?").then(index => {
+                            if (index == 1) {
+                                rpc("cats.remove", { name: page.data.name });
+                                document.querySelector('ons-navigator').popPage();
+                            }
+                        });
 
+                    };
+                });
             };
-
-
-
         });
 
     </script>
@@ -90,6 +96,7 @@
 
     <p>
         <ons-button id='save'>Save</ons-button>
+        <ons-button id='delete'>Delete</ons-button>
         <ons-progress-bar indeterminate class="global-progress"></ons-progress-bar>
     </p>
 
