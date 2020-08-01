@@ -211,7 +211,7 @@ class ScaleIO(State):
             config=config.state
             
    
-        #ramp to right turn
+        #ramp to feed turn
         self._fade(config.servo_middle_duty, config.servo_middle_duty+config.servo_speed, config.servo_fade_time)
 
         #sustain
@@ -220,14 +220,15 @@ class ScaleIO(State):
         #ramp to stop
         self._fade(config.servo_middle_duty+config.servo_speed, config.servo_middle_duty, config.servo_fade_time)
 
-        #ramp to left turn
-        self._fade(config.servo_middle_duty, config.servo_middle_duty-config.servo_speed, config.servo_fade_time)
+        #ramp to retract turn
+        if config.servo_retract_time:
+            self._fade(config.servo_middle_duty, config.servo_middle_duty-config.servo_speed, config.servo_fade_time)
 
-        #sustain
-        time.sleep_ms(config.servo_retract_time)
+            #sustain
+            time.sleep_ms(config.servo_retract_time)
 
-        #ramp to stop
-        self._fade(config.servo_middle_duty-config.servo_speed, config.servo_middle_duty, config.servo_fade_time)
+            #ramp to stop
+            self._fade(config.servo_middle_duty-config.servo_speed, config.servo_middle_duty, config.servo_fade_time)
 
         #disable
         self.servo.duty(0)
