@@ -60,4 +60,4 @@ class Cat(State):
 
     def update_weight(self, weight):
         '''update weight by moving average'''
-        self.state.weight=self.state.weight*0.9 + weight*0.1
+        self.state.weight=self.state.weight*0.99 + weight*0.01
