@@ -143,13 +143,14 @@ def cam_send(state):
         if state!=last_state:
             try:
                 # print("Setting cam to "+state)
-                s=usocket.socket()config.status_ip, 1234)[0][-1]
+                s=usocket.socket()
+                sockaddr = usocket.getaddrinfo(config.status_ip, 1234)[0][-1]
                 s.connect(sockaddr)
                 s.send(state+"\n")
                 s.close()
                 # print("Cam send done")
             except Exception as e:
-                # print("failed: "+str(e))
+                print("cam send failed: "+str(e))
                 pass
         last_state=state
 
