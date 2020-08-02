@@ -137,20 +137,21 @@ def p():
 global last_state
 last_state="bla"
 def cam_send(state):
-    global last_state
-    if state!=last_state:
-        try:
-            # print("Setting cam to "+state)
-            s=usocket.socket()
-            sockaddr = usocket.getaddrinfo('192.168.13.233', 1234)[0][-1]
-            s.connect(sockaddr)
-            s.send(state+"\n")
-            s.close()
-            # print("Cam send done")
-        except Exception as e:
-            # print("failed: "+str(e))
-            pass
-    last_state=state
+    """this will control an external device to control a camera or light"""
+    if config.status_ip:
+        global last_state
+        if state!=last_state:
+            try:
+                # print("Setting cam to "+state)
+                s=usocket.socket()config.status_ip, 1234)[0][-1]
+                s.connect(sockaddr)
+                s.send(state+"\n")
+                s.close()
+                # print("Cam send done")
+            except Exception as e:
+                # print("failed: "+str(e))
+                pass
+        last_state=state
 
 
 ################ read sensors, fast stuff

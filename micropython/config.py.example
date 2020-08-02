@@ -21,3 +21,7 @@ id="test"
 import display_web
 display_class=display_web.Display
 run_webserver=True
+
+status_ip=''
+
+
