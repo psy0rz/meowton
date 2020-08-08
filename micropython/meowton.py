@@ -222,7 +222,7 @@ def check_loop():
 
         ### display realtime quota/cat food_weight
         display.refresh()
-        slow_check_timestamp=timer.timestamp
+        # slow_check_timestamp=timer.timestamp
 
         global cam_detect_count
         ### cat cam hack

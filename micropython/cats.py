@@ -22,7 +22,7 @@ class Cats():
 
             #since we dont have an RTC, just start from this point
             c.state.feed_quota_timestamp=timer.timestamp
-            self.display.update_cat(c)
+            # self.display.update_cat(c)
 
     def __repr__(self):
         return(self.cats)
@@ -63,8 +63,13 @@ class Cats():
         return(self.by_name(name).get_state())
 
     def update_cat_state(self, state):
-        self.by_name(state['name']).update_state(state)
-        self.by_name(state['name']).save()
+        #NOTE: set sane values for now, not configurable via GUI since default here is probably good:
+        state['feed_quota_max']=state['feed_daily']
+        state['feed_quota_min']=-state['feed_daily']
+
+        cat=self.by_name(state['name'])
+        cat.update_state(state)
+        cat.save()
 
 
     def by_weight(self, weight):

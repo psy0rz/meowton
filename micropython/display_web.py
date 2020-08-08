@@ -4,6 +4,7 @@ class Display(display_base.Display):
     """merely collects data that you want the webserver to send to the browser"""
 
     def __init__(self):
+        self.cat=None
         self.state={
             'v': 0,
             'cat': {
@@ -55,6 +56,7 @@ class Display(display_base.Display):
                 'quota': cat.get_quota(),
                 'time': cat.time()
             }
+            self.cat=cat
         else:
             self.state['cat']['status']='Done'
 
@@ -63,7 +65,9 @@ class Display(display_base.Display):
 
     def refresh(self):
         """called every second to update/refresh info on screen"""
-
+        # we want the status page to update the quota in realtime
+        if self.cat:
+            self.update_cat(self.cat)
         pass
 
 

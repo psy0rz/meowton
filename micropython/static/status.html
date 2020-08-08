@@ -44,7 +44,7 @@
                 document.querySelector('#cat-weight').textContent = data.cat.weight.toFixed(0) + "g";
                 document.querySelector('#cat-status').textContent = data.cat.status;
                 document.querySelector('#cat-ate-session').textContent = data.cat.ate_session.toFixed(1)+"g";
-                document.querySelector('#cat-quota').textContent = data.cat.quota.toFixed(0)+"g";
+                document.querySelector('#cat-quota').textContent = data.cat.quota.toFixed(3)+"g";
                 document.querySelector('#cat-time').textContent = Math.abs(data.cat.time).toFixed(0)+" minutes";
                 if (data.cat.time>=0)
                 {
