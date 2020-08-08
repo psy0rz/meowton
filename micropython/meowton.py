@@ -1,3 +1,5 @@
+VERSION='1.1-beta'
+
 try:
     import config
 except:
@@ -7,7 +9,6 @@ except:
 
 import machine
 import time
-import utime
 import scalecat
 import scalefood
 import scaleio
@@ -19,6 +20,7 @@ import usocket
 import gc
 import uasyncio
 import sys
+import os
 
 ### init
 
@@ -76,62 +78,15 @@ last_ip=""
 import micropython
 
 
-
-
-### this is the "userinterface" for now. replace with buttons or something ;)
-
-def clear():
-     import os
-     os.remove("scale_food.state")
-     os.remove("scale_cat.state")
-
-def s():
-    """save"""
-    print("saving stuff")
-    scale_cat.save()
-    scale_food.save()
-    cats.save()
-
-def t():
-    print("tarring")
-    scale_cat.tarre()
-    scale_food.tarre()
-
-
-def q(name, quota):
-    '''set daily quota'''
-    cats.by_name(name).state.feed_quota_max=quota
-    cats.by_name(name).state.feed_quota_min=-quota
-    cats.by_name(name).state.feed_daily=quota
-    cats.by_name(name).save()
-    print("set daily quota of cat")
-
-
-def n(name):
-    '''new cat'''
-    cats.new(name)
-
-def r(amount=0):
-    '''reset food quotas to 0'''
-    print("resetting all quotas to {}".format(amount))
-    cats.reset_all(amount)
-
-def cal():
-    scale_cat.recalibrate()
-    scale_food.recalibrate()
-
-
-def feed():
-    scale_io.feed()
-    scale_food.fed()
-
-#pause
-def p():
-    Timer(-1).deinit()
-
-# prev=0
-
-
+def sysinfo():
+    return({
+        'version': VERSION,
+        'uptime' : time.time(),
+        'mem'    : gc.mem_free(),
+        'freq'   : machine.freq(),
+        'os_version'     : os.uname().version,
+        'os_machine'     : os.uname().machine,
+    })
 
 
 global last_state
