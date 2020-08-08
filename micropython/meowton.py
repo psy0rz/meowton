@@ -169,7 +169,7 @@ def check_loop():
             scale_food.fed()
 
         ### save settings
-        if scale_cat.should_save and scale_cat.stable and abs(scale_cat.last_stable_weight)<5:
+        if scale_cat.should_save and scale_cat.stable and abs(scale_cat.last_stable_weight)<100:
             scale_cat.save()
             scale_food.save()
             cats.save()
