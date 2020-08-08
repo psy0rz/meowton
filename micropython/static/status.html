@@ -42,7 +42,7 @@
             if (data.cat) {
                 document.querySelector('#cat-name').textContent = data.cat.name;
                 document.querySelector('#cat-weight').textContent = data.cat.weight.toFixed(0) + "g";
-                document.querySelector('#cat-status').textContent = data.cat.status;
+                // document.querySelector('#cat-status').textContent = data.cat.status;
                 document.querySelector('#cat-ate-session').textContent = data.cat.ate_session.toFixed(1)+"g";
                 document.querySelector('#cat-quota').textContent = data.cat.quota.toFixed(3)+"g";
                 document.querySelector('#cat-time').textContent = Math.abs(data.cat.time).toFixed(0)+" minutes";
@@ -102,16 +102,16 @@
         </ons-list-item>
 
 
-        <ons-list-header>Last cat</ons-list-header>
+        <ons-list-header>Cat</ons-list-header>
 
-        <ons-list-item>
+        <!-- <ons-list-item>
             <div class="center">
                 Status
             </div>
             <div class="right" id='cat-status'>
                 Gone
             </div>
-        </ons-list-item>
+        </ons-list-item> -->
 
         <ons-list-item>
             <div class="center">
