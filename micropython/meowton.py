@@ -1,4 +1,4 @@
-VERSION='1.1-beta'
+VERSION='1.1'
 
 try:
     import config
@@ -165,7 +165,8 @@ def check_loop():
 
         ###  feed?
         if scale_food.should_feed():
-            feed()
+            scale_io.feed()
+            scale_food.fed()
 
         ### save settings
         if scale_cat.should_save and scale_cat.stable and abs(scale_cat.last_stable_weight)<5:
