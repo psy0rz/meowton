@@ -26,6 +26,9 @@ class ScaleCat(scale.Scale):
 
         self.should_save=False
 
+        #anti cheating: cat should leave scale first and cannot "morph" into another cat by sitting partially on the scale.
+        self.cat_morphed=False
+
         try:
             self.load("scale_cat.state")
             print("Loaded scale cat")
@@ -38,7 +41,14 @@ class ScaleCat(scale.Scale):
 
 
 
+    def set_cat_morphed(self, cat_morphed):
 
+        if cat_morphed!=self.cat_morphed:
+            self.cat_morphed=cat_morphed
+            if cat_morphed:
+                self.display.msg("Cheating cat detected!")
+            else:
+                self.display.msg("Not cheating anymore.")
 
     def event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
@@ -46,8 +56,17 @@ class ScaleCat(scale.Scale):
         #determine which cat it is
         cat=self.cats.by_weight(weight)
 
+        # nothing on scale, so reset morphed
+        if weight < self.cats.min_cat_weight:
+            self.set_cat_morphed(False)
+
         #changed cat?
         if cat!=self.cats.current_cat:
+
+            #we already selected a cat and someone still is on scale, so it has morphed:
+            if weight>=self.cats.min_cat_weight and self.cats.current_cat:
+                self.set_cat_morphed(True)
+
             #store statistics of previous cat
             if self.cats.current_cat:
                 #store this session and reset ate-counter
@@ -61,6 +80,7 @@ class ScaleCat(scale.Scale):
             # else:
                 #doing my part :)
                 # self.display.msg("Subscribe2Pewdiepie!",10)
+
 
 
         self.cats.select_cat(cat)

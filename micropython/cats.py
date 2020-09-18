@@ -2,6 +2,7 @@ import cat
 import os
 import timer
 
+
 class Cats():
     def __init__(self, display):
 
@@ -14,6 +15,8 @@ class Cats():
             os.mkdir(self.dbdir)
         except:
             pass
+
+        self.min_cat_weight=100
 
         for name in os.listdir(self.dbdir):
             c=cat.Cat()
@@ -74,7 +77,7 @@ class Cats():
 
     def by_weight(self, weight):
 
-        if weight<100:
+        if weight<self.min_cat_weight:
             return None
 
         best_match=None

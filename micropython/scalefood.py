@@ -130,9 +130,11 @@ class ScaleFood(scale.Scale):
         '''should we put food in the bowl?'''
 
 
-
-
         if self.state.calibrating:
+            return False
+
+        #cheating
+        if self.scale_cat.cat_morphed:
             return False
 
         #wait between feeds, to prevent mayhem ;)
