@@ -134,7 +134,7 @@ class ScaleFood(scale.Scale):
             return False
 
         #cheating
-        if self.scale_cat.cat_morphed:
+        if self.scale_cat.is_cheating():
             return False
 
         #wait between feeds, to prevent mayhem ;)

@@ -1,4 +1,5 @@
 import scale
+import timer
 
 #we want to keep this class independent of IO and display, so we can use it for simulations as well
 
@@ -27,7 +28,7 @@ class ScaleCat(scale.Scale):
         self.should_save=False
 
         #anti cheating: cat should leave scale first and cannot "morph" into another cat by sitting partially on the scale.
-        self.cat_morphed=False
+        self.cat_morph_timestamp=None
 
         try:
             self.load("scale_cat.state")
@@ -41,14 +42,27 @@ class ScaleCat(scale.Scale):
 
 
 
-    def set_cat_morphed(self, cat_morphed):
+    #cat morphed, set cheat timeout
+    def set_cat_morphed(self):
 
-        if cat_morphed!=self.cat_morphed:
-            self.cat_morphed=cat_morphed
-            if cat_morphed:
-                self.display.msg("Cheating cat detected!")
+        self.display.msg("Cheating cat detected!")
+        self.cat_morph_timestamp=timer.timestamp
+
+    #check if the cheat timeout has been reached
+    def is_cheating(self):
+
+        #was there a cheat detected?
+        if self.cat_morph_timestamp!=None:
+            #still something on the scale, so restart timer
+            if self.last_realtime_weight> self.cats.min_cat_weight:
+                self.cat_morph_timestamp=timer.timestamp
             else:
-                self.display.msg("Not cheating anymore.")
+                #scale has been empty for long enough?
+                if timer.diff(timer.timestamp,self.cat_morph_timestamp)>600000:
+                    self.display.msg("No longer cheating.")
+                    self.cat_morph_timestamp=None
+        return(self.cat_morph_timestamp!=None)
+
 
     def event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
@@ -56,16 +70,12 @@ class ScaleCat(scale.Scale):
         #determine which cat it is
         cat=self.cats.by_weight(weight)
 
-        # nothing on scale, so reset morphed
-        if weight < self.cats.min_cat_weight:
-            self.set_cat_morphed(False)
-
         #changed cat?
         if cat!=self.cats.current_cat:
 
             #suddenly changed from one cat to another one? probably cheating? (e.g. leaning off scale)
             if cat and self.cats.current_cat:
-                self.set_cat_morphed(True)
+                self.set_cat_morphed()
 
             #store statistics of previous cat
             if self.cats.current_cat:
