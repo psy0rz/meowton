@@ -63,8 +63,8 @@ class ScaleCat(scale.Scale):
         #changed cat?
         if cat!=self.cats.current_cat:
 
-            #we already selected a cat and someone still is on scale, so it has morphed:
-            if weight>=self.cats.min_cat_weight and self.cats.current_cat:
+            #suddenly changed from one cat to another one? probably cheating? (e.g. leaning off scale)
+            if cat and self.cats.current_cat:
                 self.set_cat_morphed(True)
 
             #store statistics of previous cat
