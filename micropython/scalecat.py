@@ -58,7 +58,7 @@ class ScaleCat(scale.Scale):
                 self.cat_morph_timestamp=timer.timestamp
             else:
                 #scale has been empty for long enough?
-                if timer.diff(timer.timestamp,self.cat_morph_timestamp)>600000:
+                if timer.diff(timer.timestamp,self.cat_morph_timestamp)>60000*20:
                     self.display.msg("No longer cheating.")
                     self.cat_morph_timestamp=None
         return(self.cat_morph_timestamp!=None)
