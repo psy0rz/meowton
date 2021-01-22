@@ -17,6 +17,8 @@ class ScaleFood(scale.Scale):
         self.stable_range=0.2 #production
         # self.stable_range=2 #test
 
+        #assume food bowl is "empty" below this. (perhaps a few pieces of food left)
+        self.empty_weight=0.5
 
         self.display=display
         self.cats=cats
@@ -59,12 +61,13 @@ class ScaleFood(scale.Scale):
         diff=self.prev_weight-weight
         self.prev_weight=weight
 
+        #if there is actual something in the bowl we can reset the retry counter.
+        if weight>self.empty_weight*2:
+            self.feed_retries=0
+
         #ignore weight change after despensing food
         if not self.just_fed:
 
-            #something bumped the food scale, so reset retry counter
-            #(we dont react the actual event created by the feeder, since the current of the motor always creates an extra event.)
-            self.feed_retries=0
             #NOTE: alerts are only used here for now, so its safe to reset every time
             self.display.alert(False)
 
@@ -75,6 +78,7 @@ class ScaleFood(scale.Scale):
             #Assume the cat can not remove more than this in one time, so dont substract from quota.
             #This can happen when the bowl is removed. (When its added it usually more than the cheat threshold so its ignored again)
             remove_threshold=4
+
             #>0 means food was lost from scale
             #<0 means food was added to scale
             if diff>-cheat_threshold and diff<remove_threshold:  
@@ -140,7 +144,7 @@ class ScaleFood(scale.Scale):
         #wait between feeds, to prevent mayhem ;)
         if timer.diff(timer.timestamp,self.last_feed)>5000:
             #bowl is stable and empty and not removed (<-5) and cat scale is also not removed (>-100)?
-            if self.stable and self.last_stable_weight<0.5 and self.last_stable_weight>-5 and self.scale_cat.last_stable_weight>-100:
+            if self.stable and self.last_stable_weight<self.empty_weight and self.last_stable_weight>-5 and self.scale_cat.last_stable_weight>-100:
                 # all cats may have food, or current cat may have food?
                 if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
                     self.last_feed=timer.timestamp
