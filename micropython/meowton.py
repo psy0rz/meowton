@@ -24,6 +24,24 @@ import os
 
 ### init
 
+# wifi setup
+if sys.platform == 'esp32':
+    import network
+
+    if config.wifi_essid:
+        print("Configuring wifi {}".format(config.wifi_essid))
+        wlan = network.WLAN(network.STA_IF)  # station mode
+        wlan.active(True)
+        wlan.connect(config.wifi_essid, config.wifi_password)
+    else:
+        print("Running as wifi Access Point")
+        print("NOTE: You cant use the webinterface in this mode.")
+        wlan = network.WLAN(network.AP_IF)  # AP mode
+        wlan.config(essid='meowton')
+        wlan.active(True)
+
+last_ip = ""
+
 # Init display
 try:
     print("Init display...")
@@ -55,23 +73,6 @@ if config.run_webserver:
     webserver=Webserver(display)
 
 
-# wifi setup
-if sys.platform=='esp32':
-    import network
-    if config.wifi_essid:
-        print("Configuring wifi {}".format(config.wifi_essid))
-        wlan = network.WLAN(network.STA_IF) #station mode
-        
-        wlan.active(True)
-        wlan.connect(config.wifi_essid, config.wifi_password)
-    else:
-        print("Running as wifi Access Point")
-        print("NOTE: You cant use the webinterface in this mode.")
-        wlan = network.WLAN(network.AP_IF) #AP mode
-        wlan.config(essid='meowton')
-        wlan.active(True)
-
-last_ip=""
 
 
 
@@ -89,29 +90,29 @@ def sysinfo():
     })
 
 
-global last_state
-last_state="bla"
-def cam_send(state):
-    """this will control an external device to control a camera or light"""
-    if config.status_ip:
-        global last_state
-        if state!=last_state:
-            try:
-                # print("Setting cam to "+state)
-                s=usocket.socket()
-                sockaddr = usocket.getaddrinfo(config.status_ip, 1234)[0][-1]
-                s.connect(sockaddr)
-                s.send(state+"\n")
-                s.close()
-                # print("Cam send done")
-            except Exception as e:
-                print("cam send failed: "+str(e))
-                pass
-        last_state=state
+# global last_state
+# last_state="bla"
+# def cam_send(state):
+#     """this will control an external device to control a camera or light"""
+#     if config.status_ip:
+#         global last_state
+#         if state!=last_state:
+#             try:
+#                 # print("Setting cam to "+state)
+#                 s=usocket.socket()
+#                 sockaddr = usocket.getaddrinfo(config.status_ip, 1234)[0][-1]
+#                 s.connect(sockaddr)
+#                 s.send(state+"\n")
+#                 s.close()
+#                 # print("Cam send done")
+#             except Exception as e:
+#                 print("cam send failed: "+str(e))
+#                 pass
+#         last_state=state
 
 
 ################ read sensors, fast stuff
-cam_detect_count=0
+# cam_detect_count=0
 def read_sensor_loop():
 
     while True:
@@ -180,17 +181,17 @@ def check_loop():
         display.refresh()
         # slow_check_timestamp=timer.timestamp
 
-        global cam_detect_count
-        ### cat cam hack
-        if scale_cat.stable and scale_cat.last_stable_weight<100 and scale_cat.state.stable_count>300:
-            cam_detect_count=0
-            cam_send("false")
-        else:
-            if scale_cat.last_realtime_weight>100:
-                cam_detect_count=cam_detect_count+1
-                #sometimes there are bogus measurements, so make sure we have more than one
-                if cam_detect_count==3:
-                    cam_send("true")
+        # global cam_detect_count
+        # ### cat cam hack
+        # if scale_cat.stable and scale_cat.last_stable_weight<100 and scale_cat.state.stable_count>300:
+        #     cam_detect_count=0
+        #     cam_send("false")
+        # else:
+        #     if scale_cat.last_realtime_weight>100:
+        #         cam_detect_count=cam_detect_count+1
+        #         #sometimes there are bogus measurements, so make sure we have more than one
+        #         if cam_detect_count==3:
+        #             cam_send("true")
 
 
         await uasyncio.sleep(1)
