@@ -28,17 +28,21 @@ import os
 if sys.platform == 'esp32':
     import network
 
-    if config.wifi_essid:
-        print("Configuring wifi {}".format(config.wifi_essid))
-        wlan = network.WLAN(network.STA_IF)  # station mode
-        wlan.active(True)
-        wlan.connect(config.wifi_essid, config.wifi_password)
-    else:
-        print("Running as wifi Access Point")
-        print("NOTE: You cant use the webinterface in this mode.")
-        wlan = network.WLAN(network.AP_IF)  # AP mode
-        wlan.config(essid='meowton')
-        wlan.active(True)
+    try:
+        if config.wifi_essid:
+            print("Configuring wifi {}".format(config.wifi_essid))
+            wlan = network.WLAN(network.STA_IF)  # station mode
+            wlan.active(True)
+            wlan.connect(config.wifi_essid, config.wifi_password)
+        else:
+            print("Running as wifi Access Point")
+            print("NOTE: You cant use the webinterface in this mode.")
+            wlan = network.WLAN(network.AP_IF)  # AP mode
+            wlan.config(essid='meowton')
+            wlan.active(True)
+    except Exception as e:
+        #make sure we continue without network if needed. (sometimes its broken after a few softreboots)
+        print("NETWORK ERROR: "+str(e))
 
 last_ip = ""
 
