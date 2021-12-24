@@ -5,16 +5,7 @@ import ujson
 import meowton
 import re
 
-
-class ExcWebApp(picoweb.WebApp):
-
-    async def handle_exc(self, req, resp, exc):
-        # Per API contract, handle_exc() must not raise exceptions
-        # (unless we want the whole webapp to terminate).
-        print("Webserver exception: "+repr(exc))
-
-
-class Webserver():
+class Webserver(picoweb.WebApp):
     def __init__(self, display_web):
         ROUTES = [
             ("/", self.index),
@@ -27,14 +18,20 @@ class Webserver():
         # logging.basicConfig(level=logging.DEBUG)
 
         self.display_web=display_web
-        self.webapp = ExcWebApp(__name__, ROUTES, serve_static=False)
+        super().__init__(__name__, ROUTES, serve_static=False)
+
+    async def handle_exc(self, req, resp, exc):
+        # Per API contract, handle_exc() must not raise exceptions
+        # (unless we want the whole webapp to terminate).
+        print("Webserver exception: "+repr(exc))
+
 
     def handle_static(self, req, resp):
         path = req.url_match.group(1)
         if ".." in path:
-            yield from self.webapp.http_error(resp, "403")
+            yield from self.http_error(resp, "403")
             return
-        yield from self.webapp.sendfile(resp, path, headers="Cache-Control: public, max-age=6048000, immutable\r\n")
+        yield from self.sendfile(resp, path, headers="Cache-Control: public, max-age=6048000, immutable\r\n")
 
 
     def index(self, req, resp):
@@ -85,7 +82,7 @@ class Webserver():
             yield from resp.awrite(str(e))
             raise
 
-
-
-    def run(self):
-        self.webapp.run(debug=0, host="0.0.0.0", port=80)
+    def server(self):
+        self.debug=-1
+        self.log=False
+        return uasyncio.start_server(self._handle, "0.0.0.0", 80)

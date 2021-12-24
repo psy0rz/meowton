@@ -15,7 +15,6 @@ import scaleio
 import timer
 import db
 from cats import Cats
-import usocket
 
 import gc
 import uasyncio
@@ -71,13 +70,6 @@ except Exception as e:
     display.msg("Scale IO error: "+str(e))
 
 
-# webserver?
-if config.run_webserver:
-    from webserver import Webserver
-    webserver=Webserver(display)
-
-
-
 
 
 import micropython
@@ -94,30 +86,11 @@ def sysinfo():
     })
 
 
-# global last_state
-# last_state="bla"
-# def cam_send(state):
-#     """this will control an external device to control a camera or light"""
-#     if config.status_ip:
-#         global last_state
-#         if state!=last_state:
-#             try:
-#                 # print("Setting cam to "+state)
-#                 s=usocket.socket()
-#                 sockaddr = usocket.getaddrinfo(config.status_ip, 1234)[0][-1]
-#                 s.connect(sockaddr)
-#                 s.send(state+"\n")
-#                 s.close()
-#                 # print("Cam send done")
-#             except Exception as e:
-#                 print("cam send failed: "+str(e))
-#                 pass
-#         last_state=state
 
 
 ################ read sensors, fast stuff
 # cam_detect_count=0
-def read_sensor_loop():
+async def read_sensor_loop():
 
     while True:
         timer.update()
@@ -143,7 +116,7 @@ def read_sensor_loop():
 
 
 ################# loop that checks slow stuff every second or so
-def check_loop():
+async def check_loop():
     if sys.platform=='esp32':
         led=machine.Pin(5,machine.Pin.OUT)
         oldvalue=True
@@ -183,38 +156,24 @@ def check_loop():
 
         ### display realtime quota/cat food_weight
         display.refresh()
-        # slow_check_timestamp=timer.timestamp
-
-        # global cam_detect_count
-        # ### cat cam hack
-        # if scale_cat.stable and scale_cat.last_stable_weight<100 and scale_cat.state.stable_count>300:
-        #     cam_detect_count=0
-        #     cam_send("false")
-        # else:
-        #     if scale_cat.last_realtime_weight>100:
-        #         cam_detect_count=cam_detect_count+1
-        #         #sometimes there are bogus measurements, so make sure we have more than one
-        #         if cam_detect_count==3:
-        #             cam_send("true")
-
 
         await uasyncio.sleep(1)
 
 
 ################################ INIT
-
-
-# from machine import Timer
 def start():
 
     event_loop=uasyncio.get_event_loop()
     event_loop.create_task(read_sensor_loop())
     event_loop.create_task(check_loop())
 
+    # webserver?
+    if config.run_webserver:
+        from webserver import Webserver
+        webserver = Webserver(display)
+        event_loop.create_task(webserver.server())
+
     print("MEOWTON: Boot complete.")
     # start webinterface?
-    if config.run_webserver:
-        webserver.run()
-    else:
-        event_loop.run_forever()
+    event_loop.run_forever()
 
