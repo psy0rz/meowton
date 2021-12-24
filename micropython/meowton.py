@@ -141,8 +141,11 @@ class Meowton():
 
         # display LCD?
         if hasattr(config, 'lcd_pins'):
-            import display_lcd20x4
-            displays.append(display_lcd20x4.Display(config.lcd_pins[0], config.lcd_pins[1]))
+            try:
+                import display_lcd20x4
+                displays.append(display_lcd20x4.Display(config.lcd_pins[0], config.lcd_pins[1]))
+            except Exception as e:
+                print("LCD failed: {}".format(str(e)))
 
         # web server?
         if getattr(config, 'run_webserver', False):
@@ -158,9 +161,6 @@ class Meowton():
             displays.append(display_serial.Display())
 
         self.display = multicall.MultiCall(displays)
-
-        print(displays)
-        self.display.msg("moi")
 
         # Init classes
         cats = Cats(self.display)
