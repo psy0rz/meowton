@@ -20,7 +20,6 @@ from cats import Cats
 
 import gc
 import uasyncio
-import sys
 import os
 from lib import multicall
 
@@ -80,6 +79,8 @@ class Meowton():
         self.scale_io = scaleio.ScaleIO()
 
     def sysinfo(self):
+
+        gc.collect()
         return ({
             'version': VERSION,
             'uptime': time.time(),

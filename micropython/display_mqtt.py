@@ -1,7 +1,7 @@
 import json
 
 import display_base
-import umqtt.simple
+from umqtt.robust2 import MQTTClient
 import ujson
 
 class Display(display_base.Display):
@@ -18,7 +18,7 @@ class Display(display_base.Display):
             'cat': None
         }
         self.msg_timeout=0
-        self.mqtt_client=umqtt.simple.MQTTClient(
+        self.mqtt_client=MQTTClient(
             settings['client_id'],
             settings['server'],
             settings['port'],
@@ -70,17 +70,22 @@ class Display(display_base.Display):
                 'time': cat.time(),
                 'ate': cat.ate_session
             }
-            self.cat=cat
-
-
         else:
             self.state['cat']=None
+
+        self.cat=cat
 
         self.send()
 
     def refresh(self):
         """called every second to update/refresh info on screen"""
         # we want the status page to update the quota in realtime
+
+        if self.mqtt_client.is_conn_issue():
+            print("MQTT: reconnecting")
+            self.mqtt_client.reconnect()
+            return
+
         if self.cat:
             self.update_cat(self.cat)
 

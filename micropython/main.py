@@ -1,4 +1,8 @@
-# bare minimum to initalize webrepl and start meowton
+#bare minimum to initalize webrepl and start meowton
+
+#use stuff from our lib first
+import sys
+sys.path.reverse()
 
 import machine
 machine.freq(240000000) #only recently discovered it runs on 160Mhz by default.
