@@ -30,6 +30,55 @@ from lib import multicall
 
 class Meowton():
 
+    def __init__(self):
+
+        self.wlan=""
+        self.last_ip=""
+        self.setup_wifi()
+
+        self.event_loop = uasyncio.get_event_loop()
+
+        displays = []
+
+        # display LCD?
+        if hasattr(config, 'lcd_pins'):
+            try:
+                import display_lcd20x4
+                displays.append(display_lcd20x4.Display(config.lcd_pins[0], config.lcd_pins[1]))
+            except Exception as e:
+                print("LCD failed: {}".format(str(e)))
+
+        # web server?
+        if getattr(config, 'run_webserver', False):
+            import display_web
+            import webserver
+            display_web = display_web.Display()
+            displays.append(display_web)
+            self.event_loop.create_task(webserver.Webserver(display_web, self).server())
+
+        # display serial?
+        if getattr(config, 'display_serial', False):
+            import display_serial
+            displays.append(display_serial.Display())
+
+        # mqtt?
+        if getattr(config, 'mqtt', False):
+            try:
+                import display_mqtt
+                displays.append(display_mqtt.Display(settings=config.mqtt))
+            except Exception as e:
+                print("MQTT: Error: {}".format(str(e)))
+
+
+        self.display = multicall.MultiCall(displays)
+
+        # Init classes
+        self.cats = Cats(self.display)
+        db_instance = db.Db(self.display)
+        self.scale_cat = scalecat.ScaleCat(self.display, self.cats, db_instance)
+        self.scale_food = scalefood.ScaleFood(self.display, self.cats, self.scale_cat)
+        self.scale_io = scaleio.ScaleIO()
+
     def sysinfo(self):
         return ({
             'version': VERSION,
@@ -128,47 +177,6 @@ class Meowton():
             self.display.refresh()
 
             await uasyncio.sleep(1)
-
-    def __init__(self):
-
-        self.wlan=""
-        self.last_ip=""
-        self.setup_wifi()
-
-        self.event_loop = uasyncio.get_event_loop()
-
-        displays = []
-
-        # display LCD?
-        if hasattr(config, 'lcd_pins'):
-            try:
-                import display_lcd20x4
-                displays.append(display_lcd20x4.Display(config.lcd_pins[0], config.lcd_pins[1]))
-            except Exception as e:
-                print("LCD failed: {}".format(str(e)))
-
-        # web server?
-        if getattr(config, 'run_webserver', False):
-            import display_web
-            import webserver
-            display_web = display_web.Display()
-            displays.append(display_web)
-            self.event_loop.create_task(webserver.Webserver(display_web, self).server())
-
-        # display serial?
-        if getattr(config, 'display_serial', False):
-            import display_serial
-            displays.append(display_serial.Display())
-
-        self.display = multicall.MultiCall(displays)
-
-        # Init classes
-        cats = Cats(self.display)
-        db_instance = db.Db(self.display)
-        self.scale_cat = scalecat.ScaleCat(self.display, cats, db_instance)
-        self.scale_food = scalefood.ScaleFood(self.display, cats, self.scale_cat)
-        self.scale_io = scaleio.ScaleIO()
-
 
     def run(self):
         try:

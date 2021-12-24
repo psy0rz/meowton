@@ -138,5 +138,5 @@ class Display(display_base.Display):
         else:
             self.msg_timeout=None
 
-        if txt:
-            print("# "+txt)
+        # if txt:
+        #     print("# "+txt)
