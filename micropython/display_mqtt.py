@@ -15,14 +15,7 @@ class Display(display_base.Display):
         self.cat=None
         self.settings=settings
         self.state={
-            'cat': {
-                'status': 'Eating',
-                'name': '',
-                'weight': 0,
-                'ate_session': 0,
-                'quota': 0,
-                'time': 0
-            }
+            'cat': None
         }
         self.msg_timeout=0
         self.mqtt_client=umqtt.simple.MQTTClient(
@@ -74,12 +67,14 @@ class Display(display_base.Display):
                 'weight': cat.state.weight,
                 'ate_session': cat.ate_session,
                 'quota': cat.get_quota(),
-                'time': cat.time()
+                'time': cat.time(),
+                'ate': cat.ate_session
             }
             self.cat=cat
 
+
         else:
-            self.state['cat']['status']='Done'
+            self.state['cat']=None
 
         self.send()
 
