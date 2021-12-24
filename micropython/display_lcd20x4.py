@@ -7,11 +7,11 @@ from esp8266_i2c_lcd import I2cLcd
 class Display(display_base.Display):
     """standard LCD2004 16x4 display via I2C"""
 
-    def __init__(self):
+    def __init__(self, sda, scl):
         super().__init__()
 
         DEFAULT_I2C_ADDR = 0x27
-        self.i2c = I2C(scl=Pin(config.lcd_pins[1]), sda=Pin(config.lcd_pins[0]), freq=400000)
+        self.i2c = I2C(scl=Pin(scl), sda=Pin(sda), freq=400000)
 
         self.cols=20
         self.rows=4

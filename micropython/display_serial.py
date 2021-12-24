@@ -1,7 +1,7 @@
- 
- 
+import display_base
 
-class Display():
+
+class Display(display_base.Display):
     """base display class. will print messages to stdout. subclass this to use other displays"""
 
     def __init__(self):

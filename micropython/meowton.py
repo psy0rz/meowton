@@ -1,3 +1,5 @@
+import display_serial
+
 VERSION='1.1'
 
 try:
@@ -20,160 +22,167 @@ import gc
 import uasyncio
 import sys
 import os
-
-### init
-
-# wifi setup
-if sys.platform == 'esp32':
-    import network
-
-    try:
-        if config.wifi_essid:
-            print("Configuring wifi {}".format(config.wifi_essid))
-            wlan = network.WLAN(network.STA_IF)  # station mode
-            wlan.active(True)
-            wlan.connect(config.wifi_essid, config.wifi_password)
-        else:
-            print("Running as wifi Access Point")
-            print("NOTE: You cant use the webinterface in this mode.")
-            wlan = network.WLAN(network.AP_IF)  # AP mode
-            wlan.config(essid='meowton')
-            wlan.active(True)
-    except Exception as e:
-        #make sure we continue without network if needed. (sometimes its broken after a few softreboots)
-        print("NETWORK ERROR: "+str(e))
-
-last_ip = ""
-
-# Init display
-try:
-    print("Init display...")
-    display=config.display_class()
-except Exception as e:
-    print("DISPLAY ERROR: "+str(e))
-    print("Falling back to dummy display.")
-    import display
-    display=display.Display()
-
-
-# Init classes
-cats=Cats(display)
-db=db.Db(display)
-scale_cat=scalecat.ScaleCat(display, cats, db)
-scale_food=scalefood.ScaleFood(display, cats, scale_cat)
-scale_io=scaleio.ScaleIO()
-
-try:
-    scale_io.start()
-except Exception as e:
-    # scale_io=None
-    display.msg("Scale IO error: "+str(e))
+from lib import multicall
 
 
 
 
-import micropython
+
+class Meowton():
+
+    def sysinfo(self):
+        return ({
+            'version': VERSION,
+            'uptime': time.time(),
+            'mem': gc.mem_free(),
+            'freq': machine.freq(),
+            'os_version': os.uname().version,
+            'os_machine': os.uname().machine,
+        })
+
+    def setup_wifi(self):
+        # wifi setup
+        import network
+
+        try:
+            if getattr(config, 'wifi_essid', False):
+                print("Configuring wifi {}".format(config.wifi_essid))
+                self.wlan = network.WLAN(network.STA_IF)  # station mode
+                self.wlan.active(True)
+                self.wlan.connect(config.wifi_essid, config.wifi_password)
+            else:
+                print("Running as wifi Access Point")
+                print("NOTE: You cant use the webinterface in this mode.")
+                self.wlan = network.WLAN(network.AP_IF)  # AP mode
+                self.wlan.config(essid='meowton')
+                self.wlan.active(True)
+        except Exception as e:
+            # make sure we continue without network if needed. (sometimes its broken after a few softreboots)
+            print("NETWORK ERROR: " + str(e))
 
 
-def sysinfo():
-    return({
-        'version': VERSION,
-        'uptime' : time.time(),
-        'mem'    : gc.mem_free(),
-        'freq'   : machine.freq(),
-        'os_version'     : os.uname().version,
-        'os_machine'     : os.uname().machine,
-    })
+    # read sensors and pass to approriate classes
+    async def read_sensor_loop(self):
 
+        while True:
+            timer.update()
 
+            ### read and update scales
 
+            #read all sensors and restart hx711 measurements (those take time, so restart them all at once)
+            c=self.scale_io.read_cat()
+            f=self.scale_io.read_food()
 
-################ read sensors, fast stuff
-# cam_detect_count=0
-async def read_sensor_loop():
+            if c:
+                self.scale_cat.measurement(c)
 
-    while True:
-        timer.update()
+            if f:
+                self.scale_food.measurement(f)
 
-        ### read and update scales
+            #realtime test output
+            if config.print_weights and c and f:
+                weights=self.scale_cat.calibrated_weights(self.scale_cat.offset(c))
+                print(" cat0 = {:4.0f}   cat1 = {:4.0f}   cat2 = {:4.0f}   cat3 = {:4.0f}   food = {:3.2f}".format(weights[0], weights[1], weights[2], weights[3], self.scale_food.last_realtime_weight))
 
-        #read all sensors and restart hx711 measurements (those take time, so restart them all at once)
-        c=scale_io.read_cat()
-        f=scale_io.read_food()
+            await uasyncio.sleep_ms(100)
 
-        if c:
-            scale_cat.measurement(c)
+    # slow stuff to check
+    async def check_loop(self):
 
-        if f:
-            scale_food.measurement(f)
-
-        #realtime test output
-        if config.print_weights and c and f:
-            weights=scale_cat.calibrated_weights(scale_cat.offset(c))
-            print(" cat0 = {:4.0f}   cat1 = {:4.0f}   cat2 = {:4.0f}   cat3 = {:4.0f}   food = {:3.2f}".format(weights[0], weights[1], weights[2], weights[3], scale_food.last_realtime_weight))
-
-        await uasyncio.sleep_ms(100)
-
-
-################# loop that checks slow stuff every second or so
-async def check_loop():
-    if sys.platform=='esp32':
         led=machine.Pin(5,machine.Pin.OUT)
         oldvalue=True
 
-    while True:
-        if sys.platform=='esp32':
-            if not wlan.isconnected():
+        while True:
+            if not self.wlan.isconnected():
                 led.value(oldvalue)
                 oldvalue=not oldvalue
             else:
-                ip=wlan.ifconfig()[0]
-                global last_ip
-                if last_ip!=ip:
+                ip=self.wlan.ifconfig()[0]
+
+                if self.last_ip!=ip:
                     print("MEOWTON: Interface at http://"+ip)
-                    display.msg(ip)
-                    last_ip=ip
+                    self.display.msg(ip)
+                    self.last_ip=ip
 
-            #heartbeat
-            led.value(oldvalue)
-            oldvalue=not oldvalue
+                #heartbeat
+                led.value(oldvalue)
+                oldvalue=not oldvalue
 
-        gc.collect()
-
-
-        ###  feed?
-        if scale_food.should_feed():
-            scale_io.feed()
-            scale_food.fed()
-
-        ### save settings
-        if scale_cat.should_save and scale_cat.stable and abs(scale_cat.last_stable_weight)<100:
-            scale_cat.save()
-            scale_food.save()
-            cats.save()
-            scale_cat.should_save=False
-            print("Saved")
-
-        ### display realtime quota/cat food_weight
-        display.refresh()
-
-        await uasyncio.sleep(1)
+            gc.collect()
 
 
-################################ INIT
-def start():
+            ###  feed?
+            if self.scale_food.should_feed():
+                self.scale_io.feed()
+                self.scale_food.fed()
 
-    event_loop=uasyncio.get_event_loop()
-    event_loop.create_task(read_sensor_loop())
-    event_loop.create_task(check_loop())
+            ### save settings
+            if self.scale_cat.should_save and self.scale_cat.stable and abs(self.scale_cat.last_stable_weight)<100:
+                self.scale_cat.save()
+                self.scale_food.save()
+                self.cats.save()
+                self.scale_cat.should_save=False
+                print("Saved")
 
-    # webserver?
-    if config.run_webserver:
-        from webserver import Webserver
-        webserver = Webserver(display)
-        event_loop.create_task(webserver.server())
+            ### display realtime quota/cat food_weight
+            self.display.refresh()
 
-    print("MEOWTON: Boot complete.")
-    # start webinterface?
-    event_loop.run_forever()
+            await uasyncio.sleep(1)
+
+    def __init__(self):
+
+        self.wlan=""
+        self.last_ip=""
+        self.setup_wifi()
+
+        self.event_loop = uasyncio.get_event_loop()
+
+        displays = []
+
+        # display LCD?
+        if hasattr(config, 'lcd_pins'):
+            import display_lcd20x4
+            displays.append(display_lcd20x4.Display(config.lcd_pins[0], config.lcd_pins[1]))
+
+        # web server?
+        if getattr(config, 'run_webserver', False):
+            import display_web
+            import webserver
+            display_web = display_web.Display()
+            displays.append(display_web)
+            self.event_loop.create_task(webserver.Webserver(display_web, self).server())
+
+        # display serial?
+        if getattr(config, 'display_serial', False):
+            import display_serial
+            displays.append(display_serial.Display())
+
+        self.display = multicall.MultiCall(displays)
+
+        print(displays)
+        self.display.msg("moi")
+
+        # Init classes
+        cats = Cats(self.display)
+        db_instance = db.Db(self.display)
+        self.scale_cat = scalecat.ScaleCat(self.display, cats, db_instance)
+        self.scale_food = scalefood.ScaleFood(self.display, cats, self.scale_cat)
+        self.scale_io = scaleio.ScaleIO()
+
+
+    def run(self):
+        try:
+            self.scale_io.start()
+        except Exception as e:
+            # scale_io=None
+            self.display.msg("Scale IO error: " + str(e))
+
+        self.event_loop.create_task(self.read_sensor_loop())
+        self.event_loop.create_task(self.check_loop())
+
+        print("MEOWTON: Starting event loop")
+        self.event_loop.run_forever()
+
+
+
 

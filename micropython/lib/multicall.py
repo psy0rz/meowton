@@ -1,5 +1,8 @@
 #!/usr/bin/python3
-"""MultiCall mem efficient version"""
+"""MultiCall mem efficient version
+
+Forwards a method-call to all specified classes.
+"""
 __author__ = 'Jan Klopper (jan@underdark.nl)'
 __version__ = 0.1
 class MultiCall():
@@ -9,7 +12,7 @@ class MultiCall():
   def caller(self, fname, args, kwargs):
     results = []
     for c in self.classes:
-      results.append(c.__getattribute__(fname)(*args, **kwargs))
+      results.append(getattr(c, fname)(*args, **kwargs))
     return results
 
   def __getattr__(self, fname):

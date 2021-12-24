@@ -2,11 +2,10 @@ import uasyncio
 import picoweb
 import ulogging as logging
 import ujson
-import meowton
 import re
 
 class Webserver(picoweb.WebApp):
-    def __init__(self, display_web):
+    def __init__(self, display_web, meowton):
         ROUTES = [
             ("/", self.index),
             ("/events", self.events),
@@ -18,6 +17,7 @@ class Webserver(picoweb.WebApp):
         # logging.basicConfig(level=logging.DEBUG)
 
         self.display_web=display_web
+        self.meowton=meowton
         super().__init__(__name__, ROUTES, serve_static=False)
 
     async def handle_exc(self, req, resp, exc):
@@ -70,7 +70,7 @@ class Webserver(picoweb.WebApp):
                 data={}
 
             #determine function
-            current_attribute=meowton
+            current_attribute=self.meowton
             for attribute in attributes:
                 current_attribute=getattr(current_attribute, attribute)
 

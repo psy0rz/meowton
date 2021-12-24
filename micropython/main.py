@@ -16,6 +16,6 @@ machine.freq(240000000) #only recently discovered it runs on 160Mhz by default.
 # print("Continuing boot.")
 print("MEOWTON: Booting")
 
-import meowton
-from meowton import *
-start()
+from meowton import Meowton
+meowton_instance=Meowton()
+meowton_instance.run()

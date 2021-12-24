@@ -1,6 +1,8 @@
 import urequests
 import config
 
+#TODO: move to a display class
+
 class Db():
         def __init__(self, display):
             self.display=display
@@ -9,7 +11,7 @@ class Db():
         def store(self, cat):
             '''store cat statistics in db'''
 
-            if not config.db:
+            if not getattr(config, 'db', False):
                 return
 
              # POST data to influxdb

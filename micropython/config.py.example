@@ -17,11 +17,9 @@ db=""
 ## Influx db scale id
 id="test"
 
-## Dont change this (for now)
-import display_web
-display_class=display_web.Display
+#recommended settings, dont change:
+display_serial=True
 run_webserver=True
-
-status_ip=''
+print_weights=False
 
 
