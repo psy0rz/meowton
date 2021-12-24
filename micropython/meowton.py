@@ -52,7 +52,7 @@ try:
     display=config.display_class()
 except Exception as e:
     print("DISPLAY ERROR: "+str(e))
-    print("Falling back to serial display.")
+    print("Falling back to dummy display.")
     import display
     display=display.Display()
 

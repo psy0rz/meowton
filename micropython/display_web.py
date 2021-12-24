@@ -57,11 +57,11 @@ class Display(display_base.Display):
                 'time': cat.time()
             }
             self.cat=cat
+
         else:
             self.state['cat']['status']='Done'
 
         self.send()
-
 
     def refresh(self):
         """called every second to update/refresh info on screen"""
@@ -70,10 +70,7 @@ class Display(display_base.Display):
             self.update_cat(self.cat)
         pass
 
-
-
     def msg(self, txt, timeout=10):
         """called to display a message on the screen"""
-        print("DISPLAY: "+txt)
         self.state['msg']=txt
         self.send()

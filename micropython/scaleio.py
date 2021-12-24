@@ -83,7 +83,7 @@ class ScaleIO(State):
         #     if count>3:
 
         if start==0:
-            print("Loadcell: Not found")
+            # print("Loadcell: Not found")
             raise(Exception("No cell at pins {},{}".format(cell.pSCK, cell.pOUT)))
 
         print("Loadcell: Found")
