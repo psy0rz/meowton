@@ -1,14 +1,14 @@
 # modified version of https://github.com/geda/hx711-lopy
 
 
-from machine import Pin, SPI, idle
+from machine import Pin, SPI, idle, SoftSPI
 
 class HX711:
     def __init__(self, dout, pd_sck, spi_clk, gain=128):
 
         self.pSCK = Pin(pd_sck , mode=Pin.OUT)
         self.pOUT = Pin(dout, mode=Pin.IN, pull=Pin.PULL_DOWN)
-        self.spi = SPI(-1, baudrate=1000000, polarity=0, phase=0, sck=Pin(spi_clk , mode=Pin.OUT), mosi=self.pSCK, miso=self.pOUT)
+        self.spi = SoftSPI(baudrate=1000000, polarity=0, phase=0, sck=Pin(spi_clk , mode=Pin.OUT), mosi=self.pSCK, miso=self.pOUT)
         self.pSCK(0)
 
         self.clock_25 = b'\xaa\xaa\xaa\xaa\xaa\xaa\x80'
