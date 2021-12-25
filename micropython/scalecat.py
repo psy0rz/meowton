@@ -27,6 +27,7 @@ class ScaleCat(scale.Scale):
 
         self.should_save=False
 
+
         #anti cheating: cat should leave scale first and cannot "morph" into another cat by sitting partially on the scale.
         self.cat_morph_timestamp=None
 
@@ -114,8 +115,7 @@ class ScaleCat(scale.Scale):
 
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
-        # print("cat  = {:.0f}g".format(weight))
-        pass
+        self.display.scale_weight_realtime(weight)
 
 
     def event_unstable(self):

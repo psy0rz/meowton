@@ -15,7 +15,9 @@ class Display(display_base.Display):
         self.cat=None
         self.settings=settings
         self.state={
-            'cat': None
+            'cat': None,
+            'activity': False
+
         }
         self.msg_timeout=0
         self.mqtt_client=MQTTClient(
@@ -29,14 +31,25 @@ class Display(display_base.Display):
         self.mqtt_client.set_last_will(self.settings['topic']+"/status", "offline")
         self.mqtt_client.connect()
         self.mqtt_client.publish(self.settings['topic']+"/status", "online")
-        
+
 
     def send(self):
         self.changed=True
 
+    def scale_weight_realtime(self, weight):
+        if weight>100:
+            if not self.state['activity']:
+                self.state['activity']=True
+                self.send()
+        else:
+            if self.state['activity']:
+                self.state['activity']=False
+                self.send()
+
+
 
     def scale_weight_stable(self, weight):
-        self.state['scale_weight']=weight
+        self.state['scale_weight']=round(weight)
         self.state['scale_weight_unstable']=False
         self.send()
 
@@ -47,7 +60,7 @@ class Display(display_base.Display):
 
     def food_weight_stable(self, weight):
         """called when a stable weight is detected on the food scale """
-        self.state['food_weight']=weight
+        self.state['food_weight']=round(weight,1)
         self.state['food_weight_unstable']=False
         self.send()
 
@@ -62,13 +75,11 @@ class Display(display_base.Display):
 
         if cat:
             self.state['cat']={
-                'status': 'Eating',
                 'name': cat.state.name,
-                'weight': cat.state.weight,
-                'ate_session': cat.ate_session,
-                'quota': cat.get_quota(),
-                'time': cat.time(),
-                'ate': cat.ate_session
+                'weight': round(cat.state.weight),
+                'quota': round(cat.get_quota()),
+                'wait_time': -round(cat.time()),
+                'ate': round(cat.ate_session)
             }
         else:
             self.state['cat']=None

@@ -8,6 +8,9 @@ class Display():
         self._alerting=False
         pass
 
+    def scale_weight_realtime(self, weight):
+        """called on every measurement"""
+        pass
 
     def scale_weight_stable(self, weight):
         """called when a stable weight is detected on the cat scale """
