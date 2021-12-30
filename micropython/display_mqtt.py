@@ -11,6 +11,7 @@ class Display(display_base.Display):
 
         print("MQTT: starting")
 
+        self.activity_count=0
         self.changed=False
         self.cat=None
         self.settings=settings
@@ -38,6 +39,11 @@ class Display(display_base.Display):
 
     def scale_weight_realtime(self, weight):
         if weight>100:
+            self.activity_count=self.activity_count+1
+        else:
+            self.activity_count=0
+
+        if self.activity_count>=3:
             if not self.state['activity']:
                 self.state['activity']=True
                 self.send()

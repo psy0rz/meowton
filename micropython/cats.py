@@ -88,8 +88,8 @@ class Cats():
                 self.display.msg("Learned {}".format(c.state.name))
                 return c
 
-            # max +/- 2% difference
-            if abs(c.state.weight-weight) < c.state.weight*0.02  and ( not best_match or abs(c.state.weight-weight) < abs(best_match.state.weight-weight)):
+            # max +/- 3% difference
+            if abs(c.state.weight-weight) < c.state.weight*0.03  and ( not best_match or abs(c.state.weight-weight) < abs(best_match.state.weight-weight)):
                 best_match=c
 
         return(best_match)
