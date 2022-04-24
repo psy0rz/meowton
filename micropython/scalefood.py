@@ -1,5 +1,7 @@
 import timer
 import scale
+import time
+import config
 #we want to keep this class independent of IO and display, so we can use it for simulations as well
 
 class ScaleFood(scale.Scale):
@@ -38,6 +40,8 @@ class ScaleFood(scale.Scale):
         self.feed_retries=0
         self.feed_max_retries=3
 
+        self.last_feeding_hour=0
+
         try:
             self.load("scale_food.state")
             print("Loaded scale food")
@@ -64,6 +68,9 @@ class ScaleFood(scale.Scale):
         #if there is actual something in the bowl we can reset the retry counter.
         if weight>self.empty_weight*2:
             self.feed_retries=0
+
+            (year, month, mday, hour, minute, second, weekday, yearday) = time.localtime()
+            self.last_feeding_hour=hour
 
         #ignore weight change after despensing food
         if not self.just_fed:
@@ -141,12 +148,15 @@ class ScaleFood(scale.Scale):
         if self.scale_cat.is_cheating():
             return False
 
+        (year, month, mday, hour, minute, second, weekday, yearday) = time.localtime()
+
+
         #wait between feeds, to prevent mayhem ;)
         if timer.diff(timer.timestamp,self.last_feed)>5000:
             #bowl is stable and empty and not removed (<-5) and cat scale is also not removed (>-100)?
             if self.stable and self.last_stable_weight<self.empty_weight and self.last_stable_weight>-5 and self.scale_cat.last_stable_weight>-100:
-                # all cats may have food, or current cat may have food?
-                if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0):
+                # all cats may have food, or current cat may have food or its feeding time?
+                if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0) or (self.last_feeding_hour!=hour and hour in config.feed_times):
                     self.last_feed=timer.timestamp
                     #if we have to retry too often, the feed silo is empty
                     self.feed_retries=self.feed_retries+1

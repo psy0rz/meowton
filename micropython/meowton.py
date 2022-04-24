@@ -1,6 +1,7 @@
 import display_serial
+import ntptime
 
-VERSION='1.1'
+VERSION='1.2'
 
 try:
     import config
@@ -15,6 +16,7 @@ import scalecat
 import scalefood
 import scaleio
 import timer
+import time
 import db
 from cats import Cats
 
@@ -33,7 +35,6 @@ class Meowton():
 
         self.wlan=""
         self.last_ip=""
-        self.setup_wifi()
 
         self.event_loop = uasyncio.get_event_loop()
 
@@ -71,6 +72,13 @@ class Meowton():
 
         self.display = multicall.MultiCall(displays)
 
+        self.setup_wifi()
+        self.display.msg("Setting time..")
+        ntptime.settime()
+        print("NTP time:")
+        print (time.localtime())
+
+
         # Init classes
         self.cats = Cats(self.display)
         db_instance = db.Db(self.display)
@@ -100,6 +108,12 @@ class Meowton():
                 self.wlan = network.WLAN(network.STA_IF)  # station mode
                 self.wlan.active(True)
                 self.wlan.connect(config.wifi_essid, config.wifi_password)
+
+                while self.wlan.status()!=network.STAT_GOT_IP:
+                    self.display.msg("Connecting WIFI...")
+                    time.sleep(1)
+
+
             else:
                 print("Running as wifi Access Point")
                 print("NOTE: You cant use the webinterface in this mode.")

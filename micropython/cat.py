@@ -1,5 +1,6 @@
 from state import State
-import timer
+import config
+import time
 
 class Cat(State):
     def __init__(self, name=None):
@@ -7,7 +8,7 @@ class Cat(State):
         self.state.name=name
         self.state.feed_daily=0
         self.state.feed_quota=0
-        self.state.feed_quota_timestamp=timer.timestamp
+        self.state.feed_quota_timestamp=0
         self.state.feed_quota_max=0
         self.state.feed_quota_min=0
         self.state.weight=0
@@ -18,32 +19,32 @@ class Cat(State):
 
     def get_quota(self):
         '''calculate food quota, depending on time that has passed'''
- 
+
+
         if self.state.feed_daily:
-            diff=timer.diff(timer.timestamp,self.state.feed_quota_timestamp)
+            (year, month, mday, hour, minute, second, weekday, yearday) = time.localtime()
+    
+            #hour changed?
+            if self.state.feed_quota_timestamp!=hour:
 
-            #Minimum update time difference. dont make too small to prevent rounding and processing overhead
+                self.state.feed_quota_timestamp=hour
+                
+                #feeding time?
+                if hour in config.feed_times:
 
-            #I tested rouding errors like this:
-            # >>> q=0
-            # >>> for i in range(0,24*3600):  q=q+((900+random.random()*200)*30/(24*3600*1000))
-            # ... 
-            # >>> q
-            # 30.01269
-            if diff>1000:
+                    # update food quota
+                    quota_add=self.state.feed_daily/len(config.feed_times)
 
-                # update food quota
-                quota_add=diff*self.state.feed_daily/(24*3600*1000)
+                    self.state.feed_quota=self.state.feed_quota+quota_add
 
-                self.state.feed_quota=self.state.feed_quota+quota_add
+                    if self.state.feed_quota>self.state.feed_quota_max:
+                        self.state.feed_quota=self.state.feed_quota_max
 
-                if self.state.feed_quota>self.state.feed_quota_max:
-                    self.state.feed_quota=self.state.feed_quota_max
+                    if self.state.feed_quota<self.state.feed_quota_min:
+                        self.state.feed_quota=self.state.feed_quota_min
 
-                if self.state.feed_quota<self.state.feed_quota_min:
-                    self.state.feed_quota=self.state.feed_quota_min
+                    self.save()
 
-                self.state.feed_quota_timestamp=timer.timestamp
 
         return(self.state.feed_quota)
 

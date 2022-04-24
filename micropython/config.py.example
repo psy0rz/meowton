@@ -22,4 +22,21 @@ display_serial=True
 run_webserver=True
 print_weights=False
 
+mqtt = {
+    "server": "192.168.13.10",
+    "topic": id,
+    "user": None,
+    "password": None,
+    "client_id": id,
+    "port": 0,
+}
 
+
+
+#GMT times
+feed_times=[
+    3,
+    9,
+    15,
+    21,
+]
