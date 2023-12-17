@@ -73,10 +73,13 @@ class Meowton():
         self.display = multicall.MultiCall(displays)
 
         self.setup_wifi()
-        self.display.msg("Setting time..")
-        ntptime.settime()
-        print("NTP time:")
-        print (time.localtime())
+        try:
+            ntptime.settime()
+            print("NTP time:")
+            print (time.localtime())
+        except Exception as e:
+            print(e)
+            # self.display.msg("Time error")
 
 
         # Init classes
@@ -109,9 +112,15 @@ class Meowton():
                 self.wlan.active(True)
                 self.wlan.connect(config.wifi_essid, config.wifi_password)
 
-                while self.wlan.status()!=network.STAT_GOT_IP:
-                    self.display.msg("Connecting WIFI...")
+                count=10
+                while self.wlan.status()!=network.STAT_GOT_IP and count>0:
+                    self.display.msg("Connect ({})".format(count))
                     time.sleep(1)
+                    count=count-1
+
+                if count==0:
+                    self.display.msg("Cant connect")
+                    
 
 
             else:

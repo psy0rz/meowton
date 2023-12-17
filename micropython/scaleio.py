@@ -23,11 +23,11 @@ class ScaleIO(State):
         self.state.food_pins=[[]] #1 cell
 
         self.state.servo_pin=None
-        self.state.servo_fade_time=100
-        self.state.servo_sustain_time=200
-        self.state.servo_retract_time=100
+        self.state.servo_fade_time=250
+        self.state.servo_sustain_time=183
+        self.state.servo_retract_time=0
 
-        self.state.servo_middle_duty=80
+        self.state.servo_middle_duty=71
         self.state.servo_speed=-20
 
         self.cells_food=None

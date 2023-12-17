@@ -114,6 +114,12 @@
 
 
     /////////////////// APP SPECIFIC STUFF
+    const feed = ()=>{
+        ons.notification.toast("Running feed cycle", { timeout: 1000 });
+        rpc("scale_io.feed");
+
+    }
+
     const show_calibrate_menu = () => {
         document.querySelector('#menu').close();
         ons.openActionSheet({
@@ -167,6 +173,9 @@
         <ons-splitter-side id="menu" collapse>
             <ons-page>
                 <ons-list>
+                    <ons-list-item>
+                        <ons-button onclick="feed()">Feed now</ons-button>
+                    </ons-list-item>
                     <ons-list-item modifier="chevron tappable" onclick="show_calibrate_menu()">
                         Calibration
                     </ons-list-item>
