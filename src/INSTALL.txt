@@ -1,0 +1,5 @@
+
+Using a Pi Zero 2 W with Ubuntu 22 64bit:
+
+apt install python3-pip
+pip install -r requirements.txt

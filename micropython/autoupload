@@ -1,1 +1,0 @@
-find | entr -rs "rshell -p /dev/ttyUSB0  rsync . /pyboard ; rshell -p /dev/ttyUSB0 'repl ~ import main ~'; cat /dev/ttyUSB0"

@@ -38,7 +38,7 @@ class ScaleFood(scale.Scale):
 
         #retry a max number of times, after that we give an alert.
         self.feed_retries=0
-        self.feed_max_retries=10
+        self.feed_max_retries=100
 
         self.last_feeding_hour=0
 

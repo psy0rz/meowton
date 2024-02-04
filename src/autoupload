@@ -1,0 +1,2 @@
+ls  *py | entr rsync -avx --exclude venv . $1:meowton
+
