@@ -1,2 +1,4 @@
-ls  *py | entr rsync -avx --exclude venv . $1:meowton
+ls lib/* *py | entr -r ./uploadrun $1
+
+
 

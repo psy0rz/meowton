@@ -1,2 +1,3 @@
 nicegui
 RPi.GPIO
+hx711

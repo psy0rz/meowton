@@ -1,5 +1,6 @@
+from time import time
+
 from lib.state import State
-import timer
 
 """
 (weight)    *
@@ -26,7 +27,8 @@ import timer
 class Scale(State):
     '''to calculate weights from raw data and do stuff like auto tarring and averaging
 
-    Subclass this to actually do stuff (otherwise it will just print data)
+    Subclass this to actually do stuff and respond to events
+    (otherwise it will just print data)
 
     keeps state in self.state
     '''
@@ -35,32 +37,31 @@ class Scale(State):
 
     def event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
-        print("Stable averaged weight: {}g".format(weight))
-        self.debug()
+        print(f"Stable averaged weight: {weight:.0f}g")
 
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
-        print("Weight: {}g".format(weight))
+        print(f"Realtime: {weight:.0f}g (last stable {self.last_stable_weight:.0f})")
 
     def event_unstable(self):
         """called once when scale leaves stable measurement"""
         print("Unstable")
 
 
-    def __init__(self, default_factors):
+    def __init__(self, sensor_count, state_file_name=None):
 
-        super().__init__()
+        super().__init__(state_file_name)
 
         ### configure all these parameters in your subclass!
 
         # weight to use during calibration
-        self.calibrate_weight=100
+        self.calibrate_weight=200
 
         # range in grams in which the scale should stay to be considered "stable"
         self.stable_range=50
 
-        # max timegap between two measurements (ms)
-        self.stable_max_timegap=5000
+        # max timegap between two measurements
+        self.stable_max_timegap=5
 
         # for how many measurements should the scale be in the stable_range to be considered stable?
         self.stable_measurements=25
@@ -69,7 +70,7 @@ class Scale(State):
         self.stable_skip_measurements=10
 
         # number of measurements averaging after which to auto tarre
-        self.stable_auto_tarre=100
+        self.stable_auto_tarre=200
 
         #max weight to tarre away (initial values will always be tarred)
         self.stable_auto_tarre_max=1500
@@ -78,12 +79,12 @@ class Scale(State):
         ### internal states, do not configure these.
         # everything in self.state can be saved and reloaded upon restart
 
-        #calibration default factors. number of factors decides the number of sensors
-        # self.__default_factors=default_factors
-        self.sensor_count=len(default_factors)
-        # self.state.calibrate_factors=default_factors.copy()
-        self.recalibrate()
+        self.sensor_count=sensor_count
+
         self.state.calibrating=False
+        # self.cal_states=[]
+        # self.cal_count=0
+        self.state.calibrate_factors=[None]*self.sensor_count
 
 
         self.state.last_timestamp=0
@@ -108,7 +109,14 @@ class Scale(State):
         #calibration measurements (you can add more on the fly)
         # self.state.calibrations=[]
 
+        self.load()
 
+        if not self.is_calibrated():
+            self.msg("Scale need to be calibrated.")
+
+
+    def is_calibrated(self):
+        return self.state.calibrate_factors[0] is not None
 
     def stable_reset(self, weight=None):
         """resets stable state of the scale. (usefull after changing parameters of loading state)"""
@@ -253,6 +261,7 @@ class Scale(State):
                     self.cal_states=None
                     self.tarre()
                     self.msg("Calbration done")
+                    print(self.state.calibrate_factors)
                     self.save()
                 
 
@@ -338,9 +347,9 @@ class Scale(State):
         # store stability statistics
 
         # reset stable measurement if there is a too big timegap
-        if timer.diff(timer.timestamp,self.state.last_timestamp)>self.stable_max_timegap:
+        if time()-self.state.last_timestamp>self.stable_max_timegap:
             self.stable_reset(weight)
-        self.state.last_timestamp=timer.timestamp
+        self.state.last_timestamp=time()
 
         # keep min/max values
         if self.state.stable_min==None or weight<self.state.stable_min:

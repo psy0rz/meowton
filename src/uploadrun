@@ -1,0 +1,4 @@
+rsync -avx --exclude venv . $1:meowton
+ssh $1 'cd meowton;python3 -u test.py'
+
+
