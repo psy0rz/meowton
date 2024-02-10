@@ -41,7 +41,7 @@ class Scale(State):
 
     def event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
-        print(f"Realtime: {weight:.0f}g (last stable {self.last_stable_weight:.0f})")
+        print(f"Realtime: {weight:.2f}g (last stable {self.last_stable_weight:.2f})")
 
     def event_unstable(self):
         """called once when scale leaves stable measurement"""
