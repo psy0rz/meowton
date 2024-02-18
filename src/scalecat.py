@@ -65,7 +65,7 @@ class ScaleCat(scale.Scale):
         return(self.cat_morph_timestamp!=None)
 
 
-    def event_stable(self, weight):
+    def __event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters"""
 
         #determine which cat it is
@@ -113,12 +113,12 @@ class ScaleCat(scale.Scale):
         # self.print_debug()
 
 
-    def event_realtime(self, weight):
+    def __event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
         self.display.scale_weight_realtime(weight)
 
 
-    def event_unstable(self):
+    def __event_unstable(self):
         """called once when scale leaves stable measurement"""
 
 

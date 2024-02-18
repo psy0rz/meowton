@@ -1,4 +1,5 @@
 from time import time
+from typing import Generic, TypeVar, Callable, TypeAlias
 
 from lib.state import State
 
@@ -23,6 +24,10 @@ from lib.state import State
 
 """
 
+StableCallable: TypeAlias = Callable[[float], None]
+RealtimeCallable: TypeAlias = Callable[[float], None]
+UnstableCallable: TypeAlias = Callable[[], None]
+
 
 class Scale(State):
     '''to calculate weights from raw data and do stuff like auto tarring and averaging
@@ -35,22 +40,45 @@ class Scale(State):
 
     #subclass thesse event classes:
 
-    def event_stable(self, weight):
+
+    def __event_stable(self, weight:float):
         """called once after scale has been stable according to specified stable_ parameters"""
         print(f"Stable averaged weight: {weight:.0f}g")
+        for cb in self.__stable_subscriptions:
+            cb(weight)
 
-    def event_realtime(self, weight):
+    def __event_realtime(self, weight:float):
         """called on every measurement with actual value (non averaged)"""
         print(f"Realtime: {weight:.2f}g (last stable {self.last_stable_weight:.2f})")
+        for cb in self.__realtime_subscriptions:
+            cb(weight)
 
-    def event_unstable(self):
+    def __event_unstable(self):
         """called once when scale leaves stable measurement"""
+        for cb in self.__unstable_subscriptions:
+            cb()
         print("Unstable")
+
+    def subscribe_stable(self, cb:StableCallable):
+        self.__stable_subscriptions.append(cb)
+        pass
+
+    def subscribe_realtime(self, cb:RealtimeCallable):
+        self.__realtime_subscriptions.append(cb)
+        pass
+
+    def subscribe_unstable(self, cb:UnstableCallable):
+        self.__unstable_subscriptions.append(cb)
+        pass
 
 
     def __init__(self, sensor_count, state_file_name=None):
 
         super().__init__(state_file_name)
+
+        self.__stable_subscriptions:[StableCallable]=[]
+        self.__unstable_subscriptions:[UnstableCallable]=[]
+        self.__realtime_subscriptions:[RealtimeCallable]=[]
 
         ### configure all these parameters in your subclass!
 
@@ -115,6 +143,7 @@ class Scale(State):
             self.msg("Scale need to be calibrated.")
 
 
+
     def is_calibrated(self):
         return self.state.calibrate_factors[0] is not None
 
@@ -129,7 +158,7 @@ class Scale(State):
         self.debug=[]
 
         if self.stable:
-            self.event_unstable()
+            self.__event_unstable()
 
         self.stable=False
 
@@ -341,7 +370,7 @@ class Scale(State):
         weight=self.calibrated_weight(self.offset(sensors))
 
         self.last_realtime_weight=weight
-        self.event_realtime(weight)
+        self.__event_realtime(weight)
 
 
         # store stability statistics
@@ -397,7 +426,7 @@ class Scale(State):
             average_weight=self.calibrated_weight(self.offset(self.get_average()))
             self.debug.append(average_weight)
             self.last_stable_weight=average_weight
-            self.event_stable(average_weight)
+            self.__event_stable(average_weight)
             self.stable=True
 
 

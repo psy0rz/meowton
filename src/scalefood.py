@@ -58,7 +58,7 @@ class ScaleFood(scale.Scale):
         self.stable_reset()
         self.just_fed=True
 
-    def event_stable(self, weight):
+    def __event_stable(self, weight):
         """called once after scale has been stable according to specified stable_ parameters """
 
 
@@ -121,13 +121,13 @@ class ScaleFood(scale.Scale):
 
         # self.print_debug()
 
-    def event_realtime(self, weight):
+    def __event_realtime(self, weight):
         """called on every measurement with actual value (non averaged)"""
         # print("food = {:.2f}g".format(weight))
         pass
 
 
-    def event_unstable(self):
+    def __event_unstable(self):
         """called once when scale leaves stable measurement"""
 
         self.display.food_weight_unstable()

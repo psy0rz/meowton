@@ -45,12 +45,12 @@ def reader():
     previous_food=0
     previous_cat=0
     while True:
-        raw_food=hx711_food._read()
-        if raw_food is not False:
-
-            if abs(raw_food-previous_food)<10000:
-                scale_food.measurement( [raw_food])
-            previous_food=raw_food
+        # raw_food=hx711_food._read()
+        # if raw_food is not False:
+        #
+        #     if abs(raw_food-previous_food)<10000:
+        #         scale_food.measurement( [raw_food])
+        #     previous_food=raw_food
 
         raw_cat=hx711_cat._read()
         if raw_cat is not False:
