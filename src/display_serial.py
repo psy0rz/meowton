@@ -35,7 +35,7 @@ class Display(display_base.Display):
         """called to update info about currently detected cat. called with None if cat has left"""
         if cat!=self.cat:
             if cat:
-                self.print("{}: {:4.0f}g (ate {:4.2}g)".format(cat.state.name, cat.state.weight, cat.ate_session))
+                self.print("{}: {:4.0f}g (ate {:4.2}g)".format(cat.calibration.name, cat.calibration.weight, cat.ate_session))
             else:
                 self.print("cat left")
 

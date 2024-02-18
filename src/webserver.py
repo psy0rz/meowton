@@ -47,9 +47,9 @@ class Webserver(picoweb.WebApp):
         try:
             last_v=-1
             while True:
-                if self.display_web.state['v']!=last_v:
-                    yield from resp.awrite("data: %s\n\n" % ujson.dumps(self.display_web.state))
-                    last_v=self.display_web.state['v']
+                if self.display_web.calibration['v']!=last_v:
+                    yield from resp.awrite("data: %s\n\n" % ujson.dumps(self.display_web.calibration))
+                    last_v=self.display_web.calibration['v']
                 yield from uasyncio.sleep(0.5)
         except OSError:
             # print("Event source connection closed")

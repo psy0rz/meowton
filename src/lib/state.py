@@ -19,12 +19,6 @@ class State():
         self.state=StateItems()
 
 
-    # def __getstate__(self):
-    #     return(self.state)
-    #
-    # def __setstate__(self, state):
-    #     self.state=state
-
     def __repr__(self):
         return(self._state_file_name+": "+repr(self.state.__dict__))
 

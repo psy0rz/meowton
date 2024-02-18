@@ -81,8 +81,8 @@ class Display(display_base.Display):
 
         if cat:
             self.state['cat']={
-                'name': cat.state.name,
-                'weight': round(cat.state.weight),
+                'name': cat.calibration.name,
+                'weight': round(cat.calibration.weight),
                 'quota': round(cat.get_quota()),
                 'wait_time': -round(cat.time()),
                 'ate': round(cat.ate_session)

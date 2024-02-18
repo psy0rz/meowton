@@ -141,7 +141,7 @@ class ScaleFood(scale.Scale):
         '''should we put food in the bowl?'''
 
 
-        if self.state.calibrating:
+        if self.calibration.calibrating:
             return False
 
         #cheating

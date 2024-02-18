@@ -1,7 +1,5 @@
 from time import time
-from typing import Generic, TypeVar, Callable, TypeAlias
-
-from lib.state import State
+from typing import Callable, TypeAlias
 
 """
 (weight)    *
@@ -29,25 +27,170 @@ RealtimeCallable: TypeAlias = Callable[[float], None]
 UnstableCallable: TypeAlias = Callable[[], None]
 
 
-class Scale(State):
-    '''to calculate weights from raw data and do stuff like auto tarring and averaging
+class ScaleCalibration:
+    """Calibration and tarre offsets of the scale. Should be stored persistant"""
 
-    Subclass this to actually do stuff and respond to events
-    (otherwise it will just print data)
+    offsets: list[int]
+    tarred: bool  # true when offsets are valid (scale is tarred)
 
-    keeps state in self.state
-    '''
+    factors: list[float]
+    calibrated: bool  # true when factors are valid
 
-    #subclass thesse event classes:
+    def is_valid(self):
+        return self.calibrated and self.tarred
+
+    def __init__(self, sensor_count: int):
+        self.factors = [0] * sensor_count
+
+        self.tarred = False
+        self.offsets = [0] * sensor_count
+
+        for i in range(0, sensor_count):
+            self.offsets.append(0)
+
+        self.calibrated = False
 
 
-    def __event_stable(self, weight:float):
+class SensorState:
+    """used during calibration"""
+
+    MOVING_AVG_FACTOR=0.1
+
+    def __init__(self, value):
+        self.min = value
+        self.max = value
+        self.start_avg = 0
+        self.noise = 0
+        self.moving_avg = value
+
+
+    def measure(self, value):
+
+        self.moving_avg = self.moving_avg * ( 1-self.MOVING_AVG_FACTOR) * (value*self.MOVING_AVG_FACTOR)
+
+        if value < self.min:
+            self.min=value
+
+        if value > self.max:
+            self.max=value
+
+
+        ### Step 1: determining noise range and start average:
+        if self.cal_states[0]['start_avg'] == None:
+            # wait until we have enough measurements:
+            cal_count_needed = 50
+            self.msg("Measuring noise ({}%)".format(int(self.cal_count * 100 / cal_count_needed)))
+            if self.cal_count == cal_count_needed:
+                # done, store start_average and noise, continue to next step
+                for cal_state in self.cal_states:
+                    cal_state['start_avg'] = cal_state['avg']
+                    cal_state['noise'] = abs(cal_state['max'] - cal_state['min']) * 2  # add huge margin
+                self.cal_count = 0
+
+        else:
+            ### Step 2: detect calibration weights:
+            cal_count_needed = 30
+
+            # restart averaging when there is a big change on a sensor
+            for i in range(0, self.sensor_count):
+                if abs(self.cal_states[i]['avg'] - sensors[i]) > self.cal_states[i]['noise']:
+                    self.cal_count = 0
+                    self.cal_states[i]['avg'] = sensors[i]  # start averaging from here on
+                    # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
+
+            # i=0
+            # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
+
+            # there is something on a sensor?
+            for i in range(0, self.sensor_count):
+                if abs(self.cal_states[i]['start_avg'] - sensors[i]) > self.cal_states[i]['noise']:
+                    # calibrating..
+                    if self.cal_count < cal_count_needed:
+                        self.msg(
+                            "Calibrating sensor {} ({}%)".format(i, int(self.cal_count * 100 / cal_count_needed)))
+                    # done...
+                    if self.cal_count == cal_count_needed:
+                        # this sensor is done now:
+                        diff = self.cal_states[i]['avg'] - self.cal_states[i]['start_avg']
+                        self.calibration.factors[i] = self.calibrate_weight / diff
+                    # please remove..
+                    if self.cal_count > cal_count_needed:
+                        self.msg("Remove weight from sensor {}".format(i))
+
+                    return True
+
+            # there is nothing on a sensor?
+            self.msg("Place {}g on next sensor.".format(self.calibrate_weight))
+
+            if not None in self.calibration.factors:
+                self.calibration.calibrating = False
+                self.cal_states = None
+                self.tarre()
+                self.msg("Calbration done")
+                print(self.calibration.factors)
+
+
+class Scale:
+    """to calculate weights from raw data and do stuff like auto tarring and averaging"""
+
+    calibration: ScaleCalibration
+
+    # subclass thesse event classes:
+    def __init__(self, sensor_count):
+
+        self.calibration = ScaleCalibration(sensor_count)
+        self.__stable_subscriptions: [StableCallable] = []
+        self.__unstable_subscriptions: [UnstableCallable] = []
+        self.__realtime_subscriptions: [RealtimeCallable] = []
+
+        ### configure all these parameters in your subclass!
+
+        # weight to use during calibration
+        self.calibrate_weight = 200
+
+        # range in grams in which the scale should stay to be considered "stable"
+        self.stable_range = 50
+
+        # max timegap between two measurements
+        self.stable_max_timegap = 5
+
+        # for how many measurements should the scale be in the stable_range to be considered stable?
+        self.stable_measurements = 25
+
+        # number of measurements to skip when a new stable period is just entered. this is because the scale is still drifting
+        self.stable_skip_measurements = 10
+
+        # number of measurements averaging after which to auto tarre
+        self.stable_auto_tarre = 200
+
+        # max weight to tarre away (initial values will always be tarred)
+        self.stable_auto_tarre_max = 1500
+
+        ### internal states, do not configure these.
+        # everything in self.state can be saved and reloaded upon restart
+
+        self.sensor_count = sensor_count
+
+        # self.cal_states=[]
+        # self.cal_count=0
+
+        # may also be used as API to get lastet weights/status:
+        self.last_stable_weight = 0
+        self.last_realtime_weight = 0
+        self.stable = False
+
+        self.stable_reset(0)
+
+        if not self.is_calibrated():
+            self.msg("Scale need to be calibrated.")
+
+    def __event_stable(self, weight: float):
         """called once after scale has been stable according to specified stable_ parameters"""
         print(f"Stable averaged weight: {weight:.0f}g")
         for cb in self.__stable_subscriptions:
             cb(weight)
 
-    def __event_realtime(self, weight:float):
+    def __event_realtime(self, weight: float):
         """called on every measurement with actual value (non averaged)"""
         print(f"Realtime: {weight:.2f}g (last stable {self.last_stable_weight:.2f})")
         for cb in self.__realtime_subscriptions:
@@ -59,113 +202,38 @@ class Scale(State):
             cb()
         print("Unstable")
 
-    def subscribe_stable(self, cb:StableCallable):
+    def subscribe_stable(self, cb: StableCallable):
         self.__stable_subscriptions.append(cb)
         pass
 
-    def subscribe_realtime(self, cb:RealtimeCallable):
+    def subscribe_realtime(self, cb: RealtimeCallable):
         self.__realtime_subscriptions.append(cb)
         pass
 
-    def subscribe_unstable(self, cb:UnstableCallable):
+    def subscribe_unstable(self, cb: UnstableCallable):
         self.__unstable_subscriptions.append(cb)
         pass
 
-
-    def __init__(self, sensor_count, state_file_name=None):
-
-        super().__init__(state_file_name)
-
-        self.__stable_subscriptions:[StableCallable]=[]
-        self.__unstable_subscriptions:[UnstableCallable]=[]
-        self.__realtime_subscriptions:[RealtimeCallable]=[]
-
-        ### configure all these parameters in your subclass!
-
-        # weight to use during calibration
-        self.calibrate_weight=200
-
-        # range in grams in which the scale should stay to be considered "stable"
-        self.stable_range=50
-
-        # max timegap between two measurements
-        self.stable_max_timegap=5
-
-        # for how many measurements should the scale be in the stable_range to be considered stable?
-        self.stable_measurements=25
-
-        #number of measurements to skip when a new stable period is just entered. this is because the scale is still drifting
-        self.stable_skip_measurements=10
-
-        # number of measurements averaging after which to auto tarre
-        self.stable_auto_tarre=200
-
-        #max weight to tarre away (initial values will always be tarred)
-        self.stable_auto_tarre_max=1500
-
-
-        ### internal states, do not configure these.
-        # everything in self.state can be saved and reloaded upon restart
-
-        self.sensor_count=sensor_count
-
-        self.state.calibrating=False
-        # self.cal_states=[]
-        # self.cal_count=0
-        self.state.calibrate_factors=[None]*self.sensor_count
-
-
-        self.state.last_timestamp=0
-
-
-        #may also be used as API to get lastet weights/status:
-        self.last_stable_weight=0
-        self.last_realtime_weight=0
-        self.stable=False
-
-        self.stable_reset(0)
-
-        #tarre offsets
-        self.state.no_tarre=True
-        self.state.offsets=[]
-        for i in range(0, self.sensor_count):
-            self.state.offsets.append(0)
-
-        #last sensor readings
-        self.state.current=[]
-
-        #calibration measurements (you can add more on the fly)
-        # self.state.calibrations=[]
-
-        self.load()
-
-        if not self.is_calibrated():
-            self.msg("Scale need to be calibrated.")
-
-
-
     def is_calibrated(self):
-        return self.state.calibrate_factors[0] is not None
+        return self.calibration.calibrated
 
     def stable_reset(self, weight=None):
         """resets stable state of the scale. (usefull after changing parameters of loading state)"""
         # print("RESET")
-        self.state.stable_min=weight
-        self.state.stable_max=weight
-        self.state.stable_count=0
-        self.state.stable_totals=[]
-        self.state.stable_totals_count=0
-        self.debug=[]
+        self.stable_min = weight
+        self.stable_max = weight
+        self.stable_count = 0
+        self.stable_totals = []
+        self.stable_totals_count = 0
+        # self.debug = []
 
         if self.stable:
             self.__event_unstable()
 
-        self.stable=False
-
+        self.stable = False
 
         for i in range(0, self.sensor_count):
-            self.state.stable_totals.append(0)
-
+            self.stable_totals.append(0)
 
     # Disabled for now, it works but its more inaccurate compared to normale calibration
     # def add_calibration(self,weight):
@@ -193,113 +261,36 @@ class Scale(State):
     #         # print("Recalibrated {}".format(self.state.calibrate_factors))
 
     def recalibrate(self):
-        '''reset calibration to factory default and start recalibration procedure'''
+        """start calibration procedure"""
 
         # Rcalibration should allow for widely different and mixed sensors in one system
         # It will first measure noise levels and then try to calibrate
 
-        self.state.calibrating=True
-        self.cal_states=[]
-        self.cal_count=0
-        self.state.calibrate_factors=[None]*self.sensor_count
+        self.calibrating = True
+        self.cal_states = []
+        self.cal_count = 0
 
     def __calibrate(self, sensors):
         '''do calibration magic'''
 
-        if not self.state.calibrating:
+        if not self.calibrating:
             return False
 
-        self.cal_count=self.cal_count+1
+        self.cal_count = self.cal_count + 1
         # self.msg(str(self.cal_count));
-
 
         # just started, init with current sensor values
         if not self.cal_states:
             for sensor in sensors:
-                self.cal_states.append({
-                    'min': sensor,
-                    'max': sensor,
-                    'start_avg': None,
-                    'noise': None,
-                    'avg': sensor,
-                })
+                self.cal_states.append(SensorState(sensor))
         else:
+
             # keep track of averages and min/max range, per sensor
-            for i in range(0,self.sensor_count):
-
-                self.cal_states[i]['avg']=self.cal_states[i]['avg']*0.9+sensors[i]*0.1
-
-                if sensors[i]<self.cal_states[i]['min']:
-                    self.cal_states[i]['min']=sensors[i]
-
-                if sensors[i]>self.cal_states[i]['max']:
-                    self.cal_states[i]['max']=sensors[i]
-
-            # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
-
-
-            ### Step 1: determining noise range and start average:
-            if self.cal_states[0]['start_avg']==None:
-                # wait until we have enough measurements:
-                cal_count_needed=50
-                self.msg("Measuring noise ({}%)".format(int(self.cal_count*100/cal_count_needed)))
-                if self.cal_count==cal_count_needed:
-                    #done, store start_average and noise, continue to next step
-                    for cal_state in self.cal_states:
-                        cal_state['start_avg']=cal_state['avg']
-                        cal_state['noise']=abs(cal_state['max']-cal_state['min'])*2 #add huge margin
-                    self.cal_count=0
-
-            else:
-                ### Step 2: detect calibration weights:
-                cal_count_needed=30
-
-                #restart averaging when there is a big change on a sensor
-                for i in range(0,self.sensor_count):
-                    if abs(self.cal_states[i]['avg']-sensors[i])>self.cal_states[i]['noise']:
-                        self.cal_count=0
-                        self.cal_states[i]['avg']=sensors[i] #start averaging from here on
-                        # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
-
-
-                # i=0
-                # self.msg("sensor {}, noise {}, avg {}, current {}".format(i, self.cal_states[i]['noise'], self.cal_states[i]['avg'], sensors[i]))
-
-                #there is something on a sensor?
-                for i in range(0,self.sensor_count):
-                    if abs(self.cal_states[i]['start_avg']-sensors[i])>self.cal_states[i]['noise']:
-                        #calibrating..
-                        if self.cal_count<cal_count_needed:
-                            self.msg("Calibrating sensor {} ({}%)".format(i, int(self.cal_count*100/cal_count_needed)))
-                        #done...
-                        if self.cal_count==cal_count_needed:
-                            #this sensor is done now:
-                            diff=self.cal_states[i]['avg']-self.cal_states[i]['start_avg']
-                            self.state.calibrate_factors[i]=self.calibrate_weight/diff
-                        #please remove..
-                        if self.cal_count>cal_count_needed:
-                            self.msg("Remove weight from sensor {}".format(i))
-
-                        return True
-
-                #there is nothing on a sensor?
-                self.msg("Place {}g on next sensor.".format(self.calibrate_weight))
-
-                if not None in self.state.calibrate_factors:
-                    self.state.calibrating=False
-                    self.cal_states=None
-                    self.tarre()
-                    self.msg("Calbration done")
-                    print(self.state.calibrate_factors)
-                    self.save()
-                
+                for i in range(0, self.sensor_count):
+                    self.sensor_states[i].measure(sensors[i])
 
 
         return True
-
-
-
-
 
         # averages=self.offset(self.get_average())
         # weights=self.calibrated_weights(averages)
@@ -330,32 +321,22 @@ class Scale(State):
         #
         #     self.msg("place {}g ".format(self.calibrate_weight))
 
-
-
-
     def tarre(self):
         '''re-tarre scale as soon as possible (takes 10 measurements)'''
         self.msg("Tarring...")
         self.stable_reset(0)
-        self.state.no_tarre=True
+        self.calibration.tarred = False
 
-    def get_average(self):
+    def get_raw_average(self):
         '''gets raw average values since of this stable period'''
-        ret=[]
-        for total in self.state.stable_totals:
-            ret.append(int(total/self.state.stable_totals_count))
-        return(ret)
-
-    def get_current(self):
-        return(self.state.current)
+        ret = []
+        for total in self.stable_totals:
+            ret.append(int(total / self.stable_totals_count))
+        return (ret)
 
     def get_average_count(self):
         '''number of samples the current average is caculated over'''
-        return(self.state.stable_totals_count)
-
-
-
-
+        return (self.stable_totals_count)
 
     def measurement(self, sensors):
         """update measurent data and generate stable events when detected. """
@@ -363,117 +344,107 @@ class Scale(State):
         if self.__calibrate(sensors):
             return
 
+        # calculate weight,
+        weight = self.calibrated_weight(self.offset(sensors))
 
-        self.state.current=sensors
-
-        #calculate weight,
-        weight=self.calibrated_weight(self.offset(sensors))
-
-        self.last_realtime_weight=weight
+        self.last_realtime_weight = weight
         self.__event_realtime(weight)
-
 
         # store stability statistics
 
         # reset stable measurement if there is a too big timegap
-        if time()-self.state.last_timestamp>self.stable_max_timegap:
+        if time() - self.calibration.last_timestamp > self.stable_max_timegap:
             self.stable_reset(weight)
-        self.state.last_timestamp=time()
+        self.calibration.last_timestamp = time()
 
         # keep min/max values
-        if self.state.stable_min==None or weight<self.state.stable_min:
-            self.state.stable_min=weight
+        if self.calibration.stable_min == None or weight < self.calibration.stable_min:
+            self.calibration.stable_min = weight
 
-        if self.state.stable_max==None or weight>self.state.stable_max:
-            self.state.stable_max=weight
+        if self.calibration.stable_max == None or weight > self.calibration.stable_max:
+            self.calibration.stable_max = weight
 
         # reset if weight goes out of stable_range
-        if (self.state.stable_max - self.state.stable_min) <= self.stable_range:
-            self.state.stable_count=self.state.stable_count+1
+        if (self.calibration.stable_max - self.calibration.stable_min) <= self.stable_range:
+            self.calibration.stable_count = self.calibration.stable_count + 1
         else:
             # print("RESET: range")
             self.stable_reset(weight)
 
-        #debug: store the measurements that happend between unstable and stable
-        if self.state.stable_totals_count <= self.stable_measurements:
-            self.debug.append(weight)
+        # debug: store the measurements that happend between unstable and stable
+        # if self.state.stable_totals_count <= self.stable_measurements:
+        #     self.debug.append(weight)
 
         # do averaging, but skip the first measurements because of scale drifting and recovery
         # note that we average the raw data for better accuracy
-        if self.state.stable_count>=self.stable_skip_measurements:
-            sensor_nr=0
+        if self.stable_count >= self.stable_skip_measurements:
+            sensor_nr = 0
             for sensor in sensors:
-                self.state.stable_totals[sensor_nr]=self.state.stable_totals[sensor_nr]+sensor
-                sensor_nr=sensor_nr+1
+                self.stable_totals[sensor_nr] = self.stable_totals[sensor_nr] + sensor
+                sensor_nr = sensor_nr + 1
 
-            self.state.stable_totals_count=self.state.stable_totals_count+1
+            self.stable_totals_count = self.stable_totals_count + 1
 
         # do auto tarring:
         # only under a certain weight and for a long stability period, or if its the first time do it quickly to get started
         if (
-            # (abs(weight)<=self.stable_auto_tarre_max and (self.state.stable_totals_count == self.stable_auto_tarre)) or
-            (weight<=self.stable_auto_tarre_max and (self.state.stable_totals_count == self.stable_auto_tarre)) or
-            (self.state.no_tarre and self.state.stable_totals_count == 10)
+                # (abs(weight)<=self.stable_auto_tarre_max and (self.state.stable_totals_count == self.stable_auto_tarre)) or
+                (weight <= self.stable_auto_tarre_max and (self.stable_totals_count == self.stable_auto_tarre)) or
+                (not self.calibration.tarred and self.stable_totals_count == 10)
         ):
             # print("TARRE")
             self.msg("Tarred.")
-            self.state.offsets=self.get_average()
-            self.state.no_tarre=False
+            self.calibration.offsets = self.get_raw_average()
+            self.calibration.tarred = True
             self.stable_reset()
 
         # generate measuring event
-        if self.state.stable_totals_count == self.stable_measurements and not self.state.no_tarre:
-            average_weight=self.calibrated_weight(self.offset(self.get_average()))
-            self.debug.append(average_weight)
-            self.last_stable_weight=average_weight
+        if self.stable_totals_count == self.stable_measurements and self.calibration.tarred:
+            average_weight = self.calibrated_weight(self.offset(self.get_raw_average()))
+            # self.debug.append(average_weight)
+            self.last_stable_weight = average_weight
             self.__event_stable(average_weight)
-            self.stable=True
-
-
-
+            self.stable = True
 
     def offset(self, sensors):
         '''return offsetted values of specified raw sensor values'''
-        ret=[]
-        sensor_nr=0
+        ret = []
+        sensor_nr = 0
         for sensor in sensors:
-            ret.append(sensor - self.state.offsets[sensor_nr])
-            sensor_nr=sensor_nr+1
-        return(ret)
-
+            ret.append(sensor - self.calibration.offsets[sensor_nr])
+            sensor_nr = sensor_nr + 1
+        return (ret)
 
     def calibrated_weights(self, sensors):
         '''return calibrated weight values of specified raw sensor values (dont forget to offset first)'''
 
-        if None in self.state.calibrate_factors:
-            return([0]*len(self.state.calibrate_factors))
+        if None in self.calibration.factors:
+            return ([0] * len(self.calibration.factors))
 
-        weights=[]
-        sensor_nr=0
+        weights = []
+        sensor_nr = 0
         for sensor in sensors:
-            weights.append(sensor*self.state.calibrate_factors[sensor_nr])
-            sensor_nr=sensor_nr+1
+            weights.append(sensor * self.calibration.factors[sensor_nr])
+            sensor_nr = sensor_nr + 1
 
-        return(weights)
-
+        return (weights)
 
     def calibrated_weight(self, sensors):
         '''return total calibrated weight value of specified raw sensor values (dont forget to offset first)'''
-        weights=self.calibrated_weights(sensors)
-        total=0
+        weights = self.calibrated_weights(sensors)
+        total = 0
         for weight in weights:
-            total=total+weight
+            total = total + weight
 
-        return(total)
+        return (total)
 
-    def print_debug(self):
-        weight=self.debug.pop()
-        s="Measured {:0.2f}g: ".format(weight)
-        for m in self.debug:
-            s=s+"{:0.2f}g ".format(m-weight)
-        print(s)
-
+    # def print_debug(self):
+    #     weight = self.debug.pop()
+    #     s = "Measured {:0.2f}g: ".format(weight)
+    #     for m in self.debug:
+    #         s = s + "{:0.2f}g ".format(m - weight)
+    #     print(s)
 
     def msg(self, msg):
         '''display message for user (overwrite in subclass)'''
-        print("Scale: "+msg)
+        print("Scale: " + msg)

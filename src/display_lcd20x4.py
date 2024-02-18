@@ -87,7 +87,7 @@ class Display(display_base.Display):
         #show cat stats
         if self.last_cat:
             self.lcd.move_to(0,1)
-            s="Cat: {} {:0.0f}g".format(self.last_cat.state.name, self.last_cat.state.weight)
+            s="Cat: {} {:0.0f}g".format(self.last_cat.calibration.name, self.last_cat.calibration.weight)
             s="{:<20}".format(s)
             self.lcd.putstr(s)
 

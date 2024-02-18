@@ -50,8 +50,8 @@ class Display(display_base.Display):
         if cat:
             self.state['cat']={
                 'status': 'Eating',
-                'name': cat.state.name,
-                'weight': cat.state.weight,
+                'name': cat.calibration.name,
+                'weight': cat.calibration.weight,
                 'ate_session': cat.ate_session,
                 'quota': cat.get_quota(),
                 'time': cat.time()
