@@ -30,25 +30,83 @@ UnstableCallable: TypeAlias = Callable[[], None]
 class ScaleCalibration:
     """Calibration and tarre offsets of the scale. Should be stored persistant"""
 
-    offsets: list[int]
-    tarred: bool  # true when offsets are valid (scale is tarred)
+    __offsets: list[int]
+    __tarred: bool  # true when offsets are valid (scale is tarred)
 
-    factors: list[float]
-    calibrated: bool  # true when factors are valid
+    __factors: list[float]
+    __calibrated: bool  # true when factors are valid
 
-    def is_valid(self):
-        return self.calibrated and self.tarred
 
     def __init__(self, sensor_count: int):
-        self.factors = [0] * sensor_count
+        self.__factors = [0] * sensor_count
+        self.__calibrated = False
 
-        self.tarred = False
-        self.offsets = [0] * sensor_count
+        self.__tarred = False
+        self.__offsets = [0] * sensor_count
 
-        for i in range(0, sensor_count):
-            self.offsets.append(0)
 
-        self.calibrated = False
+    def is_valid(self):
+        return self.__calibrated and self.__tarred
+
+    def untarre(self):
+        self.__tarred=False
+
+    def tarre(self, raw_sensors):
+        '''store sensor values as tarre value'''
+        self.__offsets=raw_sensors
+        self.__tarred = True
+
+    def uncalibrate(self):
+        self.__calibrated=False
+
+    def calibrate(self, raw_sensors, weight):
+        '''calibrate scale with raw sensor values, assuming weight was placed on them.'''
+        offsetted=self.__tarred_sensors(raw_sensors)
+
+        sensor_nr = 0
+        self.__factors=[]
+        for sensor in offsetted:
+            weights.append(sensor * self.__factors[sensor_nr])
+            sensor_nr = sensor_nr + 1
+
+        self.__calibrated=True
+
+
+    def __tarred_sensors(self, raw_sensors):
+        '''return offsetted values of specified raw sensor values (applies tarre)'''
+        ret = []
+        sensor_nr = 0
+        for sensor in raw_sensors:
+            ret.append(sensor - self.__offsets[sensor_nr])
+            sensor_nr = sensor_nr + 1
+        return (ret)
+
+    def __calibrated_sensors(self, offsetted_sensors):
+        '''return calibrated weight values of specified raw sensor values (dont forget to offset first)'''
+
+        if not self.__calibrated:
+            return ([0] * len(self.__factors))
+
+        weights = []
+        sensor_nr = 0
+        for sensor in offsetted_sensors:
+            weights.append(sensor * self.__factors[sensor_nr])
+            sensor_nr = sensor_nr + 1
+
+        return (weights)
+
+    def weight(self, raw_sensors):
+        '''return total calibrated weight value of specified raw sensor values '''
+        offsetted=self.__tarred_sensors(raw_sensors)
+        calibrated=self.__calibrated_sensors(offsetted)
+
+        total = 0
+        for weight in calibrated:
+            total = total + weight
+
+        return (total)
+
+
 
 
 class SensorState:
@@ -112,7 +170,7 @@ class SensorState:
                     if self.cal_count == cal_count_needed:
                         # this sensor is done now:
                         diff = self.cal_states[i]['avg'] - self.cal_states[i]['start_avg']
-                        self.calibration.factors[i] = self.calibrate_weight / diff
+                        self.calibration.__factors[i] = self.calibrate_weight / diff
                     # please remove..
                     if self.cal_count > cal_count_needed:
                         self.msg("Remove weight from sensor {}".format(i))
@@ -122,12 +180,12 @@ class SensorState:
             # there is nothing on a sensor?
             self.msg("Place {}g on next sensor.".format(self.calibrate_weight))
 
-            if not None in self.calibration.factors:
+            if not None in self.calibration.__factors:
                 self.calibration.calibrating = False
                 self.cal_states = None
                 self.tarre()
                 self.msg("Calbration done")
-                print(self.calibration.factors)
+                print(self.calibration.__factors)
 
 
 class Scale:
@@ -215,7 +273,7 @@ class Scale:
         pass
 
     def is_calibrated(self):
-        return self.calibration.calibrated
+        return self.calibration.__calibrated
 
     def stable_reset(self, weight=None):
         """resets stable state of the scale. (usefull after changing parameters of loading state)"""
@@ -325,7 +383,7 @@ class Scale:
         '''re-tarre scale as soon as possible (takes 10 measurements)'''
         self.msg("Tarring...")
         self.stable_reset(0)
-        self.calibration.tarred = False
+        self.calibration.untarre()
 
     def get_raw_average(self):
         '''gets raw average values since of this stable period'''
@@ -390,53 +448,23 @@ class Scale:
         if (
                 # (abs(weight)<=self.stable_auto_tarre_max and (self.state.stable_totals_count == self.stable_auto_tarre)) or
                 (weight <= self.stable_auto_tarre_max and (self.stable_totals_count == self.stable_auto_tarre)) or
-                (not self.calibration.tarred and self.stable_totals_count == 10)
+                (not self.calibration.__tarred and self.stable_totals_count == 10)
         ):
             # print("TARRE")
             self.msg("Tarred.")
-            self.calibration.offsets = self.get_raw_average()
-            self.calibration.tarred = True
+            self.calibration.__offsets = self.get_raw_average()
+            self.calibration.__tarred = True
             self.stable_reset()
 
         # generate measuring event
-        if self.stable_totals_count == self.stable_measurements and self.calibration.tarred:
+        if self.stable_totals_count == self.stable_measurements and self.calibration.__tarred:
             average_weight = self.calibrated_weight(self.offset(self.get_raw_average()))
             # self.debug.append(average_weight)
             self.last_stable_weight = average_weight
             self.__event_stable(average_weight)
             self.stable = True
 
-    def offset(self, sensors):
-        '''return offsetted values of specified raw sensor values'''
-        ret = []
-        sensor_nr = 0
-        for sensor in sensors:
-            ret.append(sensor - self.calibration.offsets[sensor_nr])
-            sensor_nr = sensor_nr + 1
-        return (ret)
 
-    def calibrated_weights(self, sensors):
-        '''return calibrated weight values of specified raw sensor values (dont forget to offset first)'''
-
-        if None in self.calibration.factors:
-            return ([0] * len(self.calibration.factors))
-
-        weights = []
-        sensor_nr = 0
-        for sensor in sensors:
-            weights.append(sensor * self.calibration.factors[sensor_nr])
-            sensor_nr = sensor_nr + 1
-
-        return (weights)
-
-    def calibrated_weight(self, sensors):
-        '''return total calibrated weight value of specified raw sensor values (dont forget to offset first)'''
-        weights = self.calibrated_weights(sensors)
-        total = 0
-        for weight in weights:
-            total = total + weight
-
-        return (total)
 
     # def print_debug(self):
     #     weight = self.debug.pop()
