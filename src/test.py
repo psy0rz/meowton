@@ -32,12 +32,12 @@ hx711_food.reset()
 
 scale_cat=Scale(1, 'cat.json')
 if not scale_cat.is_calibrated():
-    scale_cat.calibrate_weight=200
+    scale_cat.__calibrate_weight=200
     scale_cat.recalibrate()
 
 scale_food=Scale(1, 'food.json')
 if not scale_food.is_calibrated():
-    scale_food.calibrate_weight=10
+    scale_food.__calibrate_weight=10
     scale_food.recalibrate()
 
 
