@@ -7,8 +7,8 @@ from random import random
 from nicegui.run import cpu_bound
 
 import page_calibrate
-from scale import Scale
-from scale_sensor_calibration import ScaleSensorCalibration
+import scale_instances
+import scale_reader
 
 # from meowton import Meowton
 # meowton_instance=Meowton()
@@ -19,9 +19,6 @@ from nicegui import ui, nicegui
 
 print("Starting...")
 
-calibration=ScaleSensorCalibration()
-calibration.factor=1
-scale=Scale(calibration,'cat')
 
 
 
@@ -87,19 +84,13 @@ with ui.timeline(side='right'):
 
 
 
-async def reader():
-    while True:
-        scale.measurement(random()*100)
-        await asyncio.sleep(1)
+def startup():
+    scale_reader.start(scale_instances.scale_cat, scale_instances.scale_food)
 
 
-nicegui.app.on_startup(reader)
+def shutdown():
+    scale_reader.stop()
 
-
-
-ui.run(reload=True, open_browser=False)
-# except KeyboardInterrupt:
-#     print("Stopping...")
-#     stop_event.set()  # Signal the worker thread to stop
-#     thread.join()  # Wait for the worker thread to finish
-
+nicegui.app.on_startup(startup)
+nicegui.app.on_shutdown(shutdown)
+ui.run(reload=False, show=False)

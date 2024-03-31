@@ -63,6 +63,7 @@ class Scale:
         # may also be used as API to get lastet weights/status:
         self.last_stable_weight = 0
         self.last_realtime_weight = 0
+        self.last_realtime_raw_value = 0
         self.stable = False
 
         # actual measurement values for averaging and event generation:
@@ -80,7 +81,7 @@ class Scale:
 
     def __event_realtime(self, weight: float):
         """called on every measurement with actual value (non averaged)"""
-        print(f"{self.name}: Realtime: {weight:.2f}g (last stable {self.last_stable_weight:.2f})")
+        # print(f"{self.name}: Realtime: {weight:.2f}g (last stable {self.last_stable_weight:.2f})")
         for cb in self.__realtime_subscriptions:
             cb(weight)
 
@@ -112,13 +113,23 @@ class Scale:
         self.__measure_raw_sum_count = 0
         self.stable = False
 
-    def measurement(self, raw_value):
+
+    def tarre(self):
+        """tarre away current raw value"""
+        self.calibration.tarre(self.last_realtime_raw_value)
+
+    def calibrate(self, weight:int):
+        """calibrate with specified weight. (dont forget to tarre first)"""
+        self.calibration.calibrate(self.last_realtime_raw_value, weight)
+
+    def measurement(self, raw_value:int):
         """update measurent data and generate stable events when detected. """
 
         # calculate weight,
         weight = self.calibration.weight(raw_value)
 
         self.last_realtime_weight = weight
+        self.last_realtime_raw_value =raw_value
         self.__event_realtime(weight)
 
         # store stability statistics
