@@ -1,14 +1,29 @@
+import asyncio
+import threading
+import time
+from pprint import pprint
+from random import random
 
+from nicegui.run import cpu_bound
 
+import page_calibrate
+from scale import Scale
+from scale_sensor_calibration import ScaleSensorCalibration
 
 # from meowton import Meowton
 # meowton_instance=Meowton()
 # meowton_instance.run()
 
 print("Loading nicegui...")
-from nicegui import ui
+from nicegui import ui, nicegui
 
 print("Starting...")
+
+calibration=ScaleSensorCalibration()
+calibration.factor=1
+scale=Scale(calibration,'cat')
+
+
 
 @ui.page('/cats')
 def cats_page():
@@ -20,13 +35,14 @@ def cats_page():
     ui.label("hoi")
 
 
+
 with ui.header(elevated=True).classes('items-center justify-between'):
     ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat color=white')
     ui.label('HEADER')
 with ui.left_drawer(elevated=True, value=False ) as left_drawer:
     ui.label('LEFT DRAWER')
-    with ui.button("Cats"):
-        ui.link(target= cats_page)
+    ui.link("Cats",  cats_page)
+    ui.link("Calibration", page_calibrate.content)
 # with ui.right_drawer(fixed=False).style('background-color: #ebf1fa').props('bordered') as right_drawer:
 #     ui.label('RIGHT DRAWER')
 with ui.footer():
@@ -69,4 +85,21 @@ with ui.timeline(side='right'):
     ui.timeline_entry()
 
 
-ui.run()
+
+
+async def reader():
+    while True:
+        scale.measurement(random()*100)
+        await asyncio.sleep(1)
+
+
+nicegui.app.on_startup(reader)
+
+
+
+ui.run(reload=True, open_browser=False)
+# except KeyboardInterrupt:
+#     print("Stopping...")
+#     stop_event.set()  # Signal the worker thread to stop
+#     thread.join()  # Wait for the worker thread to finish
+
