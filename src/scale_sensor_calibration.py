@@ -19,12 +19,12 @@ class ScaleSensorCalibration:
         tarred_value=self.__tarred_value(raw_value)
         self.factor= weight / tarred_value
 
-    def __calibrated_value(self, tarred_value) -> int:
-        return int(tarred_value*self.factor)
+    def __calibrated_value(self, tarred_value) -> float:
+        return tarred_value*self.factor
 
-    def weight(self, raw_value) -> int:
+    def weight(self, raw_value) -> float:
         tarred_value=self.__tarred_value(raw_value)
-        return int(self.__calibrated_value(tarred_value))
+        return self.__calibrated_value(tarred_value)
 
     def print(self):
         print( f"offset={self.offset}\tfactor={self.factor}\t")

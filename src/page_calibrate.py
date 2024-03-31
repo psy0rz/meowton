@@ -51,7 +51,7 @@ def scale_card(scale:Scale, cal_weight:int):
             ui.label("...").bind_text_from(scale, 'last_realtime_raw_value', backward=lambda v: f"{v}")
 
             ui.label("Weight: ")
-            ui.label("...").bind_text_from(scale, 'last_realtime_weight', backward=lambda v: f"{v}g")
+            ui.label("...").bind_text_from(scale, 'last_realtime_weight', backward=lambda v: f"{v:.2f}g")
 
         with ui.card_actions():
             ui.button("Tarre", on_click=scale.tarre)
