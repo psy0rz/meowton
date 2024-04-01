@@ -1,8 +1,8 @@
 class SensorFilter:
-    def __init__(self, max_diff):
+    def __init__(self, filter_diff):
         self.__last_value=0
         self.__prev_value=0
-        self.__max_diff=max_diff
+        self.filter_diff=filter_diff
         self.last_difference=0
         # self.last_ignored_diff=0
         # self.filter_count=0
@@ -24,11 +24,11 @@ class SensorFilter:
         ok=False
         diff=abs(value-self.__last_value)
         self.last_difference=diff
-        if  diff <= self.__max_diff:
+        if  diff <= self.filter_diff:
             ok=True
         else:
             diff = abs(value - self.__prev_value)
-            if diff <= self.__max_diff:
+            if diff <= self.filter_diff:
                 ok=True
 
 
