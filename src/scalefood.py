@@ -154,7 +154,7 @@ class ScaleFood(scale.Scale):
         #wait between feeds, to prevent mayhem ;)
         if timer.diff(timer.timestamp,self.last_feed)>5000:
             #bowl is stable and empty and not removed (<-5) and cat scale is also not removed (>-100)?
-            if self.stable and self.last_stable_weight<self.empty_weight and self.last_stable_weight>-5 and self.scale_cat.last_stable_weight>-100:
+            if self.measure_countdown and self.last_stable_weight<self.empty_weight and self.last_stable_weight>-5 and self.scale_cat.last_stable_weight>-100:
                 # all cats may have food, or current cat may have food or its feeding time?
                 if self.cats.quota_all() or ( self.cats.current_cat and self.cats.current_cat.get_quota()>0) or (self.last_feeding_hour!=hour and hour in config.feed_times):
                     self.last_feed=timer.timestamp

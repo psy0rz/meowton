@@ -90,6 +90,22 @@ def scale_card(scale: Scale, cal_weight: int, filter: SensorFilter):
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
 
 
+    with ui.card():
+        ui.label("3. Measuring").classes('text-primary text-bold')
+        with ui.grid(columns=2):
+            ui.label("Stable spread:")
+            ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
+
+            ui.label("Stable countdown:")
+            ui.label("...").bind_text_from(scale, 'measure_countdown', backward=lambda v: f"{v}")
+
+            ui.label("Stable weight:")
+            ui.label("...").bind_text_from(scale, 'last_stable_weight', backward=lambda v: f"{v:.2f}g")
+
+        with ui.card_actions():
+            ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(scale, filter))
+
+
 @ui.page('/cat-scale')
 async def calibrate_cat_page():
     with ui.header(elevated=True).classes('items-center justify-between'):
