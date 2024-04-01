@@ -9,7 +9,7 @@ from sensor_filter import SensorFilter
 
 def calibrate_wizard(scale: Scale, cal_weight: int):
     with ui.dialog(value=True) as dialog:
-        with ui.stepper() as stepper:
+        with ui.stepper().props("contracted") as stepper:
             with ui.step(f'Tarre'):
                 ui.label(f'Remove all objects from {scale.name} scale. Press next to tarre.')
 
@@ -43,10 +43,10 @@ def calibrate_wizard(scale: Scale, cal_weight: int):
                     ui.button('Back', on_click=stepper.previous).props('flat')
 
 
-def settings_dialog(scale: Scale, filter: SensorFilter):
+def sensor_settings_dialog(scale: Scale, filter: SensorFilter):
     with ui.dialog(value=True) as dialog, ui.card():
         ui.label(f"Options {scale.name} scale")
-        filter_diff_input = ui.number("Input filtering", value=filter.filter_diff, precision=0, min=0)
+        filter_diff_input = ui.number("Filter changes above", value=filter.filter_diff, precision=0, min=0)
 
         def save():
             filter.filter_diff = filter_diff_input.value
@@ -59,27 +59,38 @@ def settings_dialog(scale: Scale, filter: SensorFilter):
 
 def scale_card(scale: Scale, cal_weight: int, filter: SensorFilter):
     with ui.card():
-        ui.markdown(f"**{scale.name} scale**")
+        ui.label("1. Sensor input").classes('text-primary text-bold')
         with ui.grid(columns=2):
-            ui.label("Last sensor difference:")
+            ui.label("Change:")
             ui.label("...").bind_text_from(filter, 'last_difference', backward=lambda v: f"{v}")
 
-            ui.label("Filtered sensor value:")
+            ui.label("Filtered value:")
             ui.label("...").bind_text_from(scale, 'last_realtime_raw_value', backward=lambda v: f"{v}")
 
-            # ui.label("Last ignored difference:")
-            # ui.label("...").bind_text_from(filter, 'last_ignored_diff', backward=lambda v: f"{v}")
+
+        with ui.card_actions():
+            ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(scale, filter))
+
+
+    with ui.card():
+        ui.label("2. Calibration").classes('text-primary text-bold')
+        with ui.grid(columns=2):
+
+            ui.label("Tarre: ")
+            ui.label("...").bind_text_from(scale.calibration, 'offset', backward=lambda v: f"{v:}")
+
+            ui.label("Cal. factor: ")
+            ui.label("...").bind_text_from(scale.calibration, 'factor', backward=lambda v: f"{v:.5f}")
 
             ui.label("Weight: ")
             ui.label("...").bind_text_from(scale, 'last_realtime_weight', backward=lambda v: f"{v:.2f}g")
 
         with ui.card_actions():
-            ui.button(icon='settings', on_click=lambda: settings_dialog(scale, filter))
             ui.button("Tarre", on_click=scale.tarre)
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
 
 
-@ui.page('/calibrate-cat')
+@ui.page('/cat-scale')
 async def calibrate_cat_page():
     with ui.header(elevated=True).classes('items-center justify-between'):
         with ui.link(target='/'):
@@ -88,7 +99,7 @@ async def calibrate_cat_page():
 
     scale_card(scale_cat, 200, sensor_filter_cat)
 
-@ui.page('/calibrate-food')
+@ui.page('/food-scale')
 async def calibrate_food_page():
     with ui.header(elevated=True).classes('items-center justify-between'):
         with ui.link(target='/'):
