@@ -1,4 +1,4 @@
-ls lib/* *py | entr -r ./uploadrun $1
+ls Dockerfile lib/* *py | entr -r ./uploadrun $1
 
 
 

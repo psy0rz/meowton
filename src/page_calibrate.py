@@ -79,12 +79,20 @@ def scale_card(scale: Scale, cal_weight: int, filter: SensorFilter):
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
 
 
-@ui.page('/calibrate')
-async def content():
+@ui.page('/calibrate-cat')
+async def calibrate_cat_page():
     with ui.header(elevated=True).classes('items-center justify-between'):
         with ui.link(target='/'):
             ui.button(icon='arrow_back').props('flat color=white')
-        ui.label('CALIBRATION')
+        ui.label('CALIBRATION CAT SCALE')
 
     scale_card(scale_cat, 200, sensor_filter_cat)
+
+@ui.page('/calibrate-food')
+async def calibrate_food_page():
+    with ui.header(elevated=True).classes('items-center justify-between'):
+        with ui.link(target='/'):
+            ui.button(icon='arrow_back').props('flat color=white')
+        ui.label('CALIBRATION CAT SCALE')
+
     scale_card(scale_food, 10, sensor_filter_food)
