@@ -1,4 +1,4 @@
-rsync -avx --exclude venv . $1:meowton
+rsync -avx --exclude __pycache__ --exclude venv . $1:meowton
 ssh $1 'pkill -9 python3 ;cd meowton;python3 -u main.py'
 
 

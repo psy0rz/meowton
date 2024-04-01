@@ -3,7 +3,8 @@ import asyncio
 from nicegui import ui
 
 from scale import Scale
-from scale_instances import scale_cat, scale_food
+from scale_instances import scale_cat, scale_food, sensor_filter_cat, sensor_filter_food
+from sensor_filter import SensorFilter
 
 
 def calibrate_wizard(scale: Scale, cal_weight:int):
@@ -23,7 +24,7 @@ def calibrate_wizard(scale: Scale, cal_weight:int):
 
             with ui.step('Calibrate'):
                 ui.label(f'Place calibration weight on {scale.name} scale. Press next to calibrate.')
-                cal_weight = ui.input(label='Calibration weight (g)', value=cal_weight)
+                cal_weight = ui.number(label='Calibration weight (g)', value=cal_weight, precision=0, min=0)
 
                 def calibrate():
                     scale.calibrate(int(cal_weight.value))
@@ -42,13 +43,20 @@ def calibrate_wizard(scale: Scale, cal_weight:int):
                     ui.button('Back', on_click=stepper.previous).props('flat')
 
 
-def scale_card(scale:Scale, cal_weight:int):
+def scale_card(scale:Scale, cal_weight:int, filter:SensorFilter):
 
     with ui.card():
         ui.markdown(f"**{scale.name} scale**")
         with ui.grid(columns=2):
-            ui.label("Raw value:")
+
+            ui.label("Last senssor difference:")
+            ui.label("...").bind_text_from(filter, 'last_difference', backward=lambda v: f"{v}")
+
+            ui.label("Filtered sensor value:")
             ui.label("...").bind_text_from(scale, 'last_realtime_raw_value', backward=lambda v: f"{v}")
+
+            # ui.label("Last ignored difference:")
+            # ui.label("...").bind_text_from(filter, 'last_ignored_diff', backward=lambda v: f"{v}")
 
             ui.label("Weight: ")
             ui.label("...").bind_text_from(scale, 'last_realtime_weight', backward=lambda v: f"{v:.2f}g")
@@ -64,7 +72,7 @@ async def content():
             ui.button(icon='arrow_back').props('flat color=white')
         ui.label('CALIBRATION')
 
-    scale_card(scale_cat, 200)
-    scale_card(scale_food, 10)
+    scale_card(scale_cat, 200, sensor_filter_cat)
+    scale_card(scale_food, 10, sensor_filter_food)
 
 
