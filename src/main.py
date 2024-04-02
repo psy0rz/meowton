@@ -39,12 +39,9 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
             with ui.item(on_click=lambda: ui.navigate.to(page_calibrate.calibrate_cat_page)):
                 with ui.item_section():
                     ui.item_label('Cat scale status')
-            with ui.item(on_click=lambda: ui.notify('Selected contact 1')):
+            with ui.item(on_click=lambda: ui.navigate.to(page_calibrate.calibrate_food_page)):
                 with ui.item_section():
-                    ui.item_label('Nice Guy')
-            with ui.item(on_click=lambda: ui.notify('Selected contact 1')):
-                with ui.item_section():
-                    ui.item_label('Nice Guy')
+                    ui.item_label('Food scale status')
 
     # ui.link("Cats", cats_page)
     # ui.link("Cat scale status", page_calibrate.calibrate_cat_page)
