@@ -1,3 +1,4 @@
 nicegui
 RPi.GPIO
 hx711
+peewee

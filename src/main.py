@@ -9,7 +9,6 @@ from nicegui.run import cpu_bound
 import page_calibrate
 import scale_instances
 import scale_reader
-
 # from meowton import Meowton
 # meowton_instance=Meowton()
 # meowton_instance.run()

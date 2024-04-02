@@ -54,11 +54,11 @@ class Scale:
         # self.__stable_skip_measurements = stable_skip_measurements
 
         # number of measurements averaging after which to auto tarre
-        self.__stable_auto_tarre_count = stable_auto_tarre
+        self.stable_auto_tarre_count = stable_auto_tarre
 
         # max weight to tarre away (initial values will always be tarred)
         # 0 to disable
-        self.__stable_auto_tarre_max = stable_auto_tarre_max
+        self.stable_auto_tarre_max = stable_auto_tarre_max
 
         # may also be used as API to get lastet weights/status:
         self.last_stable_weight = 0
@@ -162,5 +162,5 @@ class Scale:
                 self.__event_stable(average_weight)
 
         # do auto tarring:
-        if self.__measure_raw_sum_count > self.__stable_auto_tarre_count and abs(weight) < self.__stable_auto_tarre_max:
+        if self.__measure_raw_sum_count > self.stable_auto_tarre_count and abs(weight) < self.stable_auto_tarre_max:
             self.calibration.tarre(int(self.__measure_raw_sum / self.__measure_raw_sum_count))

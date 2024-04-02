@@ -2,12 +2,14 @@ import asyncio
 
 from nicegui import ui
 
+import settings
 from scale import Scale
 from scale_instances import scale_cat, scale_food, sensor_filter_cat, sensor_filter_food
 from sensor_filter import SensorFilter
 
 
 def calibrate_wizard(scale: Scale, cal_weight: int):
+
     with ui.dialog(value=True) as dialog:
         with ui.stepper().props("contracted") as stepper:
             with ui.step(f'Tarre'):
@@ -15,6 +17,7 @@ def calibrate_wizard(scale: Scale, cal_weight: int):
 
                 def tarre():
                     scale.tarre()
+                    settings.save()
                     stepper.next()
                     ui.notify(f"{scale.name} tarred")
 
@@ -28,6 +31,7 @@ def calibrate_wizard(scale: Scale, cal_weight: int):
 
                 def calibrate():
                     scale.calibrate(int(cal_weight.value))
+                    settings.save()
                     ui.notify(f"{scale.name} calibrated with {cal_weight.value}g")
                     stepper.next()
 
@@ -50,7 +54,9 @@ def sensor_settings_dialog(scale: Scale, filter: SensorFilter):
 
         def save():
             filter.filter_diff = filter_diff_input.value
+            settings.save()
             dialog.close()
+
 
         with ui.row():
             ui.button('Save', on_click=save)
