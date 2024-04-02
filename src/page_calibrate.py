@@ -90,25 +90,23 @@ def scale_card(scale: Scale, cal_weight: int, filter: SensorFilter):
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
 
 
-    with ui.card():
+    with ui.card().style("min-width: 20em"):
         ui.label("3. Measuring").classes('text-primary text-bold')
-        with ui.grid(columns=2):
-            ui.label("Spread:")
-            # ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
-            with ui.column():
-                ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
-                ui.linear_progress(0, show_value=False).bind_value_from(scale,'measure_spread', backward=lambda v: scale.measure_spread/scale.stable_range).props("instant-feedback")
-            # ui.circular_progress(0,min=0,max=scale.stable_range, color="green").bind_value_from(scale,'measure_spread').props("instant-feedback")
 
-            ui.label("Countdown:")
-            # ui.label("...").bind_text_from(scale, 'measure_countdown', backward=lambda v: f"{v}")
-            ui.circular_progress(0,min=0,max=scale.stable_measurements, color="red").bind_value_from(scale,'measure_countdown').props("instant-feedback")
+        ui.label("Movement:")
+        ui.linear_progress(0, show_value=False).bind_value_from(scale,'measure_spread', backward=lambda v: scale.measure_spread/scale.stable_range).props("instant-feedback")
+        ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
+        # ui.circular_progress(0,min=0,max=scale.stable_range, color="green").bind_value_from(scale,'measure_spread').props("instant-feedback")
 
+        ui.separator()
 
-            ui.label("Measured:")
-            ui.label("...").bind_text_from(scale, 'last_stable_weight', backward=lambda v: f"{v:.2f}g")
+        ui.label("Countdown:")
+        ui.circular_progress(0,min=0,max=scale.stable_measurements, color="red").bind_value_from(scale,'measure_countdown').props("instant-feedback")
 
-        with ui.card_actions():
+        ui.separator()
+
+        ui.label("...").bind_text_from(scale, 'last_stable_weight', backward=lambda v: f"Measured: {v:.2f}g")
+        with ui.row(wrap=False):
             ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(scale, filter))
 
 
