@@ -93,13 +93,19 @@ def scale_card(scale: Scale, cal_weight: int, filter: SensorFilter):
     with ui.card():
         ui.label("3. Measuring").classes('text-primary text-bold')
         with ui.grid(columns=2):
-            ui.label("Stable spread:")
-            ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
+            ui.label("Spread:")
+            # ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
+            with ui.column():
+                ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
+                ui.linear_progress(0, show_value=False).bind_value_from(scale,'measure_spread', backward=lambda v: scale.measure_spread/scale.stable_range).props("instant-feedback")
+            # ui.circular_progress(0,min=0,max=scale.stable_range, color="green").bind_value_from(scale,'measure_spread').props("instant-feedback")
 
-            ui.label("Stable countdown:")
-            ui.label("...").bind_text_from(scale, 'measure_countdown', backward=lambda v: f"{v}")
+            ui.label("Countdown:")
+            # ui.label("...").bind_text_from(scale, 'measure_countdown', backward=lambda v: f"{v}")
+            ui.circular_progress(0,min=0,max=scale.stable_measurements, color="red").bind_value_from(scale,'measure_countdown').props("instant-feedback")
 
-            ui.label("Stable weight:")
+
+            ui.label("Measured:")
             ui.label("...").bind_text_from(scale, 'last_stable_weight', backward=lambda v: f"{v:.2f}g")
 
         with ui.card_actions():

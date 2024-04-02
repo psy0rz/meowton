@@ -45,10 +45,10 @@ class Scale:
         self.__realtime_subscriptions: [RealtimeCallable] = []
 
         # range in grams in which the scale should stay to be considered "stable"
-        self.__stable_range = stable_range
+        self.stable_range = stable_range
 
         # for how many measurements should the scale be in the stable_range to be considered stable?
-        self.__stable_measurements = stable_measurements
+        self.stable_measurements = stable_measurements
 
         # number of measurements to skip from measure_raw_sum when a new stable period is just entered. this is because the scale is still drifting
         # self.__stable_skip_measurements = stable_skip_measurements
@@ -121,7 +121,7 @@ class Scale:
         self.__measure_max = None
         self.__measure_raw_sum = 0
         self.__measure_raw_sum_count = 0
-        self.measure_countdown = self.__stable_measurements
+        self.measure_countdown = self.stable_measurements
 
     def measurement(self, raw_value: int):
         """update measurent data and generate stable events when detected. """
@@ -143,7 +143,7 @@ class Scale:
         self.measure_spread = abs(self.__measure_max - self.__measure_min)
 
         # reset if weight goes out of stable_range
-        if (self.__measure_max - self.__measure_min) > self.__stable_range:
+        if (self.__measure_max - self.__measure_min) > self.stable_range:
             self.stable_reset()
             return
 
