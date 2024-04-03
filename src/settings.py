@@ -1,8 +1,12 @@
+import sys
+
 from peewee import Model, CharField, FloatField, IntegerField, DoesNotExist
 
 from db import db
 import scale_instances
 
+
+dev_mode=sys.argv[1]=="dev"
 
 class ScaleSettings(Model):
     name = CharField(primary_key=True)
