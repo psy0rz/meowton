@@ -10,6 +10,14 @@ from sensor_filter import SensorFilter
 
 stop_event = threading.Event()
 
+sim_food_value=198000
+sim_food_min=188000
+sim_food_max=300000
+
+sim_cat_value=-40000
+sim_cat_min=-50000
+sim_cat_max=14000
+
 
 def simulator_thread(scale_cat: Scale, scale_food: Scale, sensor_filter_cat: SensorFilter,
                      sensor_filter_food: SensorFilter):
@@ -21,15 +29,10 @@ def simulator_thread(scale_cat: Scale, scale_food: Scale, sensor_filter_cat: Sen
 
     while not stop_event.is_set():
 
-        for i in range(0, 100):
-            send(10000 + int(random.normalvariate(0, 1)),
-                 100000 + int(random.normalvariate(0, 1000)))
+        send(sim_cat_value + int(random.normalvariate(0, 20)),
+             sim_food_value + int(random.normalvariate(0, 20)))
 
-            time.sleep(0.1)
-        for i in range(0, 100):
-            send(20000 + int(random.normalvariate(0, 1)),
-                 200000 + int(random.normalvariate(0, 1000)))
-            time.sleep(0.1)
+        time.sleep(0.1)
 
 
 def reader_thread(scale_cat: Scale, scale_food: Scale, sensor_filter_cat: SensorFilter,
@@ -66,13 +69,18 @@ def reader_thread(scale_cat: Scale, scale_food: Scale, sensor_filter_cat: Sensor
 
 
 def start(scale_cat: Scale, scale_food: Scale, sensor_filter_cat: SensorFilter, sensor_filter_food: SensorFilter):
+    global thread
     if not settings.dev_mode:
-        threading.Thread(target=reader_thread,
-                         args=[scale_cat, scale_food, sensor_filter_cat, sensor_filter_food]).start()
+        thread = threading.Thread(target=reader_thread,
+                                  args=[scale_cat, scale_food, sensor_filter_cat, sensor_filter_food])
     else:
-        threading.Thread(target=simulator_thread,
-                         args=[scale_cat, scale_food, sensor_filter_cat, sensor_filter_food]).start()
+        thread = threading.Thread(target=simulator_thread,
+                                  args=[scale_cat, scale_food, sensor_filter_cat, sensor_filter_food])
+
+    thread.start()
 
 
 def stop():
     stop_event.set()
+    thread.join()
+

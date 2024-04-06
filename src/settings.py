@@ -6,7 +6,12 @@ from db import db
 import scale_instances
 
 
-dev_mode=sys.argv[1]=="dev"
+dev_mode="dev" in sys.argv[1]
+if dev_mode:
+    print("Using dev mode")
+headless="headless" in sys.argv[1]
+if headless:
+    print("Running in headless mode")
 
 class ScaleSettings(Model):
     name = CharField(primary_key=True)

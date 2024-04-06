@@ -32,9 +32,12 @@ class Scale:
     """to calculate weights from raw data and do stuff like auto tarring and averaging"""
 
     calibration: ScaleSensorCalibration
+    stable_range: int
+    stable_measurements: int
+    stable_auto_tarre_count: int
 
     # subclass thesse event classes:
-    def __init__(self, calibration: ScaleSensorCalibration, name: str, stable_range=50, stable_measurements=25,
+    def __init__(self, calibration: ScaleSensorCalibration, name: str, stable_range: int = 50, stable_measurements=25,
                  stable_auto_tarre=200, stable_auto_tarre_max=0):
 
         self.calibration = calibration
@@ -147,16 +150,15 @@ class Scale:
             self.stable_reset()
             return
 
-
         # do averaging or raw values, but skip the first measurements because of scale drifting and recovery
         # if self.__measure_count >= self.__stable_skip_measurements:
         self.__measure_raw_sum = self.__measure_raw_sum + raw_value
         self.__measure_raw_sum_count = self.__measure_raw_sum_count + 1
 
         # generate stable measuring event
-        if self.measure_countdown>0:
-            self.measure_countdown=self.measure_countdown-1
-            if self.measure_countdown==0:
+        if self.measure_countdown > 0:
+            self.measure_countdown = self.measure_countdown - 1
+            if self.measure_countdown == 0:
                 average_weight = self.calibration.weight(self.__measure_raw_sum / self.__measure_raw_sum_count)
                 self.last_stable_weight = average_weight
                 self.__event_stable(average_weight)

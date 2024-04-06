@@ -3,18 +3,21 @@ import asyncio
 from nicegui import ui
 
 import settings
+import ui_main
 from scale import Scale
 from scale_instances import scale_cat, scale_food, sensor_filter_cat, sensor_filter_food
 from sensor_filter import SensorFilter
 
 
 def calibrate_wizard(scale: Scale, cal_weight: int):
-
     with ui.dialog(value=True) as dialog:
+        if settings.dev_mode:
+            dialog.props("seamless")
+
         with ui.stepper().props("contracted") as stepper:
+
             with ui.step(f'Tarre'):
                 ui.label(f'Remove all objects from {scale.name} scale. Press next to tarre.')
-
                 def tarre():
                     scale.tarre()
                     settings.save()
@@ -49,7 +52,7 @@ def calibrate_wizard(scale: Scale, cal_weight: int):
 
 def sensor_settings_dialog(scale: Scale, filter: SensorFilter):
     with ui.dialog(value=True) as dialog, ui.card():
-        ui.label(f"Options {scale.name} scale")
+        ui.label(f"Sensor settings {scale.name} scale")
         filter_diff_input = ui.number("Filter changes above", value=filter.filter_diff, precision=0, min=0)
 
         def save():
@@ -57,6 +60,23 @@ def sensor_settings_dialog(scale: Scale, filter: SensorFilter):
             settings.save()
             dialog.close()
 
+        with ui.row():
+            ui.button('Save', on_click=save)
+            ui.button('Cancel', on_click=dialog.close).props('flat')
+
+
+def scale_settings_dialog(scale: Scale):
+    with ui.dialog(value=True) as dialog, ui.card():
+        ui.label(f"Settings {scale.name} scale")
+        stable_range = ui.number("Stable range (g)", value=scale.stable_range, precision=0, min=0)
+        stable_measurements = ui.number("Stable countdown", value=scale.stable_measurements, precision=0, min=0)
+
+        def save():
+            scale.stable_range = stable_range.value
+            scale.stable_measurements = stable_measurements.value
+
+            settings.save()
+            dialog.close()
 
         with ui.row():
             ui.button('Save', on_click=save)
@@ -73,15 +93,12 @@ def scale_card(scale: Scale, cal_weight: int, filter: SensorFilter):
             ui.label("Filtered value:")
             ui.label("...").bind_text_from(scale, 'last_realtime_raw_value', backward=lambda v: f"{v}")
 
-
         with ui.card_actions():
             ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(scale, filter))
-
 
     with ui.card():
         ui.label("2. Calibration").classes('text-primary text-bold')
         with ui.grid(columns=2):
-
             ui.label("Tarre: ")
             ui.label("...").bind_text_from(scale.calibration, 'offset', backward=lambda v: f"{v:}")
 
@@ -95,25 +112,27 @@ def scale_card(scale: Scale, cal_weight: int, filter: SensorFilter):
             ui.button("Tarre", on_click=scale.tarre)
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
 
-
     with ui.card().style("min-width: 20em"):
         ui.label("3. Measuring").classes('text-primary text-bold')
 
         ui.label("Movement:")
-        ui.linear_progress(0, show_value=False).bind_value_from(scale,'measure_spread', backward=lambda v: scale.measure_spread/scale.stable_range).props("instant-feedback")
+        ui.linear_progress(0, show_value=False).bind_value_from(scale, 'measure_spread', backward=lambda
+            v: scale.measure_spread / scale.stable_range).props("instant-feedback")
         ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
         # ui.circular_progress(0,min=0,max=scale.stable_range, color="green").bind_value_from(scale,'measure_spread').props("instant-feedback")
 
         ui.separator()
 
         ui.label("Countdown:")
-        ui.circular_progress(0,min=0,max=scale.stable_measurements, color="red").bind_value_from(scale,'measure_countdown').props("instant-feedback")
+        ui.circular_progress(0, min=0, max=scale.stable_measurements, color="red").bind_value_from(scale,
+                                                                                                   'measure_countdown').props(
+            "instant-feedback")
 
         ui.separator()
 
         ui.label("...").bind_text_from(scale, 'last_stable_weight', backward=lambda v: f"Measured: {v:.2f}g")
         with ui.row(wrap=False):
-            ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(scale, filter))
+            ui.button(icon='settings', on_click=lambda: scale_settings_dialog(scale))
 
 
 @ui.page('/cat-scale')
@@ -123,7 +142,10 @@ async def calibrate_cat_page():
             ui.button(icon='arrow_back').props('flat color=white')
         ui.label('CALIBRATION CAT SCALE')
 
+    ui_main.footer()
+
     scale_card(scale_cat, 200, sensor_filter_cat)
+
 
 @ui.page('/food-scale')
 async def calibrate_food_page():
@@ -131,5 +153,7 @@ async def calibrate_food_page():
         with ui.link(target='/'):
             ui.button(icon='arrow_back').props('flat color=white')
         ui.label('CALIBRATION CAT SCALE')
+
+    ui_main.footer()
 
     scale_card(scale_food, 10, sensor_filter_food)
