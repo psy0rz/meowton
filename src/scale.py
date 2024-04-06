@@ -117,11 +117,11 @@ class Scale:
         """calibrate with specified weight. (dont forget to tarre first)"""
         self.calibration.calibrate(self.last_realtime_raw_value, weight)
 
-    def stable_reset(self):
+    def stable_reset(self, weight=None):
         """resets stable state of the scale. (usefull after changing parameters of loading state)"""
         # print("RESET")
-        self.__measure_min = None
-        self.__measure_max = None
+        self.__measure_min = weight
+        self.__measure_max = weight
         self.__measure_raw_sum = 0
         self.__measure_raw_sum_count = 0
         self.measure_countdown = self.stable_measurements
@@ -147,7 +147,7 @@ class Scale:
 
         # reset if weight goes out of stable_range
         if (self.__measure_max - self.__measure_min) > self.stable_range:
-            self.stable_reset()
+            self.stable_reset(weight)
             return
 
         # do averaging or raw values, but skip the first measurements because of scale drifting and recovery
