@@ -68,8 +68,8 @@ def sensor_settings_dialog(scale: Scale, filter: SensorFilter):
 def scale_settings_dialog(scale: Scale):
     with ui.dialog(value=True) as dialog, ui.card():
         ui.label(f"Settings {scale.name} scale")
-        stable_range = ui.number("Stable range (g)", value=scale.stable_range, precision=0, min=0)
-        stable_measurements = ui.number("Stable countdown", value=scale.stable_measurements, precision=0, min=0)
+        stable_range = ui.number("Stable range (g)", value=scale.stable_range, precision=3, min=0.001)
+        stable_measurements = ui.number("Stable countdown", value=scale.stable_measurements, precision=0, min=1)
 
         def save():
             scale.stable_range = stable_range.value

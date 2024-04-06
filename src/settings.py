@@ -21,7 +21,7 @@ class ScaleSettings(Model):
     offset = IntegerField()
     factor = FloatField()
 
-    stable_range = IntegerField()
+    stable_range = FloatField()
     stable_measurements = IntegerField()
     stable_auto_tarre_count = IntegerField()
     stable_auto_tarre_max = IntegerField()
@@ -63,15 +63,16 @@ def load():
     try:
         food = ScaleSettings.get(name='food')
 
+
         scale_instances.sensor_filter_food.filter_diff = food.filter_diff
 
         scale_instances.calibration_food.offset = food.offset
         scale_instances.calibration_food.factor = food.factor
 
-        scale_instances.calibration_food.stable_range = food.stable_range
-        scale_instances.calibration_food.stable_measurements = food.stable_measurements
-        scale_instances.calibration_food.stable_auto_tarre_count = food.stable_auto_tarre_count
-        scale_instances.calibration_food.stable_auto_tarre_max = food.stable_auto_tarre_max
+        scale_instances.scale_food.stable_range = food.stable_range
+        scale_instances.scale_food.stable_measurements = food.stable_measurements
+        scale_instances.scale_food.stable_auto_tarre_count = food.stable_auto_tarre_count
+        scale_instances.scale_food.stable_auto_tarre_max = food.stable_auto_tarre_max
 
         cat = ScaleSettings.get(name='cat')
 
@@ -80,16 +81,16 @@ def load():
         scale_instances.calibration_cat.offset = cat.offset
         scale_instances.calibration_cat.factor = cat.factor
 
-        scale_instances.calibration_cat.stable_range = cat.stable_range
-        scale_instances.calibration_cat.stable_measurements = cat.stable_measurements
-        scale_instances.calibration_cat.stable_auto_tarre_count = cat.stable_auto_tarre_count
-        scale_instances.calibration_cat.stable_auto_tarre_max = cat.stable_auto_tarre_max
+        scale_instances.scale_cat.stable_range = cat.stable_range
+        scale_instances.scale_cat.stable_measurements = cat.stable_measurements
+        scale_instances.scale_cat.stable_auto_tarre_count = cat.stable_auto_tarre_count
+        scale_instances.scale_cat.stable_auto_tarre_max = cat.stable_auto_tarre_max
 
 
 
 
-    except DoesNotExist:
+    except DoesNotExist as e:
+        print (e)
         pass
 
 
-load()
