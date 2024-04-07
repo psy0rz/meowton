@@ -5,23 +5,24 @@ from peewee import Model, CharField, IntegerField, FloatField
 import settings
 from db import db
 
-MOVING_AVG_FACTOR=0.01
+MOVING_AVG_FACTOR = 0.01
+
 
 class Cat(Model):
-    name = CharField(unique=True)
+    name = CharField()
     weight = FloatField()
-
     feed_daily = IntegerField()
-    feed_quota = IntegerField()
-    feed_quota_last_hour = IntegerField()
-    feed_quota_max = IntegerField()
-    feed_quota_min = IntegerField()
+
+    feed_quota = IntegerField(default=0)
+    feed_quota_last_hour = IntegerField(default=0)
+    feed_quota_max = IntegerField(default=0)
+    feed_quota_min = IntegerField(default=0)
 
     class Meta:
         database = db
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def add_quota(self):
         """
@@ -90,7 +91,7 @@ class Cat(Model):
         None
 
         """
-        self.weight = self.weight * (1-MOVING_AVG_FACTOR) + weight * (MOVING_AVG_FACTOR)
+        self.weight = self.weight * (1 - MOVING_AVG_FACTOR) + weight * (MOVING_AVG_FACTOR)
 
 
 db.create_tables([Cat])

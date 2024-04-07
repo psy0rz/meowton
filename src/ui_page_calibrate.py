@@ -137,11 +137,7 @@ def scale_card(scale: Scale, cal_weight: int, filter: SensorFilter):
 
 @ui.page('/cat-scale')
 async def calibrate_cat_page():
-    with ui.header(elevated=True).classes('items-center justify-between'):
-        with ui.link(target='/'):
-            ui.button(icon='arrow_back').props('flat color=white')
-        ui.label('CALIBRATION CAT SCALE')
-
+    ui_main.header("cat scale calibration")
     ui_main.footer()
 
     scale_card(scale_cat, 200, sensor_filter_cat)
@@ -149,11 +145,7 @@ async def calibrate_cat_page():
 
 @ui.page('/food-scale')
 async def calibrate_food_page():
-    with ui.header(elevated=True).classes('items-center justify-between'):
-        with ui.link(target='/'):
-            ui.button(icon='arrow_back').props('flat color=white')
-        ui.label('CALIBRATION CAT SCALE')
-
+    ui_main.header("food scale calibration")
     ui_main.footer()
 
     scale_card(scale_food, 10, sensor_filter_food)
