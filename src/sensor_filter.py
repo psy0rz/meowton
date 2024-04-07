@@ -1,4 +1,18 @@
 class SensorFilter:
+    """
+    class SensorFilter:
+        def __init__(self, filter_diff):
+            Initializes a SensorFilter object with the specified filter difference.
+
+            Args:
+                filter_diff (float): The maximum difference between current and previous values for a value to be considered valid.
+
+            Attributes:
+                __last_value (float): The last value received.
+                __prev_value (float): The previous value received.
+                filter_diff (float): The maximum difference between current and previous values for a value to be considered valid.
+                last_difference (float): The difference between the current and previous values of the last received value.
+        """
     def __init__(self, filter_diff):
         self.__last_value=0
         self.__prev_value=0
@@ -20,7 +34,15 @@ class SensorFilter:
 
 
     def valid(self, value):
-        """filter outliers: if a value is very different from both the last and previous value, filter it."""
+        """
+        Checks if a value is valid based on the current and previous values.
+
+        Args:
+            value (float): The value to be checked.
+
+        Returns:
+            bool: True if the value is valid, False otherwise.
+        """
         ok=False
         diff=abs(value-self.__last_value)
         self.last_difference=diff

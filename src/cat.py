@@ -1,70 +1,96 @@
-from state import State
-import config
 import time
 
-class Cat(State):
-    def __init__(self, name=None):
+from peewee import Model, CharField, IntegerField, FloatField
+
+import settings
+from db import db
+
+MOVING_AVG_FACTOR=0.01
+
+class Cat(Model):
+    name = CharField(unique=True)
+    weight = FloatField()
+
+    feed_daily = IntegerField()
+    feed_quota = IntegerField()
+    feed_quota_last_hour = IntegerField()
+    feed_quota_max = IntegerField()
+    feed_quota_min = IntegerField()
+
+    class Meta:
+        database = db
+
+    def __init__(self):
         super().__init__()
-        self.state.name=name
-        self.state.feed_daily=0
-        self.state.feed_quota=0
-        self.state.feed_quota_timestamp=0
-        self.state.feed_quota_max=0
-        self.state.feed_quota_min=0
-        self.state.weight=0
 
-        #aten during this feeding session (usually ends when cat leaves and uploaded to database)
-        self.ate_session=0
+    def add_quota(self):
+        """
+        Increments the food quota for the current hour based on the set feeding times and the daily quota.
 
+        Parameters:
+        None
 
-    def get_quota(self):
-        '''calculate food quota, depending on time that has passed'''
+        Returns:
+        None
 
+        Example Usage:
+        add_quota()
+        """
 
-        if self.state.feed_daily:
-            (year, month, mday, hour, minute, second, weekday, yearday) = time.localtime()
-    
-            #hour changed?
-            if self.state.feed_quota_timestamp!=hour:
+        (year, month, mday, hour, minute, second, weekday, yearday) = time.localtime()
 
-                self.state.feed_quota_timestamp=hour
-                
-                #feeding time?
-                if hour in config.feed_times:
+        # hour changed?
+        if self.feed_quota_last_hour.value != hour:
 
-                    # update food quota
-                    quota_add=self.state.feed_daily/len(config.feed_times)
+            self.feed_quota_last_hour.value = hour
 
-                    self.state.feed_quota=self.state.feed_quota+quota_add
+            # feeding time?
+            if hour in settings.feed_times:
 
-                    if self.state.feed_quota>self.state.feed_quota_max:
-                        self.state.feed_quota=self.state.feed_quota_max
+                # update food quota
+                quota_add = self.feed_daily / len(settings.feed_times)
 
-                    if self.state.feed_quota<self.state.feed_quota_min:
-                        self.state.feed_quota=self.state.feed_quota_min
+                self.feed_quota.value = self.feed_quota.value + quota_add
 
-                    self.save()
+                if self.feed_quota > self.feed_quota_max:
+                    self.feed_quota = self.feed_quota_max
 
+    def quota_time(self):
+        """
+        Calculates the time it takes to deplete the feed quota. (or to restore it, when its negative)
 
-        return(self.state.feed_quota)
-
-
-    def time(self):
-        '''time in minutes that the current quota took to build, or will take to reach 0 again, in minutes (negative in that case)'''
-
-        if self.state.feed_daily:
-            quota=self.get_quota()
-            return(quota/(self.state.feed_daily/(24*60)))
-
-        return 0
-
+        Returns:
+            float: The time in minutes it takes to deplete the feed quota.
+        """
+        return self.feed_quota / (self.feed_daily / (24 * 60))
 
     def ate(self, weight):
-        '''substract amount cat has eaten'''
-        self.state.feed_quota=self.state.feed_quota-weight
-        self.ate_session=self.ate_session+weight
+        """
+        Decreases the feed_quota attribute by the given weight.
 
+        Parameters:
+            weight (float): The weight to be subtracted from the feed_quota.
+
+        Returns:
+            None
+
+        """
+        self.feed_quota = self.feed_quota - weight
+        if self.feed_quota < self.feed_quota_min:
+            self.feed_quota = self.feed_quota_min
 
     def update_weight(self, weight):
-        '''update weight by moving average'''
-        self.state.weight=self.state.weight*0.99 + weight*0.01
+        """
+        Update the weight value with moving average factor.
+
+        Parameters:
+        weight (float): The new weight value to be updated.
+
+        Returns:
+        None
+
+        """
+        self.weight = self.weight * (1-MOVING_AVG_FACTOR) + weight * (MOVING_AVG_FACTOR)
+
+
+db.create_tables([Cat])

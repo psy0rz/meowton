@@ -13,6 +13,9 @@ headless="headless" in sys.argv[1]
 if headless:
     print("Running in headless mode")
 
+
+feed_times=[9,13,17,21,1]
+
 class ScaleSettings(Model):
     name = CharField(primary_key=True)
 

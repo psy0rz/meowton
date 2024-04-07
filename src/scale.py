@@ -32,12 +32,12 @@ class Scale:
     """to calculate weights from raw data and do stuff like auto tarring and averaging"""
 
     calibration: ScaleSensorCalibration
-    stable_range: int
+    stable_range: float
     stable_measurements: int
     stable_auto_tarre_count: int
 
     # subclass thesse event classes:
-    def __init__(self, calibration: ScaleSensorCalibration, name: str, stable_range: int = 50, stable_measurements=25,
+    def __init__(self, calibration: ScaleSensorCalibration, name: str, stable_range: float = 50, stable_measurements=25,
                  stable_auto_tarre=200, stable_auto_tarre_max=0):
 
         self.calibration = calibration
