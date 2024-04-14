@@ -17,8 +17,8 @@ if settings.headless:
     startup()
 
     try:
-        while True:  # an infinite loop
-            time.sleep(1)  # just to prevent CPU overload, you can adjust or remove it according to your needs
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
         # the program execution will continue here after Ctrl+C
         shutdown()

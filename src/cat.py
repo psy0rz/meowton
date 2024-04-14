@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass
 
 from peewee import Model, CharField, IntegerField, FloatField
 
@@ -10,13 +11,13 @@ MOVING_AVG_FACTOR = 0.01
 
 class Cat(Model):
     name = CharField()
-    weight = FloatField()
-    feed_daily = IntegerField()
+    weight = FloatField(default=0)
+    feed_daily = IntegerField(default=0)
 
     feed_quota = IntegerField(default=0)
     feed_quota_last_hour = IntegerField(default=0)
-    feed_quota_max = IntegerField(default=0)
-    feed_quota_min = IntegerField(default=0)
+    # feed_quota_max = IntegerField(default=0)
+    # feed_quota_min = IntegerField(default=0)
 
     class Meta:
         database = db
@@ -53,8 +54,8 @@ class Cat(Model):
 
                 self.feed_quota.value = self.feed_quota.value + quota_add
 
-                if self.feed_quota > self.feed_quota_max:
-                    self.feed_quota = self.feed_quota_max
+                if self.feed_quota > self.feed_daily:
+                    self.feed_quota = self.feed_daily
 
     def quota_time(self):
         """
@@ -77,8 +78,8 @@ class Cat(Model):
 
         """
         self.feed_quota = self.feed_quota - weight
-        if self.feed_quota < self.feed_quota_min:
-            self.feed_quota = self.feed_quota_min
+        if self.feed_quota < -self.feed_daily:
+            self.feed_quota = -self.feed_daily
 
     def update_weight(self, weight):
         """

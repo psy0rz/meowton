@@ -1,39 +1,52 @@
+import peewee
 from nicegui import ui
 
 import ui_main
 from cat import Cat
 
 
+def delete_button(cat: Cat):
+    def confirmed():
+        cat.delete_instance()
+        cat_list.refresh()
+
+    def click():
+        ui_main.confirm(message=f"Delete cat {cat.name} ?", on_confirm=confirmed)
+
+    ui.button(icon="delete", on_click=click).props("color=red")
+
+
+def cat_card(cat: Cat):
+    def save():
+        try:
+            cat.save()
+            cat_list.refresh()
+        except Exception as e:
+            error.set_text(str(e))
+
+    with ui.card() as view_card:
+        error=ui.label().classes("text-negative")
+
+        with ui.grid(columns=2):
+            ui.input(label="Name").bind_value(cat, 'name')
+            ui.number(label="Weight (g)").bind_value(cat, 'weight')
+            ui.number(label="Daily quota", min=0, precision=0).bind_value(cat, 'feed_daily')
+            ui.number(label="Current quota", precision=1).bind_value(cat, 'feed_quota')
+
+        with ui.card_actions():
+            if cat.id is None:
+                ui.button(icon="add", on_click=save)
+            else:
+                delete_button(cat)
+                ui.button(icon="save", on_click=save).bind_visibility_from(cat, 'dirty_fields')
+
 
 @ui.refreshable
 def cat_list():
-    def delete_button(cat: Cat):
-        def confirmed():
-            print("JAHOOOR")
-            cat.delete_instance()
-            cat_list.refresh()
-
-
-        def delete():
-            ui_main.confirm(message=f"Delete cat {cat.name} {cat.id}?", on_confirm=confirmed)
-        ui.button(icon="delete", on_click=delete)
-
-
     for cat in Cat.select():
-        with ui.card():
-            ui.label(cat.name).classes("text-primary text-bold")
+        cat_card(cat)
 
-            with ui.grid(columns=2):
-                ui.label("Weight:")
-                ui.label(cat.weight)
-
-                ui.label("Daily quota:")
-                ui.label(cat.feed_daily)
-
-            with ui.card_actions():
-                ui.button(icon="settings")
-
-                delete_button(cat)
+    cat_card(Cat())
 
 
 @ui.page('/cats')
@@ -41,5 +54,3 @@ def overview_page():
     ui_main.header("Cats")
     cat_list()
     ui_main.footer()
-
-

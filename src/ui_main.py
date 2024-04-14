@@ -44,7 +44,7 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
     with ui.list().props('separator clickable').classes("fit"):
         with ui.item(on_click=lambda: ui.navigate.to(ui_page_cats.overview_page)):
             with ui.item_section():
-                ui.item_label('Cat scale status')
+                ui.item_label('My cats')
         with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_cat_page)):
             with ui.item_section():
                 ui.item_label('Cat scale status')
