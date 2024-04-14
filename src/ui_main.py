@@ -1,9 +1,8 @@
 import scale_instances
-import scale_reader
 import settings
 import ui_page_calibrate
 import ui_page_cats
-from main import meowton
+from meowton import meowton
 
 print("Loading nicegui...")
 from nicegui import ui, nicegui
@@ -59,12 +58,20 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
 # with ui.right_drawer(fixed=False).style('background-color: #ebf1fa').props('bordered') as right_drawer:
 #     ui.label('RIGHT DRAWER')
 def footer():
+    sim_food_value = 198000
+    sim_food_min = 188000
+    sim_food_max = 300000
+
+    sim_cat_value = -40000
+    sim_cat_min = -50000
+    sim_cat_max = 14000
+
     if settings.dev_mode:
         with ui.footer():
-            ui.slider(min=scale_reader.sim_cat_min, max=scale_reader.sim_cat_max).props(
-                'flat color=white dense').bind_value(scale_reader, 'sim_cat_value')
-            ui.slider(min=scale_reader.sim_food_min, max=scale_reader.sim_food_max).props(
-                'flat color=white dense').bind_value(scale_reader, 'sim_food_value')
+            ui.slider(min=sim_cat_min, max=sim_cat_max, value=sim_food_value).props(
+                'flat color=white dense').bind_value_to(meowton.cat_reader, 'sim_value')
+            ui.slider(min=sim_food_min, max=sim_food_max, value=sim_cat_value).props(
+                'flat color=white dense').bind_value_to(meowton.food_reader, 'sim_value')
 
 
 def main_page():
@@ -134,3 +141,4 @@ def run(startup_cb, shutdown_cb):
     nicegui.app.on_startup(startup_cb)
     nicegui.app.on_shutdown(shutdown_cb)
     ui.run(reload=settings.dev_mode, show=False)
+

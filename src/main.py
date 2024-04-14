@@ -1,23 +1,14 @@
 import time
 
 import settings
-from meowton import Meowton
+from meowton import meowton
 
-
-meowton: None|Meowton
 
 def main():
-    #
-    # sensor_filter_food = SensorFilter(1000)
-    # calibration_food = ScaleSensorCalibration()
-    # scale_food = Scale(calibration_food, 'food', stable_range=0.1, stable_measurements=1)
-    # settings.load_scale_settings('food', sensor_filter_food, calibration_food, scale_food)
 
     # start
-    global meowton
-    meowton = Meowton(settings.dev_mode)
-    meowton.start()
     if settings.headless:
+        meowton.start()
         try:
             while True:
                 time.sleep(1)

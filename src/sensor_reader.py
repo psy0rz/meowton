@@ -27,6 +27,7 @@ class SensorReader:
 
         while not self.__stop_event.is_set():
             raw_value=self.sim_value + int(random.normalvariate(0, self.sim_noise))
+            # print(f"jan {raw_value}")
             if self.sensor_filter.valid(raw_value):
                 self.scale.measurement(raw_value)
 
@@ -56,6 +57,11 @@ class SensorReader:
     def start(self):
         """start reader thread, or simtrhead if data/clk are not specified"""
 
+        if self.__thread is not None:
+            raise Exception("Thread already started")
+
+        self.__stop_event.clear()
+
         if self.__sim:
             self.__thread = threading.Thread(target=self.simulator_thread)
         else:
@@ -66,4 +72,5 @@ class SensorReader:
     def stop(self):
         self.__stop_event.set()
         self.__thread.join()
+        self.__thread = None
 

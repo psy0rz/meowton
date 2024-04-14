@@ -1,3 +1,4 @@
+import settings
 from sensor_reader import SensorReader
 
 
@@ -15,3 +16,6 @@ class Meowton:
     def stop(self):
         self.food_reader.stop()
         self.cat_reader.stop()
+
+
+meowton = Meowton(settings.dev_mode)
