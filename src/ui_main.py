@@ -3,6 +3,7 @@ import scale_reader
 import settings
 import ui_page_calibrate
 import ui_page_cats
+from main import meowton
 
 print("Loading nicegui...")
 from nicegui import ui, nicegui
@@ -72,21 +73,21 @@ def main_page():
         with (ui.card()):
             ui.label("Cat").classes("text-primary text-bold")
             with ui.row():
-                progress = ui.circular_progress(0, min=0, max=scale_instances.scale_cat.stable_measurements, color="red")
-                progress.bind_value_from(scale_instances.scale_cat, 'measure_countdown').props("instant-feedback")
+                progress = ui.circular_progress(0, min=0, max=meowton.cat_reader.scale.stable_measurements, color="red")
+                progress.bind_value_from(meowton.cat_reader.scale, 'measure_countdown').props("instant-feedback")
 
                 label = ui.label()
-                label.bind_text_from(scale_instances.scale_cat, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
+                label.bind_text_from(meowton.cat_reader.scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
                 label.classes("text-bold")
 
         with (ui.card()):
             ui.label("Food").classes("text-primary text-bold")
             with ui.row():
-                progress = ui.circular_progress(0, min=0, max=scale_instances.scale_food.stable_measurements, color="red")
-                progress.bind_value_from(scale_instances.scale_food, 'measure_countdown').props("instant-feedback")
+                progress = ui.circular_progress(0, min=0, max=meowton.food_reader.scale.stable_measurements, color="red")
+                progress.bind_value_from(meowton.food_reader.scale, 'measure_countdown').props("instant-feedback")
 
                 label = ui.label()
-                label.bind_text_from(scale_instances.scale_food, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
+                label.bind_text_from(meowton.food_reader.scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
                 label.classes("text-bold")
 
 

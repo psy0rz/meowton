@@ -5,7 +5,6 @@ from nicegui import ui
 import settings
 import ui_main
 from scale import Scale
-from scale_instances import scale_cat, scale_food, sensor_filter_cat, sensor_filter_food
 from sensor_filter import SensorFilter
 
 

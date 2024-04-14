@@ -37,10 +37,10 @@ class Scale:
     stable_auto_tarre_count: int
 
     # subclass thesse event classes:
-    def __init__(self, calibration: ScaleSensorCalibration, name: str, stable_range: float = 50, stable_measurements=25,
+    def __init__(self, name: str, stable_range: float = 50, stable_measurements=25,
                  stable_auto_tarre=200, stable_auto_tarre_max=0):
 
-        self.calibration = calibration
+        self.calibration = ScaleSensorCalibration()
         self.name = name
 
         self.__stable_subscriptions: [StableCallable] = []

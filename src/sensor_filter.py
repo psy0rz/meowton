@@ -5,15 +5,15 @@ class SensorFilter:
             Initializes a SensorFilter object with the specified filter difference.
 
             Args:
-                filter_diff (float): The maximum difference between current and previous values for a value to be considered valid.
+                filter_diff (int): The maximum difference between current and previous values for a value to be considered valid.
 
             Attributes:
-                __last_value (float): The last value received.
-                __prev_value (float): The previous value received.
+                __last_value (int): The last value received.
+                __prev_value (int): The previous value received.
                 filter_diff (float): The maximum difference between current and previous values for a value to be considered valid.
                 last_difference (float): The difference between the current and previous values of the last received value.
         """
-    def __init__(self, filter_diff):
+    def __init__(self, filter_diff:int=0):
         self.__last_value=0
         self.__prev_value=0
         self.filter_diff=filter_diff
