@@ -1,5 +1,4 @@
 import time
-from dataclasses import dataclass
 
 from peewee import Model, CharField, IntegerField, FloatField
 
