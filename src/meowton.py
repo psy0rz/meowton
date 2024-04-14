@@ -23,13 +23,13 @@ class Meowton:
 
         scale=Scale.get_or_none(name=name)
         if scale is None:
-            scale=Scale.create(name=name, stable_range=50, stable_measurements=25)
+            scale = Scale.create(name=name, stable_range=0.1, stable_measurements=2)
 
         sensor_filter=SensorFilter.get_or_none(name=name)
         if sensor_filter is None:
-            sensor_filter=SensorFilter.create(name='food', filter_diff=1000)
+            sensor_filter=SensorFilter.create(name=name, filter_diff=1000)
 
-        self.food_reader = SensorReader('cat', 23, 24, sim, sensor_filter, scale)
+        self.food_reader = SensorReader(name, 23, 24, sim, sensor_filter, scale)
 
     # cat scale stuff and default settings
     def init_cat(self, sim):
@@ -37,13 +37,13 @@ class Meowton:
 
         scale = Scale.get_or_none(name=name)
         if scale is None:
-            scale = Scale.create(name=name, stable_range=0.1, stable_measurements=2)
+            scale=Scale.create(name=name, stable_range=50, stable_measurements=25)
 
         sensor_filter = SensorFilter.get_or_none(name=name)
         if sensor_filter is None:
-            sensor_filter = SensorFilter.create(name='food', filter_diff=1000)
+            sensor_filter = SensorFilter.create(name=name, filter_diff=1000)
 
-        self.cat_reader = SensorReader('food', 27, 17, sim, sensor_filter, scale)
+        self.cat_reader = SensorReader(name, 27, 17, sim, sensor_filter, scale)
 
 
     def start(self):

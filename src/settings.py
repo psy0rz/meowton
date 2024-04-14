@@ -1,9 +1,9 @@
 import sys
 
-dev_mode = "dev" in sys.argv[1]
+dev_mode = "dev" in sys.argv
 if dev_mode:
     print("Using dev mode")
-headless = "headless" in sys.argv[1]
+headless = "headless" in sys.argv
 if headless:
     print("Running in headless mode")
 
