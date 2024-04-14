@@ -3,7 +3,7 @@ from peewee import Model, CharField, IntegerField, FloatField, DoesNotExist
 from scale import Scale
 from scale_sensor_calibration import ScaleSensorCalibration
 from sensor_filter import SensorFilter
-
+from db import db
 
 # NOTE: the reason we do it like, is so that Scale() and related classes stay reusable without depending on peewee or some other database.
 

@@ -7,8 +7,6 @@ from sensor_reader import SensorReader
 
 class Meowton:
     def __init__(self, sim: bool):
-        self.db = peewee.SqliteDatabase('meowton.db')
-        self.db.connect()
 
         self.food_reader = SensorReader('cat', 23, 24, sim)
 
