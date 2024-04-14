@@ -1,4 +1,3 @@
-import scale_instances
 import settings
 import ui_page_calibrate
 import ui_page_cats

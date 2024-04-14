@@ -3,7 +3,6 @@ import time
 from peewee import Model, CharField, IntegerField, FloatField
 
 import settings
-from db import db
 
 MOVING_AVG_FACTOR = 0.01
 
