@@ -1,13 +1,19 @@
 # simple AX + B formula :)
-class ScaleSensorCalibration:
+from peewee import Model, CharField, FloatField, IntegerField
+
+from db import db
+
+
+class ScaleSensorCalibration(Model):
     """Calibration and tarre offsets of a scale sensor. Should be stored persistant"""
 
-    offset: int
-    factor: float
+    name = CharField(primary_key=True)
+    offset = IntegerField(default=0)
+    factor = FloatField(default=0)
 
-    def __init__(self):
-        self.factor = 0
-        self.offset = 0
+    class Meta:
+        database = db
+
 
     def tarre(self, raw_value:int):
         self.offset=raw_value
@@ -46,3 +52,6 @@ if __name__=="__main__":
     print(calibration.weight(raw_value+20))  # 20g
 
     calibration.print()
+
+
+db.create_tables([ScaleSensorCalibration])

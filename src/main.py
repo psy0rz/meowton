@@ -6,8 +6,6 @@ from meowton import meowton
 
 def main():
 
-    # load settings
-    meowton.load()
 
     # start
     if settings.headless:

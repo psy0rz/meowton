@@ -8,10 +8,10 @@ from sensor_filter import SensorFilter
 
 class SensorReader:
     """read data from hardware via a thread, filters it and sends it to a Scale() instance"""
-    def __init__(self, name:str, data_pin:int, clk_pin:int, sim:bool):
+    def __init__(self, name:str, data_pin:int, clk_pin:int, sim:bool, sensor_filter:SensorFilter, scale:Scale):
 
-        self.sensor_filter=SensorFilter(1000)
-        self.scale = Scale( name)
+        self.sensor_filter=sensor_filter
+        self.scale = scale
 
         self.sim_value=0
         self.sim_noise=20

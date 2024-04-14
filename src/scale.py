@@ -1,3 +1,5 @@
+from peewee import Model, CharField, FloatField, IntegerField
+from db import db
 from typing import Callable, TypeAlias
 
 from scale_sensor_calibration import ScaleSensorCalibration
@@ -28,40 +30,38 @@ RealtimeCallable: TypeAlias = Callable[[float], None]
 UnstableCallable: TypeAlias = Callable[[], None]
 
 
-class Scale:
+class Scale(Model):
     """to calculate weights from raw data and do stuff like auto tarring and averaging"""
 
+    ### settings that are stored in db
+    name = CharField(primary_key=True)
+
+    # range in grams in which the scale should stay to be considered "stable"
+    stable_range = FloatField()
+
+    # for how many measurements should the scale be in the stable_range to be considered stable?
+    stable_measurements = IntegerField()
+
+    # number of measurements averaging after which to auto tarre
+    stable_auto_tarre_count = IntegerField(default=600)
+
+    # max weight to tarre away (initial values will always be tarred)
+    # 0 to disable
+    stable_auto_tarre_max = IntegerField(default=0)
+
+    class Meta:
+        database = db
+
     calibration: ScaleSensorCalibration
-    stable_range: float
-    stable_measurements: int
-    stable_auto_tarre_count: int
 
-    # subclass thesse event classes:
-    def __init__(self, name: str, stable_range: float = 50, stable_measurements=25,
-                 stable_auto_tarre=200, stable_auto_tarre_max=0):
+    def __init__(self, *args, **kwargs):
 
-        self.calibration = ScaleSensorCalibration()
-        self.name = name
+        super().__init__(*args, **kwargs)
+        self.calibration = ScaleSensorCalibration.get_or_create(name=self.name)[0]
 
         self.__stable_subscriptions: [StableCallable] = []
         self.__unstable_subscriptions: [UnstableCallable] = []
         self.__realtime_subscriptions: [RealtimeCallable] = []
-
-        # range in grams in which the scale should stay to be considered "stable"
-        self.stable_range = stable_range
-
-        # for how many measurements should the scale be in the stable_range to be considered stable?
-        self.stable_measurements = stable_measurements
-
-        # number of measurements to skip from measure_raw_sum when a new stable period is just entered. this is because the scale is still drifting
-        # self.__stable_skip_measurements = stable_skip_measurements
-
-        # number of measurements averaging after which to auto tarre
-        self.stable_auto_tarre_count = stable_auto_tarre
-
-        # max weight to tarre away (initial values will always be tarred)
-        # 0 to disable
-        self.stable_auto_tarre_max = stable_auto_tarre_max
 
         # may also be used as API to get lastet weights/status:
         self.last_stable_weight = 0
@@ -166,3 +166,6 @@ class Scale:
         # do auto tarring:
         if self.__measure_raw_sum_count > self.stable_auto_tarre_count and abs(weight) < self.stable_auto_tarre_max:
             self.calibration.tarre(int(self.__measure_raw_sum / self.__measure_raw_sum_count))
+
+
+db.create_tables([Scale])
