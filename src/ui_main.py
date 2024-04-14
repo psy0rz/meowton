@@ -68,9 +68,9 @@ def footer():
     if settings.dev_mode:
         with ui.footer():
             ui.slider(min=sim_cat_min, max=sim_cat_max, value=sim_food_value).props(
-                'flat color=white dense').bind_value_to(meowton.cat_reader, 'sim_value')
+                'flat color=white dense').bind_value(meowton.cat_reader, 'sim_value')
             ui.slider(min=sim_food_min, max=sim_food_max, value=sim_cat_value).props(
-                'flat color=white dense').bind_value_to(meowton.food_reader, 'sim_value')
+                'flat color=white dense').bind_value(meowton.food_reader, 'sim_value')
 
 
 def main_page():
