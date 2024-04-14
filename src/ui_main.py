@@ -1,3 +1,4 @@
+import scale_instances
 import scale_reader
 import settings
 import ui_page_calibrate
@@ -15,7 +16,6 @@ def confirm(message, on_confirm, title="Confirm"):
         popup_dialog.close()
 
     with ui.dialog(value=True) as popup_dialog, ui.card():
-
         popup_dialog.on('hide', popup_dialog.delete)
 
         ui.label(title).classes("text-negative text-bold")
@@ -66,42 +66,67 @@ def footer():
                 'flat color=white dense').bind_value(scale_reader, 'sim_food_value')
 
 
+def main_page():
+
+    with ui.row():
+        with (ui.card()):
+            ui.label("Cat").classes("text-primary text-bold")
+            with ui.row():
+                progress = ui.circular_progress(0, min=0, max=scale_instances.scale_cat.stable_measurements, color="red")
+                progress.bind_value_from(scale_instances.scale_cat, 'measure_countdown').props("instant-feedback")
+
+                label = ui.label()
+                label.bind_text_from(scale_instances.scale_cat, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
+                label.classes("text-bold")
+
+        with (ui.card()):
+            ui.label("Food").classes("text-primary text-bold")
+            with ui.row():
+                progress = ui.circular_progress(0, min=0, max=scale_instances.scale_food.stable_measurements, color="red")
+                progress.bind_value_from(scale_instances.scale_food, 'measure_countdown').props("instant-feedback")
+
+                label = ui.label()
+                label.bind_text_from(scale_instances.scale_food, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
+                label.classes("text-bold")
+
+
 main_header()
+main_page()
 footer()
 
-with ui.timeline(side='right'):
-    with ui.timeline_entry(
-            title='Mogwai stole 4g in 30 seconds.',
-            subtitle='4 minutes ago', color='red'):
-        ui.label("Has to wait 130 minutes for more food.")
-        ui.label("Weight: 6.2Kg")
-    with ui.timeline_entry(title='Tracy ate 12g in 1 minute', subtitle='5 minutes ago'):
-        ui.label("Has has 33g left.")
-        ui.label("Weight: 3.2Kg")
-
-    with ui.timeline_entry(
-            title='Mogwai ate 6g in 1 minute.',
-            subtitle='15 minutes ago', color='red'):
-        ui.label("Has to wait 120 minutes for more food.")
-        ui.label("Weight: 6.2Kg")
-    with ui.timeline_entry(
-            title='Mogwai sat on the scale for 3 minutes',
-            subtitle='15 minutes ago', color='red'):
-        ui.label("Has to wait 120 minutes for more food.")
-        ui.label("Weight: 6.2Kg")
-    with ui.timeline_entry(
-            title='Mogwai ate 6g',
-            subtitle='15 minutes ago', color='red'):
-        ui.label("Has to wait 120 minutes for more food.")
-        ui.label("Weight: 6.2Kg")
-
-    with ui.timeline_entry(
-            title='Mogwai ate 8g',
-            subtitle='5 hours ago', color='red'):
-        ui.label("Has to wait 65 minutes for more food.")
-        ui.label("Weight: 6.2Kg")
-
-    ui.timeline_entry()
+# with ui.timeline(side='right'):
+#     with ui.timeline_entry(
+#             title='Mogwai stole 4g in 30 seconds.',
+#             subtitle='4 minutes ago', color='red'):
+#         ui.label("Has to wait 130 minutes for more food.")
+#         ui.label("Weight: 6.2Kg")
+#     with ui.timeline_entry(title='Tracy ate 12g in 1 minute', subtitle='5 minutes ago'):
+#         ui.label("Has has 33g left.")
+#         ui.label("Weight: 3.2Kg")
+#
+#     with ui.timeline_entry(
+#             title='Mogwai ate 6g in 1 minute.',
+#             subtitle='15 minutes ago', color='red'):
+#         ui.label("Has to wait 120 minutes for more food.")
+#         ui.label("Weight: 6.2Kg")
+#     with ui.timeline_entry(
+#             title='Mogwai sat on the scale for 3 minutes',
+#             subtitle='15 minutes ago', color='red'):
+#         ui.label("Has to wait 120 minutes for more food.")
+#         ui.label("Weight: 6.2Kg")
+#     with ui.timeline_entry(
+#             title='Mogwai ate 6g',
+#             subtitle='15 minutes ago', color='red'):
+#         ui.label("Has to wait 120 minutes for more food.")
+#         ui.label("Weight: 6.2Kg")
+#
+#     with ui.timeline_entry(
+#             title='Mogwai ate 8g',
+#             subtitle='5 hours ago', color='red'):
+#         ui.label("Has to wait 65 minutes for more food.")
+#         ui.label("Weight: 6.2Kg")
+#
+#     ui.timeline_entry()
 
 
 def run(startup_cb, shutdown_cb):
