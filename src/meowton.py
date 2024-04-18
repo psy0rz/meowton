@@ -1,3 +1,5 @@
+import asyncio
+
 import settings
 from cat_detector import CatDetector
 from scale import Scale
@@ -8,7 +10,10 @@ from sensor_reader import SensorReader
 
 class Meowton:
     food_reader: SensorReader
+    food_scale:Scale
+
     cat_reader: SensorReader
+    cat_scale:Scale
     cat_detector: CatDetector
 
     def __init__(self, sim: bool):
@@ -21,32 +26,22 @@ class Meowton:
     def init_food(self, sim):
         name = 'food'
 
-        scale = Scale.get_or_none(name=name)
-        if scale is None:
-            scale = Scale.create(name=name, stable_range=0.1, stable_measurements=2)
+        self.food_scale = Scale.get_or_none(name=name)
+        if self.food_scale is None:
+            self.food_scale = Scale.create(name=name, stable_range=0.1, stable_measurements=2)
 
-        sensor_filter = SensorFilter.get_or_none(name=name)
-        if sensor_filter is None:
-            sensor_filter = SensorFilter.create(name=name, filter_diff=1000)
-
-        self.food_reader = SensorReader(name, 23, 24, sim, sensor_filter, scale)
-
+        self.food_reader = SensorReader(name, 23, 24, sim, self.food_scale.measurement)
 
     # cat scale stuff and default settings
     def init_cat(self, sim):
         name = 'cat'
 
-        scale = Scale.get_or_none(name=name)
-        if scale is None:
-            scale = Scale.create(name=name, stable_range=50, stable_measurements=25)
+        self.cat_scale = Scale.get_or_none(name=name)
+        if self.cat_scale is None:
+            self.cat_scale= Scale.create(name=name, stable_range=50, stable_measurements=25)
 
-        sensor_filter = SensorFilter.get_or_none(name=name)
-        if sensor_filter is None:
-            sensor_filter = SensorFilter.create(name=name, filter_diff=1000)
-
-        self.cat_reader = SensorReader(name, 27, 17, sim, sensor_filter, scale)
-
-        self.cat_detector = CatDetector(scale)
+        self.cat_reader = SensorReader(name, 27, 17, sim, self.cat_scale.measurement)
+        self.cat_detector = CatDetector(self.cat_scale)
 
     def start(self):
         self.food_reader.start()

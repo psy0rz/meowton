@@ -3,6 +3,7 @@ from db import db
 from typing import Callable, TypeAlias
 
 from scale_sensor_calibration import ScaleSensorCalibration
+from sensor_filter import SensorFilter
 
 """
 (weight)    *
@@ -53,10 +54,12 @@ class Scale(Model):
         database = db
 
     calibration: ScaleSensorCalibration
+    sensor_filter: SensorFilter
 
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
+        self.sensor_filter = SensorFilter.get_or_create(name=self.name)[0]
         self.calibration = ScaleSensorCalibration.get_or_create(name=self.name)[0]
 
         self.__stable_subscriptions: [StableCallable] = []
@@ -128,6 +131,10 @@ class Scale(Model):
 
     def measurement(self, raw_value: int):
         """update measurent data and generate stable events when detected. """
+
+        # sensor filtering
+        if not self.sensor_filter.valid(raw_value):
+            return
 
         # calculate weight,
         weight = self.calibration.weight(raw_value)

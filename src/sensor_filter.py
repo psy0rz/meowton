@@ -3,8 +3,9 @@ from db import db
 
 
 class SensorFilter(Model):
+    """filter sudden spikes due to measurement errors"""
     name = CharField(primary_key=True)
-    filter_diff = IntegerField(default=0)
+    filter_diff = IntegerField(default=1000)
 
     class Meta:
         database = db
@@ -16,15 +17,6 @@ class SensorFilter(Model):
         self.last_difference = 0
 
     def valid(self, value:int):
-        """
-        Checks if a value is valid based on the current and previous values.
-
-        Args:
-            value: The value to be checked.
-
-        Returns:
-            bool: True if the value is valid, False otherwise.
-        """
         ok = False
         diff = abs(value - self.__last_value)
         self.last_difference = diff

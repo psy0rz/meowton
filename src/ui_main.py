@@ -36,21 +36,21 @@ def main_page():
         with (ui.card()):
             ui.label("Cat").classes("text-primary text-bold")
             with ui.row():
-                progress = ui.circular_progress(0, min=0, max=meowton.cat_reader.scale.stable_measurements, color="red")
-                progress.bind_value_from(meowton.cat_reader.scale, 'measure_countdown').props("instant-feedback")
+                progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="red")
+                progress.bind_value_from(meowton.cat_scale, 'measure_countdown').props("instant-feedback")
 
                 label = ui.label()
-                label.bind_text_from(meowton.cat_reader.scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
+                label.bind_text_from(meowton.cat_scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
                 label.classes("text-bold")
 
         with (ui.card()):
             ui.label("Food").classes("text-primary text-bold")
             with ui.row():
-                progress = ui.circular_progress(0, min=0, max=meowton.food_reader.scale.stable_measurements, color="red")
-                progress.bind_value_from(meowton.food_reader.scale, 'measure_countdown').props("instant-feedback")
+                progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="red")
+                progress.bind_value_from(meowton.food_scale, 'measure_countdown').props("instant-feedback")
 
                 label = ui.label()
-                label.bind_text_from(meowton.food_reader.scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
+                label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
                 label.classes("text-bold")
 
 
@@ -94,6 +94,7 @@ footer()
 
 
 def run(startup_cb, shutdown_cb):
+
     nicegui.app.on_startup(startup_cb)
     nicegui.app.on_shutdown(shutdown_cb)
     ui.run(reload=settings.dev_mode, show=False)
