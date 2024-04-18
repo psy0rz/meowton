@@ -5,7 +5,7 @@ from db import db
 
 
 class ScaleSensorCalibration(Model):
-    """Calibration and tarre offsets of a scale sensor. Should be stored persistant"""
+    """Calibration and tarre offsets of a scale sensor."""
 
     name = CharField(primary_key=True)
     offset = IntegerField(default=0)

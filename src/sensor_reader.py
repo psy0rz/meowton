@@ -8,7 +8,7 @@ MeasurementCallback: TypeAlias = Callable[[int], None]
 
 
 class SensorReader:
-    """read data from hardware via a thread, filters it and calls measurement_callback. (in a threadsafe way)"""
+    """read data from hardware via a thread, and calls measurement_callback. (in a threadsafe way)"""
 
     __loop: asyncio.AbstractEventLoop
 
