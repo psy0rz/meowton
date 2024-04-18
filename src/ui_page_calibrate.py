@@ -1,6 +1,7 @@
 from nicegui import ui
 
 import settings
+import ui_common
 import ui_main
 from meowton import meowton
 from scale import Scale
@@ -136,15 +137,15 @@ def cards(reader: SensorReader, cal_weight: int):
 
 @ui.page('/cat-scale')
 async def calibrate_cat_page():
-    ui_main.header("cat scale calibration")
-    ui_main.footer()
+    ui_common.header("cat scale calibration")
+    ui_common.footer()
 
     cards(meowton.cat_reader, 200)
 
 
 @ui.page('/food-scale')
 async def calibrate_food_page():
-    ui_main.header("food scale calibration")
-    ui_main.footer()
+    ui_common.header("food scale calibration")
+    ui_common.footer()
 
     cards(meowton.food_reader, 10)

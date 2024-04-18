@@ -1,6 +1,7 @@
 import peewee
 from nicegui import ui
 
+import ui_common
 import ui_main
 from cat import Cat
 
@@ -11,7 +12,7 @@ def delete_button(cat: Cat):
         cat_list.refresh()
 
     def click():
-        ui_main.confirm(message=f"Delete cat {cat.name} ?", on_confirm=confirmed)
+        ui_common.confirm(message=f"Delete cat {cat.name} ?", on_confirm=confirmed)
 
     ui.button(icon="delete", on_click=click).props("color=red")
 
@@ -51,6 +52,6 @@ def cat_list():
 
 @ui.page('/cats')
 def overview_page():
-    ui_main.header("Cats")
+    ui_common.header("Cats")
     cat_list()
-    ui_main.footer()
+    ui_common.footer()
