@@ -21,6 +21,7 @@ class Cat(Model):
     class Meta:
         database = db
 
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -92,6 +93,8 @@ class Cat(Model):
 
         """
         self.weight = self.weight * (1 - MOVING_AVG_FACTOR) + weight * (MOVING_AVG_FACTOR)
+
+
 
 
 db.create_tables([Cat])
