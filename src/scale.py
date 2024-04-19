@@ -84,7 +84,7 @@ class Scale(Model):
 
     def __event_stable(self, weight: float):
         """called once after scale has been stable according to specified stable_ parameters"""
-        print(f"{self.name}: Stable averaged weight: {weight:.0f}g")
+        print(f"Scale [{self.name}]: Stable averaged weight: {weight:.0f}g")
         for cb in self.__stable_subscriptions:
             cb(weight)
 
@@ -96,9 +96,9 @@ class Scale(Model):
 
     def __event_unstable(self):
         """called once when scale leaves stable measurement"""
+        print(f"Scale [{self.name}]: Unstable")
         for cb in self.__unstable_subscriptions:
             cb()
-        print("{self.name}: Unstable")
 
     def subscribe_stable(self, cb: StableCallable):
         self.__stable_subscriptions.append(cb)

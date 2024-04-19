@@ -1,9 +1,13 @@
+from typing import TypeAlias, Callable
+
 from peewee import fn
 
 from cat import Cat
 from scale import Scale
 
 MIN_WEIGHT = 100
+
+CatChangedCallable: TypeAlias = Callable[[float], None]
 
 
 class CatDetector:
@@ -12,6 +16,21 @@ class CatDetector:
         # self.scale = scale
         scale.subscribe_stable(self.scale_stable)
         scale.subscribe_unstable(self.scale_unstable)
+
+        self.current_cat: Cat | None = None
+        self.__current_id: int | None = None
+
+        self.__subscriptions: [CatChangedCallable] = []
+
+    def __event_changed(self, cat: Cat):
+        """called when a different cat is detected (or None)"""
+        if cat is not None:
+            print(f"CatDetector: cat changed to {cat.name}")
+        else:
+            print(f"CatDetector: cat left")
+
+        for cb in self.__subscriptions:
+            cb(cat)
 
     def find_closest_weight(self, target_weight):
 
@@ -25,9 +44,17 @@ class CatDetector:
 
     def scale_stable(self, weight: float):
         cat: Cat = self.find_closest_weight(weight)
-        if cat is not None:
-            print(f" {cat.name} = {cat.weight}g")
-        pass
+
+        if cat is None:
+            id=None
+        else:
+            id=cat.id
+
+        if self.__current_id != id:
+            self.__current_id=id
+            self.current_cat = cat
+            self.__event_changed(cat)
+
 
     def scale_unstable(self):
         pass
