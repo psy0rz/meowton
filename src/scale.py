@@ -127,6 +127,9 @@ class Scale(Model):
         self.__measure_max = weight
         self.__measure_raw_sum = 0
         self.__measure_raw_sum_count = 0
+        if self.measure_countdown==0:
+            #WAS stable, so send unstable event
+            self.__event_unstable()
         self.measure_countdown = self.stable_measurements
 
     def measurement(self, raw_value: int):
