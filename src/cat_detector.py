@@ -3,6 +3,7 @@ from typing import TypeAlias, Callable, List
 from peewee import fn
 
 from cat import Cat
+from cat_session import CatSession
 from scale import Scale
 
 MIN_WEIGHT = 100
@@ -54,6 +55,7 @@ class CatDetector:
             id=None
         else:
             id=cat.id
+            CatSession(cat=cat).save()
 
         if self.__current_id != id:
             self.__current_id=id
