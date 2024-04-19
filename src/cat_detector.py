@@ -1,4 +1,4 @@
-from typing import TypeAlias, Callable
+from typing import TypeAlias, Callable, List
 
 from peewee import fn
 
@@ -7,10 +7,11 @@ from scale import Scale
 
 MIN_WEIGHT = 100
 
-CatChangedCallable: TypeAlias = Callable[[float], None]
+CatChangedCallable: TypeAlias = Callable[[Cat], None]
 
 
 class CatDetector:
+    __subscriptions: List[CatChangedCallable]
 
     def __init__(self, scale: Scale):
         # self.scale = scale
@@ -20,7 +21,7 @@ class CatDetector:
         self.current_cat: Cat | None = None
         self.__current_id: int | None = None
 
-        self.__subscriptions: [CatChangedCallable] = []
+        self.__subscriptions  = []
 
     def __event_changed(self, cat: Cat):
         """called when a different cat is detected (or None)"""
@@ -31,6 +32,10 @@ class CatDetector:
 
         for cb in self.__subscriptions:
             cb(cat)
+
+    def subscribe(self, cb: CatChangedCallable):
+        self.__subscriptions.append(cb)
+        pass
 
     def find_closest_weight(self, target_weight):
 

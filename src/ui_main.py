@@ -1,6 +1,7 @@
 import settings
 import ui_page_calibrate
 import ui_page_cats
+from cat import Cat
 from meowton import meowton
 from ui_common import footer
 
@@ -34,7 +35,7 @@ def main_page():
 
     with ui.row():
         with (ui.card()):
-            ui.label("Cat").classes("text-primary text-bold")
+            ui.label("Scale").classes("text-primary text-bold")
             with ui.row():
                 progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="red")
                 progress.bind_value_from(meowton.cat_scale, 'measure_countdown').props("instant-feedback")
@@ -52,6 +53,17 @@ def main_page():
                 label = ui.label()
                 label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
                 label.classes("text-bold")
+
+
+    cat_name=ui.label("cat")
+    def cat_detected(cat:Cat):
+        if cat is None:
+            cat_name.set_text("(none)")
+        else:
+
+            cat_name.set_text(cat.name)
+
+    meowton.cat_detector.subscribe(cat_detected)
 
 
 main_header()

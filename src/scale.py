@@ -1,6 +1,6 @@
 from peewee import Model, CharField, FloatField, IntegerField
 from db import db
-from typing import Callable, TypeAlias
+from typing import Callable, TypeAlias, List
 
 from scale_sensor_calibration import ScaleSensorCalibration
 from sensor_filter import SensorFilter
@@ -62,9 +62,9 @@ class Scale(Model):
         self.sensor_filter = SensorFilter.get_or_create(name=self.name)[0]
         self.calibration = ScaleSensorCalibration.get_or_create(name=self.name)[0]
 
-        self.__stable_subscriptions: [StableCallable] = []
-        self.__unstable_subscriptions: [UnstableCallable] = []
-        self.__realtime_subscriptions: [RealtimeCallable] = []
+        self.__stable_subscriptions: List[StableCallable] = []
+        self.__unstable_subscriptions: List[UnstableCallable] = []
+        self.__realtime_subscriptions: List[RealtimeCallable] = []
 
         # may also be used as API to get lastet weights/status:
         self.last_stable_weight = 0
