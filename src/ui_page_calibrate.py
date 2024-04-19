@@ -2,11 +2,9 @@ from nicegui import ui
 
 import settings
 import ui_common
-import ui_main
 from meowton import meowton
 from scale import Scale
 from sensor_filter import SensorFilter
-from sensor_reader import SensorReader
 
 
 def calibrate_wizard(scale: Scale, cal_weight: int):
@@ -83,56 +81,56 @@ def scale_settings_dialog(scale: Scale):
             ui.button('Cancel', on_click=dialog.close).props('flat')
 
 
-def cards(reader: SensorReader, cal_weight: int):
+def cards(scale: Scale, cal_weight: int):
     with ui.card():
         ui.label("1. Sensor input").classes('text-primary text-bold')
         with ui.grid(columns=2):
             ui.label("Change:")
-            ui.label("...").bind_text_from(reader.sensor_filter, 'last_difference', backward=lambda v: f"{v}")
+            ui.label("...").bind_text_from(scale.sensor_filter, 'last_difference', backward=lambda v: f"{v}")
 
             ui.label("Filtered value:")
-            ui.label("...").bind_text_from(reader.scale, 'last_realtime_raw_value', backward=lambda v: f"{v}")
+            ui.label("...").bind_text_from(scale, 'last_realtime_raw_value', backward=lambda v: f"{v}")
 
         with ui.card_actions():
-            ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(reader.sensor_filter))
+            ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(scale.sensor_filter))
 
     with ui.card():
         ui.label("2. Calibration").classes('text-primary text-bold')
         with ui.grid(columns=2):
             ui.label("Tarre: ")
-            ui.label("...").bind_text_from(reader.scale.calibration, 'offset', backward=lambda v: f"{v:}")
+            ui.label("...").bind_text_from(scale.calibration, 'offset', backward=lambda v: f"{v:}")
 
             ui.label("Cal. factor: ")
-            ui.label("...").bind_text_from(reader.scale.calibration, 'factor', backward=lambda v: f"{v:.5f}")
+            ui.label("...").bind_text_from(scale.calibration, 'factor', backward=lambda v: f"{v:.5f}")
 
             ui.label("Weight: ")
-            ui.label("...").bind_text_from(reader.scale, 'last_realtime_weight', backward=lambda v: f"{v:.2f}g")
+            ui.label("...").bind_text_from(scale, 'last_realtime_weight', backward=lambda v: f"{v:.2f}g")
 
         with ui.card_actions():
-            ui.button("Tarre", on_click=reader.scale.tarre)
-            ui.button("Calibrate", on_click=lambda: calibrate_wizard(reader.scale, cal_weight))
+            ui.button("Tarre", on_click=scale.tarre)
+            ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
 
     with ui.card().style("min-width: 20em"):
         ui.label("3. Measuring").classes('text-primary text-bold')
 
         with ui.row():
-            progress = ui.circular_progress(0, min=0, max=reader.scale.stable_measurements, color="red")
-            progress.bind_value_from(reader.scale, 'measure_countdown').props("instant-feedback")
+            progress = ui.circular_progress(0, min=0, max=scale.stable_measurements, color="red")
+            progress.bind_value_from(scale, 'measure_countdown').props("instant-feedback")
 
             label = ui.label()
-            label.bind_text_from(reader.scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
+            label.bind_text_from(scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
             label.classes("text-bold")
 
         ui.separator()
 
         ui.label("Movement range:")
-        ui.linear_progress(0, show_value=False).bind_value_from(reader.scale, 'measure_spread', backward=lambda
-            v: reader.scale.measure_spread / reader.scale.stable_range).props("instant-feedback")
-        ui.label("...").bind_text_from(reader.scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
+        ui.linear_progress(0, show_value=False).bind_value_from(scale, 'measure_spread', backward=lambda
+            v: scale.measure_spread / scale.stable_range).props("instant-feedback")
+        ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
         # ui.circular_progress(0,min=0,max=scale.stable_range, color="green").bind_value_from(scale,'measure_spread').props("instant-feedback")
 
         with ui.card_actions():
-            ui.button(icon='settings', on_click=lambda: scale_settings_dialog(reader.scale))
+            ui.button(icon='settings', on_click=lambda: scale_settings_dialog(scale))
 
 
 @ui.page('/cat-scale')
@@ -140,7 +138,7 @@ async def calibrate_cat_page():
     ui_common.header("cat scale calibration")
     ui_common.footer()
 
-    cards(meowton.cat_reader, 200)
+    cards(meowton.cat_scale, 200)
 
 
 @ui.page('/food-scale')
@@ -148,4 +146,4 @@ async def calibrate_food_page():
     ui_common.header("food scale calibration")
     ui_common.footer()
 
-    cards(meowton.food_reader, 10)
+    cards(meowton.food_scale, 10)
