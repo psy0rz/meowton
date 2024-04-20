@@ -1,6 +1,7 @@
 import settings
 import ui_page_calibrate
 import ui_page_cats
+import ui_page_feeder
 from db_cat import DbCat
 from meowton import meowton
 from ui_common import footer
@@ -25,10 +26,13 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
                 ui.item_label('My cats')
         with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_cat_page)):
             with ui.item_section():
-                ui.item_label('Cat scale status')
+                ui.item_label('Cat scale')
         with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_food_page)):
             with ui.item_section():
-                ui.item_label('Food scale status')
+                ui.item_label('Food scale')
+        with ui.item(on_click=lambda: ui.navigate.to(ui_page_feeder.feeder_page)):
+            with ui.item_section():
+                ui.item_label('Feeder')
 
 
 def main_page():
