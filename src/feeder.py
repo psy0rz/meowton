@@ -8,6 +8,9 @@ from db import db
 SERVO_PIN = 18
 PWM_FREQ = 50
 
+SERVO_MAX = 8
+SERVO_MIN = 5
+
 
 class Feeder(Model):
     feed_duty = FloatField(default=8)
@@ -27,12 +30,12 @@ class Feeder(Model):
             self.__pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
             self.__pwm.start(0)
 
-    async def feed_cycle(self):
+    async def run_motor(self, duty, time):
         if settings.dev_mode:
             return
 
-        self.__pwm.ChangeDutyCycle(self.feed_duty)
-        await asyncio.sleep(self.feed_time / 1000)
+        self.__pwm.ChangeDutyCycle(duty)
+        await asyncio.sleep(time / 1000)
         self.__pwm.ChangeDutyCycle(0)
 
 

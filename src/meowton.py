@@ -1,8 +1,9 @@
 import asyncio
 
-import feeder
+
 import settings
 from cat_detector import CatDetector
+from feeder import Feeder
 from food_counter import FoodCounter
 from scale import Scale
 from sensor_reader import SensorReader
@@ -23,9 +24,7 @@ class Meowton:
         self.init_food(sim)
         self.init_cat(sim)
 
-        self.feeder=feeder.Feeder()
-        print(self.feeder.feed_duty)
-        print(self.feeder)
+        self.feeder= Feeder.get_or_create(id=1)[0]
 
     # food scale stuff and default settings
     def init_food(self, sim):
