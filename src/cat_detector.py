@@ -12,16 +12,17 @@ CatChangedCallable: TypeAlias = Callable[[Cat], None]
 
 
 class CatDetector:
+    """detects which cat is on the scale and generates events"""
+
     __subscriptions: List[CatChangedCallable]
 
     def __init__(self, scale: Scale):
-        # self.scale = scale
-        scale.subscribe_stable(self.scale_stable)
-        scale.subscribe_unstable(self.scale_unstable)
+
+        scale.subscribe_stable(self.__scale_stable)
+        scale.subscribe_unstable(self.__scale_unstable)
 
         self.current_cat: Cat | None = None
         self.__current_id: int | None = None
-
         self.__subscriptions  = []
 
     def __event_changed(self, cat: Cat):
@@ -35,10 +36,11 @@ class CatDetector:
             cb(cat)
 
     def subscribe(self, cb: CatChangedCallable):
+        """callback is called when a different cat is detected"""
         self.__subscriptions.append(cb)
         pass
 
-    def find_closest_weight(self, target_weight):
+    def __find_closest_weight(self, target_weight):
 
         if target_weight < MIN_WEIGHT:
             return None
@@ -48,8 +50,8 @@ class CatDetector:
                  .limit(1))
         return query.first()
 
-    def scale_stable(self, weight: float):
-        cat: Cat = self.find_closest_weight(weight)
+    def __scale_stable(self, weight: float):
+        cat: Cat = self.__find_closest_weight(weight)
 
         if cat is None:
             id=None
@@ -63,5 +65,5 @@ class CatDetector:
             self.__event_changed(cat)
 
 
-    def scale_unstable(self):
+    def __scale_unstable(self):
         pass
