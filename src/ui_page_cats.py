@@ -3,10 +3,10 @@ from nicegui import ui
 
 import ui_common
 import ui_main
-from cat import Cat
+from db_cat import DbCat
 
 
-def delete_button(cat: Cat):
+def delete_button(cat: DbCat):
     def confirmed():
         cat.delete_instance()
         cat_list.refresh()
@@ -17,7 +17,7 @@ def delete_button(cat: Cat):
     ui.button(icon="delete", on_click=click).props("color=red")
 
 
-def cat_card(cat: Cat):
+def cat_card(cat: DbCat):
     def save():
         try:
             cat.save()
@@ -44,10 +44,10 @@ def cat_card(cat: Cat):
 
 @ui.refreshable
 def cat_list():
-    for cat in Cat.select():
+    for cat in DbCat.select():
         cat_card(cat)
 
-    cat_card(Cat())
+    cat_card(DbCat())
 
 
 @ui.page('/cats')

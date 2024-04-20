@@ -2,13 +2,13 @@ from typing import TypeAlias, Callable, List
 
 from peewee import fn
 
-from cat import Cat
-from cat_session import CatSession
+from db_cat import DbCat
+from db_cat_session import DbCatSession
 from scale import Scale
 
 MIN_WEIGHT = 100
 
-CatChangedCallable: TypeAlias = Callable[[Cat], None]
+CatChangedCallable: TypeAlias = Callable[[DbCat], None]
 
 
 class CatDetector:
@@ -21,11 +21,11 @@ class CatDetector:
         scale.subscribe_stable(self.__scale_stable)
         scale.subscribe_unstable(self.__scale_unstable)
 
-        self.current_cat: Cat | None = None
+        self.current_cat: DbCat | None = None
         self.__current_id: int | None = None
         self.__subscriptions  = []
 
-    def __event_changed(self, cat: Cat):
+    def __event_changed(self, cat: DbCat):
         """called when a different cat is detected (or None)"""
         if cat is not None:
             print(f"CatDetector: cat changed to {cat.name}")
@@ -45,19 +45,19 @@ class CatDetector:
         if target_weight < MIN_WEIGHT:
             return None
 
-        query = (Cat.select()
-                 .order_by(fn.Abs(Cat.weight - target_weight))
+        query = (DbCat.select()
+                 .order_by(fn.Abs(DbCat.weight - target_weight))
                  .limit(1))
         return query.first()
 
     def __scale_stable(self, weight: float):
-        cat: Cat = self.__find_closest_weight(weight)
+        cat: DbCat = self.__find_closest_weight(weight)
 
         if cat is None:
             id=None
         else:
             id=cat.id
-            CatSession(cat=cat).save()
+            DbCatSession(cat=cat).save()
 
         if self.__current_id != id:
             self.__current_id=id

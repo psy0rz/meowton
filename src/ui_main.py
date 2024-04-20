@@ -1,7 +1,7 @@
 import settings
 import ui_page_calibrate
 import ui_page_cats
-from cat import Cat
+from db_cat import DbCat
 from meowton import meowton
 from ui_common import footer
 
@@ -56,7 +56,7 @@ def main_page():
 
 
     cat_name=ui.label("cat")
-    def cat_detected(cat:Cat):
+    def cat_detected(cat:DbCat):
         if cat is None:
             cat_name.set_text("(none)")
         else:

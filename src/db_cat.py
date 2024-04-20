@@ -8,7 +8,7 @@ from db import db
 MOVING_AVG_FACTOR = 0.01
 
 
-class Cat(Model):
+class DbCat(Model):
     name = CharField()
     weight = FloatField(default=0)
     feed_daily = IntegerField(default=0)
@@ -97,4 +97,4 @@ class Cat(Model):
 
 
 
-db.create_tables([Cat])
+db.create_tables([DbCat])
