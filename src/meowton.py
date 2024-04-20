@@ -4,8 +4,6 @@ import settings
 from cat_detector import CatDetector
 from food_counter import FoodCounter
 from scale import Scale
-from sensor_filter import SensorFilter
-# from scale_settings import save_scale_settings, load_scale_settings
 from sensor_reader import SensorReader
 
 
@@ -22,7 +20,6 @@ class Meowton:
 
         self.init_food(sim)
         self.init_cat(sim)
-        # settings.load_scale_settings('cat', sensor_filter_cat, calibration_cat, scale_cat)
 
     # food scale stuff and default settings
     def init_food(self, sim):
@@ -53,18 +50,6 @@ class Meowton:
     def stop(self):
         self.food_reader.stop()
         self.cat_reader.stop()
-
-    # def save(self):
-    #     save_scale_settings('cat', self.cat_reader.sensor_filter, self.cat_reader.scale.calibration,
-    #                         self.cat_reader.scale)
-    #     save_scale_settings('food', self.food_reader.sensor_filter, self.food_reader.scale.calibration,
-    #                         self.food_reader.scale)
-    #
-    # def load(self):
-    #     load_scale_settings('cat', self.cat_reader.sensor_filter, self.cat_reader.scale.calibration,
-    #                         self.cat_reader.scale)
-    #     load_scale_settings('food', self.food_reader.sensor_filter, self.food_reader.scale.calibration,
-    #                         self.food_reader.scale)
 
 
 meowton = Meowton(settings.dev_mode)
