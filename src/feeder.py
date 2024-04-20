@@ -10,9 +10,9 @@ PWM_FREQ = 50
 
 
 class Feeder(Model):
-    feed_duty = FloatField(default=10)
-    feed_time = IntegerField(default=500)
-    reverse_duty = FloatField(default=10)
+    feed_duty = FloatField(default=8)
+    feed_time = IntegerField(default=250)
+    reverse_duty = FloatField(default=6)
     reverse_time = IntegerField(default=500)
 
     class Meta:
