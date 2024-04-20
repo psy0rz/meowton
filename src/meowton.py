@@ -6,6 +6,7 @@ from food_counter import FoodCounter
 from scale import Scale
 from sensor_reader import SensorReader
 
+#NOTE: my catfood weigh aprox 0.33g per piece
 
 class Meowton:
     food_reader: SensorReader

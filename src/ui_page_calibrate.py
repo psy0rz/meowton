@@ -82,6 +82,10 @@ def scale_settings_dialog(scale: Scale):
 
 
 def cards(scale: Scale, cal_weight: int):
+    def tarre():
+        scale.tarre()
+        scale.save()
+
     with ui.card():
         ui.label("1. Sensor input").classes('text-primary text-bold')
         with ui.grid(columns=2):
@@ -107,7 +111,7 @@ def cards(scale: Scale, cal_weight: int):
             ui.label("...").bind_text_from(scale, 'last_realtime_weight', backward=lambda v: f"{v:.2f}g")
 
         with ui.card_actions():
-            ui.button("Tarre", on_click=scale.tarre)
+            ui.button("Tarre", on_click=tarre)
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
 
     with ui.card().style("min-width: 20em"):
@@ -118,7 +122,7 @@ def cards(scale: Scale, cal_weight: int):
             progress.bind_value_from(scale, 'measure_countdown').props("instant-feedback")
 
             label = ui.label()
-            label.bind_text_from(scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
+            label.bind_text_from(scale, 'last_stable_weight', backward=lambda x: f"{x:0.2f}g")
             label.classes("text-bold")
 
         ui.separator()
