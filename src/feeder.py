@@ -30,15 +30,15 @@ class Feeder(Model):
             self.__pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
             self.__pwm.start(0)
 
-
     async def run_motor(self, duty, time):
         if settings.dev_mode:
+            #simulate
+            await asyncio.sleep(time / 1000)
             return
 
         self.__pwm.ChangeDutyCycle(duty)
         await asyncio.sleep(time / 1000)
         self.__pwm.ChangeDutyCycle(0)
-
 
     async def feed(self):
         print("Feeder: Feeding")
