@@ -56,32 +56,36 @@ class Feeder(Model):
         print("Feeder: Reversing...")
         await self.run_motor(self.reverse_duty, self.reverse_time)
 
+
     async def task(self, food_scale: Scale):
         """will wait for feed requests and monitor the foodscale to see if it succeeded.
         also handles retries and errorr"""
+
+        def food_detected():
+            return food_scale.last_stable_weight > self.empty_weight
+
         while await self.__event_request.wait():
-            #we want food
+            #someone wants to feed
 
-            if not food_scale.stable:
-                print("Feeder: Waiting for stable scale")
-                await food_scale.event_stable.wait()
+            attempts=0
+            while not food_detected() and attempts<self.retry_max:
 
-            for attempt in range(0,5):
-
-                if food_scale.last_stable_weight>self.empty_weight:
-                    print(f"Feeder: Food detected: {food_scale.last_stable_weight:0.2f}g")
-                    break
+                if not food_scale.stable:
+                    print("Feeder: Waiting for stable scale")
+                    await food_scale.event_stable.wait()
 
                 await self.__forward()
 
-                #not enough yet?
-                if food_scale.last_stable_weight <= self.empty_weight:
-                    #wait a while, maybe its still on the way
-                    try:
-                        await asyncio.wait_for(food_scale.event_stable.wait(),timeout=self.retry_timeout)
-                    except asyncio.TimeoutError:
-                        pass
+                if food_scale.stable:
+                    print("Feeder: Waiting for food to land")
+                    await food_scale.event_unstable.wait()
 
+                print("Feeder: Measuring food")
+                await food_scale.event_stable.wait()
+
+                attempts=attempts+1
+
+            print(f"Feeder: Food in scale: {food_scale.last_stable_weight:0.2f}g")
 
             self.__event_request.clear()
 

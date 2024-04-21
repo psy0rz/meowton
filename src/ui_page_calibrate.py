@@ -84,7 +84,9 @@ def scale_settings_dialog(scale: Scale):
 def cards(scale: Scale, cal_weight: int):
     def tarre():
         scale.tarre()
-        scale.save()
+        scale.calibration.save()
+        ui.notify("tarred")
+
 
     with ui.card():
         ui.label("1. Sensor input").classes('text-primary text-bold')

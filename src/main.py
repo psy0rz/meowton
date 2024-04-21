@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import settings
@@ -23,5 +24,6 @@ def main():
 
 
 main()
+
 
 
