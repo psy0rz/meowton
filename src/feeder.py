@@ -1,9 +1,11 @@
 import asyncio
+from asyncio import Event
 
 from peewee import Model, IntegerField, FloatField
 
 import settings
 from db import db
+from scale import Scale
 
 SERVO_PIN = 18
 PWM_FREQ = 50
@@ -18,11 +20,16 @@ class Feeder(Model):
     reverse_duty = FloatField(default=6)
     reverse_time = IntegerField(default=500)
 
+    empty_weight = FloatField(default=1)
+
     class Meta:
         database = db
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.__feed = Event()
+
         if not settings.dev_mode:
             from RPi import GPIO
             GPIO.setmode(GPIO.BCM)
@@ -31,8 +38,9 @@ class Feeder(Model):
             self.__pwm.start(0)
 
     async def run_motor(self, duty, time):
+        """to test motor dutycycle and time"""
         if settings.dev_mode:
-            #simulate
+            # simulate
             await asyncio.sleep(time / 1000)
             return
 
@@ -40,14 +48,25 @@ class Feeder(Model):
         await asyncio.sleep(time / 1000)
         self.__pwm.ChangeDutyCycle(0)
 
-    async def feed(self):
+    async def __forward(self):
         print("Feeder: Feeding")
         await self.run_motor(self.feed_duty, self.feed_time)
 
-    async def reverse(self):
-        """usually run one time to try to solve a jam."""
+    async def __reverse(self):
         print("Feeder: Reversing")
         await self.run_motor(self.reverse_duty, self.reverse_time)
+
+    async def feed_task(self):
+        """will wait for feed requests and monitor the foodscale to see if it succeeded.
+        also handles retries and errorr"""
+        while True:
+            await self.__feed.wait()
+
+            self.__feed.clear()
+
+    def request_feed(self):
+        """request a feed cycle, if its not already running and if foodscale is considered empty"""
+        self.__feed.set()
 
 
 db.create_tables([Feeder])
