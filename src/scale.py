@@ -111,10 +111,13 @@ class Scale(Model):
         # A stable event will be followed by an unstable event and vice versa.
         self.event_stable=Event()
         self.event_unstable=Event()
+        self.stable=False
+
+        self.stable_reset()
 
     def __event_stable(self):
         """called once after scale has been stable according to specified stable_ parameters"""
-        print(f"Scale [{self.name}]: Stable averaged weight: {self.last_stable_weight:.0f}g")
+        print(f"Scale [{self.name}]: Stable: {self.last_stable_weight:0.2f}g")
         self.event_stable.set()
         self.event_stable.clear()
 
@@ -146,9 +149,11 @@ class Scale(Model):
         self.__measure_max = weight
         self.__measure_raw_sum = 0
         self.__measure_raw_sum_count = 0
-        if self.measure_countdown==0:
+        if self.stable:
             #WAS stable, so send unstable event
+            self.stable = False
             self.__event_unstable()
+
         self.measure_countdown = self.stable_measurements
 
     def measurement(self, raw_value: int):
@@ -189,6 +194,7 @@ class Scale(Model):
             if self.measure_countdown == 0:
                 average_weight = self.calibration.weight(self.__measure_raw_sum / self.__measure_raw_sum_count)
                 self.last_stable_weight = average_weight
+                self.stable=True
                 self.__event_stable()
 
         # do auto tarring:

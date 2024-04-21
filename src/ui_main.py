@@ -57,6 +57,7 @@ def main_page():
                 label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
                 label.classes("text-bold")
 
+    ui.button("feed", on_click=meowton.feeder.request)
 
     # cat_name=ui.label("cat")
     # def cat_detected(cat:DbCat):

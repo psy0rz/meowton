@@ -56,6 +56,7 @@ class Meowton:
 
         self.__tasks.add(asyncio.create_task(self.cat_detector.task(self.cat_scale)))
         self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale)))
+        self.__tasks.add(asyncio.create_task(self.feeder.task(self.food_scale)))
 
     def stop(self):
         self.food_reader.stop()
