@@ -27,7 +27,7 @@ class Feeder(Model):
     def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.__feed = Event()
+        self.__event_request = Event()
 
         if not settings.dev_mode:
             from RPi import GPIO
@@ -55,17 +55,18 @@ class Feeder(Model):
         print("Feeder: Reversing")
         await self.run_motor(self.reverse_duty, self.reverse_time)
 
-    async def feed_task(self):
+    async def task(self):
         """will wait for feed requests and monitor the foodscale to see if it succeeded.
         also handles retries and errorr"""
-        while True:
-            await self.__feed.wait()
+        while await self.__event_request.wait():
 
-            self.__feed.clear()
 
-    def request_feed(self):
+
+            self.__event_request.clear()
+
+    def request(self):
         """request a feed cycle, if its not already running and if foodscale is considered empty"""
-        self.__feed.set()
+        self.__event_request.set()
 
 
 db.create_tables([Feeder])
