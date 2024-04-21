@@ -100,13 +100,12 @@ class Feeder(Model):
             self.__event_request.clear()
 
             if food_detected():
-                print(f"Feeder: Food in scale: {food_scale.last_stable_weight:0.2f}g")
+                print(f"Feeder: Completed: {food_scale.last_stable_weight:0.2f}g")
             else:
                 await self.__reverse()
-                while not food_detected():
-                    print(f"Feeder: FOOD SILO EMPTY, REFILL AND DISPENSE MANUALLY")
-                    await food_scale.event_stable.wait()
-                print("Feeder: Silo refilled, resuming operation.")
+                print(f"Feeder: FOOD SILO EMPTY, REFILL AND TOUCH SCALE")
+                await food_scale.event_stable.wait()
+                print("Feeder: Scale touched, resuming operation.")
 
 
     def request(self):
