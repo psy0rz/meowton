@@ -21,7 +21,7 @@ class Feeder(Model):
 
     empty_weight = FloatField(default=1)
     retry_max = IntegerField(default=3)
-    retry_timeout = IntegerField(default=5)
+    retry_timeout = IntegerField(default=1000)
 
     class Meta:
         database = db
@@ -69,7 +69,7 @@ class Feeder(Model):
             if food_scale.stable:
                 print("Feeder: Waiting for food to land")
                 try:
-                    await asyncio.wait_for(food_scale.event_unstable.wait(), timeout=self.retry_timeout)
+                    await asyncio.wait_for(food_scale.event_unstable.wait(), timeout=self.retry_timeout/1000)
                     return True
                 except asyncio.TimeoutError:
                     print(f"Feeder: Timeout! (attempt {attempts})")
@@ -79,7 +79,7 @@ class Feeder(Model):
         while await self.__event_request.wait():
 
             attempts=0
-            while not food_detected() and attempts<self.retry_max:
+            while not food_detected() and attempts<=self.retry_max:
 
                 if not food_scale.stable:
                     print("Feeder: Waiting until scale is stable")
@@ -97,7 +97,10 @@ class Feeder(Model):
                 print(f"Feeder: Food in scale: {food_scale.last_stable_weight:0.2f}g")
             else:
                 await self.__reverse()
-                print(f"Feeder: FOOD SILO EMPTY?")
+                while not food_detected():
+                    print(f"Feeder: FOOD SILO EMPTY, REFILL AND DISPENSE MANUALLY")
+                    await food_scale.event_stable.wait()
+                print("Feeder: Silo refilled, resuming operation.")
 
             self.__event_request.clear()
 
