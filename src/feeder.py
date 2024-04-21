@@ -29,6 +29,7 @@ class Feeder(Model):
     def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.feeding=False
         self.__event_request = Event()
 
         if not settings.dev_mode:
@@ -78,6 +79,8 @@ class Feeder(Model):
         #detection loop. wait until someone requests food and the do our procedure
         while await self.__event_request.wait():
 
+            self.feeding=True
+
             attempts=0
             while not food_detected() and attempts<=self.retry_max:
 
@@ -93,6 +96,9 @@ class Feeder(Model):
 
                 attempts=attempts+1
 
+            self.feeding=False
+            self.__event_request.clear()
+
             if food_detected():
                 print(f"Feeder: Food in scale: {food_scale.last_stable_weight:0.2f}g")
             else:
@@ -102,7 +108,6 @@ class Feeder(Model):
                     await food_scale.event_stable.wait()
                 print("Feeder: Silo refilled, resuming operation.")
 
-            self.__event_request.clear()
 
     def request(self):
         """request a feed cycle, if its not already running and if foodscale is considered empty"""
