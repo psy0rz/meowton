@@ -35,7 +35,7 @@ class Meowton:
             self.food_scale = Scale.create(name=name, stable_range=0.1, stable_measurements=2)
 
         self.food_reader = SensorReader(name, 23, 24, sim, self.food_scale.measurement)
-        self.food_counter = FoodCounter(self.food_scale)
+        self.food_counter = FoodCounter()
 
     # cat scale stuff and default settings
     def init_cat(self, sim):
@@ -46,11 +46,14 @@ class Meowton:
             self.cat_scale = Scale.create(name=name, stable_range=50, stable_measurements=25)
 
         self.cat_reader = SensorReader(name, 27, 17, sim, self.cat_scale.measurement)
-        self.cat_detector = CatDetector(self.cat_scale)
+        self.cat_detector = CatDetector()
 
     def start(self):
         self.food_reader.start()
         self.cat_reader.start()
+
+        asyncio.create_task(self.cat_detector.task(self.cat_scale))
+        asyncio.create_task(self.food_counter.task(self.food_scale))
 
     def stop(self):
         self.food_reader.stop()

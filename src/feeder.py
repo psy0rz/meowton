@@ -5,7 +5,6 @@ from peewee import Model, IntegerField, FloatField
 
 import settings
 from db import db
-from scale import Scale
 
 SERVO_PIN = 18
 PWM_FREQ = 50

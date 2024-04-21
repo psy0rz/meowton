@@ -1,44 +1,33 @@
-from typing import TypeAlias, Callable, List
+from asyncio import Event
 
 from peewee import fn
 
 from db_cat import DbCat
-from db_cat_session import DbCatSession
 from scale import Scale
 
 MIN_WEIGHT = 100
 
-CatChangedCallable: TypeAlias = Callable[[DbCat], None]
 
 
 class CatDetector:
     """detects which cat is on the scale and generates events"""
 
-    __subscriptions: List[CatChangedCallable]
 
-    def __init__(self, scale: Scale):
+    def __init__(self):
 
-        scale.subscribe_stable(self.__scale_stable)
-        scale.subscribe_unstable(self.__scale_unstable)
+        self.cat: DbCat | None = None
 
-        self.current_cat: DbCat | None = None
-        self.__current_id: int | None = None
-        self.__subscriptions  = []
+        self.event_changed = Event()
 
-    def __event_changed(self, cat: DbCat):
+    def __event_changed(self):
         """called when a different cat is detected (or None)"""
-        if cat is not None:
-            print(f"CatDetector: cat changed to {cat.name}")
+        if self.cat is not None:
+            print(f"CatDetector: cat changed to {self.cat.name}")
         else:
             print(f"CatDetector: cat left")
 
-        for cb in self.__subscriptions:
-            cb(cat)
-
-    def subscribe(self, cb: CatChangedCallable):
-        """callback is called when a different cat is detected"""
-        self.__subscriptions.append(cb)
-        pass
+        self.event_changed.set()
+        self.event_changed.clear()
 
     def __find_closest_weight(self, target_weight):
 
@@ -50,20 +39,18 @@ class CatDetector:
                  .limit(1))
         return query.first()
 
-    def __scale_stable(self, weight: float):
-        cat: DbCat = self.__find_closest_weight(weight)
+    async def task(self, scale: Scale):
+        current_id = None
+        while await scale.event_stable.wait():
+            weight = scale.last_stable_weight
+            cat: DbCat = self.__find_closest_weight(weight)
 
-        if cat is None:
-            id=None
-        else:
-            id=cat.id
-            DbCatSession(cat=cat).save()
+            if cat is None:
+                id = None
+            else:
+                id = cat.id
 
-        if self.__current_id != id:
-            self.__current_id=id
-            self.current_cat = cat
-            self.__event_changed(cat)
-
-
-    def __scale_unstable(self):
-        pass
+            if current_id != id:
+                current_id = id
+                self.cat = cat
+                self.__event_changed()

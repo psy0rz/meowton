@@ -1,11 +1,14 @@
-from peewee import Model, CharField, FloatField, IntegerField
-from db import db
-from typing import Callable, TypeAlias, List
+from asyncio import Event
 
+from peewee import Model, CharField, FloatField, IntegerField
+
+from db import db
 from scale_sensor_calibration import ScaleSensorCalibration
 from sensor_filter import SensorFilter
 
 """
+
+
 (weight)    *
              *
             __*__________________________
@@ -24,11 +27,10 @@ from sensor_filter import SensorFilter
 
                    (measurement nr)
 
+
+
 """
 
-StableCallable: TypeAlias = Callable[[float], None]
-RealtimeCallable: TypeAlias = Callable[[float], None]
-UnstableCallable: TypeAlias = Callable[[], None]
 
 
 class Scale(Model):
@@ -57,14 +59,36 @@ class Scale(Model):
     sensor_filter: SensorFilter
 
     def __init__(self, *args, **kwargs):
+        """
+        Initializes an instance of the class.
 
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            None
+
+        Attributes:
+            sensor_filter (SensorFilter): The sensor filter associated with the instance.
+            calibration (ScaleSensorCalibration): The calibration associated with the instance.
+            last_stable_weight (float): The last stable weight recorded by the instance.
+            last_realtime_weight (float): The last real-time weight recorded by the instance.
+            last_realtime_raw_value (float): The last real-time raw value recorded by the instance.
+            __measure_min (float): The minimum measurement value used for averaging and event generation.
+            __measure_max (float): The maximum measurement value used for averaging and event generation.
+            __measure_count (int): The count of measurements used for averaging and event generation.
+            __measure_raw_sum (float): The sum of raw measurements used for averaging and event generation.
+            __measure_raw_sum_count (int): The count of raw measurements used for averaging and event generation.
+            measure_countdown (int): The count down to stabilization.
+            measure_spread (int): The spread of measurements.
+            stable_event (Event): An event triggered when the measurement stabilizes.
+            unstable_event (Event): An event triggered when the measurement becomes unstable.
+        """
         super().__init__(*args, **kwargs)
         self.sensor_filter = SensorFilter.get_or_create(name=self.name)[0]
         self.calibration = ScaleSensorCalibration.get_or_create(name=self.name)[0]
 
-        self.__stable_subscriptions: List[StableCallable] = []
-        self.__unstable_subscriptions: List[UnstableCallable] = []
-        self.__realtime_subscriptions: List[RealtimeCallable] = []
 
         # may also be used as API to get lastet weights/status:
         self.last_stable_weight = 0
@@ -82,35 +106,30 @@ class Scale(Model):
         self.measure_countdown = 0
         self.measure_spread = 0
 
-    def __event_stable(self, weight: float):
-        """called once after scale has been stable according to specified stable_ parameters"""
-        print(f"Scale [{self.name}]: Stable averaged weight: {weight:.0f}g")
-        for cb in self.__stable_subscriptions:
-            cb(weight)
 
-    def __event_realtime(self, weight: float):
-        """called on every measurement with actual value (non averaged)"""
-        # print(f"{self.name}: Realtime: {weight:.2f}g (last stable {self.last_stable_weight:.2f})")
-        for cb in self.__realtime_subscriptions:
-            cb(weight)
+        # The system is always changing between stable and unstable.
+        # A stable event will be followed by an unstable event and vice versa.
+        self.event_stable=Event()
+        self.event_unstable=Event()
+
+    def __event_stable(self):
+        """called once after scale has been stable according to specified stable_ parameters"""
+        print(f"Scale [{self.name}]: Stable averaged weight: {self.last_stable_weight:.0f}g")
+        self.event_stable.set()
+        self.event_stable.clear()
+
+    # def __event_realtime(self, weight: float):
+    #     """called on every measurement with actual value (non averaged)"""
+    #     # print(f"{self.name}: Realtime: {weight:.2f}g (last stable {self.last_stable_weight:.2f})")
+    #     for cb in self.__realtime_subscriptions:
+    #         cb(weight)
 
     def __event_unstable(self):
         """called once when scale leaves stable measurement"""
         print(f"Scale [{self.name}]: Unstable")
-        for cb in self.__unstable_subscriptions:
-            cb()
+        self.event_unstable.set()
+        self.event_unstable.clear()
 
-    def subscribe_stable(self, cb: StableCallable):
-        self.__stable_subscriptions.append(cb)
-        pass
-
-    def subscribe_realtime(self, cb: RealtimeCallable):
-        self.__realtime_subscriptions.append(cb)
-        pass
-
-    def subscribe_unstable(self, cb: UnstableCallable):
-        self.__unstable_subscriptions.append(cb)
-        pass
 
     def tarre(self):
         """tarre away current raw value"""
@@ -144,7 +163,6 @@ class Scale(Model):
 
         self.last_realtime_weight = weight
         self.last_realtime_raw_value = raw_value
-        self.__event_realtime(weight)
 
         # store stability statistics
         if self.__measure_min is None or weight < self.__measure_min:
@@ -171,7 +189,7 @@ class Scale(Model):
             if self.measure_countdown == 0:
                 average_weight = self.calibration.weight(self.__measure_raw_sum / self.__measure_raw_sum_count)
                 self.last_stable_weight = average_weight
-                self.__event_stable(average_weight)
+                self.__event_stable()
 
         # do auto tarring:
         if self.__measure_raw_sum_count > self.stable_auto_tarre_count and abs(weight) < self.stable_auto_tarre_max:
