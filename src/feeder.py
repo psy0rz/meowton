@@ -30,6 +30,7 @@ class Feeder(Model):
             self.__pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
             self.__pwm.start(0)
 
+
     async def run_motor(self, duty, time):
         if settings.dev_mode:
             return
@@ -37,6 +38,16 @@ class Feeder(Model):
         self.__pwm.ChangeDutyCycle(duty)
         await asyncio.sleep(time / 1000)
         self.__pwm.ChangeDutyCycle(0)
+
+
+    async def feed(self):
+        print("Feeder: Feeding")
+        await self.run_motor(self.feed_duty, self.feed_time)
+
+    async def reverse(self):
+        """usually run one time to try to solve a jam."""
+        print("Feeder: Reversing")
+        await self.run_motor(self.reverse_duty, self.reverse_time)
 
 
 db.create_tables([Feeder])

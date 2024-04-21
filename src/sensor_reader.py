@@ -67,6 +67,7 @@ class SensorReader:
 
         self.__stop_event.clear()
 
+        #NOTE: via seperate async run_in_executor will be slower/more overhead
         if self.__sim:
             self.__thread = threading.Thread(target=self.simulator_thread)
         else:
