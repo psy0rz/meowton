@@ -72,7 +72,7 @@ class Feeder(Model):
                     await asyncio.wait_for(food_scale.event_unstable.wait(), timeout=self.retry_timeout)
                     return True
                 except asyncio.TimeoutError:
-                    print("Feeder: Timeout while waiting for food to land!")
+                    print(f"Feeder: Timeout! (attempt {attempts})")
                     return False
 
         #detection loop. wait until someone requests food and the do our procedure
@@ -96,7 +96,8 @@ class Feeder(Model):
             if food_detected():
                 print(f"Feeder: Food in scale: {food_scale.last_stable_weight:0.2f}g")
             else:
-                print(f"Feeder: Failed, food silo empty?")
+                await self.__reverse()
+                print(f"Feeder: FOOD SILO EMPTY?")
 
             self.__event_request.clear()
 
