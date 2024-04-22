@@ -93,15 +93,17 @@ class Feeder(Model):
                     self.__log(Status.BUSY, "Timeout", f"Timeout! (attempt {attempts})")
                     return False
 
-        # detection loop. wait until someone requests food and the do our procedure
+        # wait for feed request
         while await self.__event_request.wait():
 
             self.feeding = True
 
+            #wait until scale is in valid range
             while food_scale.last_stable_weight < ERROR_WEIGHT_BELOW or food_scale.last_stable_weight > ERROR_WEIGHT_ABOVE:
                 self.__log(Status.ERROR, "Out of range", "Error, scale out of range!")
                 await food_scale.event_stable.wait()
 
+            #attempt a few times to get food in the scale
             attempts = 0
             while not food_detected() and attempts <= self.retry_max:
 
@@ -122,6 +124,7 @@ class Feeder(Model):
             self.feeding = False
             self.__event_request.clear()
 
+            #succeeded or food silo empty?
             if food_detected():
                 self.__log(Status.OK, "Ready", f"Ready: {food_scale.last_stable_weight:0.2f}g")
             else:
