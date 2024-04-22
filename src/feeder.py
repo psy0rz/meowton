@@ -13,6 +13,9 @@ PWM_FREQ = 50
 SERVO_MAX = 8
 SERVO_MIN = 5
 
+ERROR_WEIGHT_BELOW = -1
+ERROR_WEIGHT_ABOVE =50
+
 from enum import Enum
 
 
@@ -95,12 +98,17 @@ class Feeder(Model):
 
             self.feeding = True
 
+            while food_scale.last_stable_weight < ERROR_WEIGHT_BELOW or food_scale.last_stable_weight > ERROR_WEIGHT_ABOVE:
+                self.__log(Status.ERROR, "Out of range", "Error, scale out of range!")
+                await food_scale.event_stable.wait()
+
             attempts = 0
             while not food_detected() and attempts <= self.retry_max:
 
                 if not food_scale.stable:
                     self.__log(Status.BUSY, "Waiting", f"Waiting until scale is stable")
                     await food_scale.event_stable.wait()
+
 
                 self.__log(Status.BUSY, "Feeding", f"Feeding")
                 await self.__forward()
