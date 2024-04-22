@@ -2,6 +2,7 @@ import settings
 import ui_page_calibrate
 import ui_page_cats
 import ui_page_feeder
+from feeder import Status
 from meowton import meowton
 from ui_common import footer
 
@@ -35,7 +36,6 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
 
 
 def main_page():
-
     with ui.row():
         with (ui.card()):
             ui.label("Scale").classes("text-primary text-bold")
@@ -56,6 +56,15 @@ def main_page():
                 label = ui.label()
                 label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
                 label.classes("text-bold")
+            with ui.row():
+                status_ok = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-positive text-h6")
+                status_ok.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v==Status.OK)
+
+                status_busy = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-warning text-h6")
+                status_busy.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v==Status.BUSY)
+
+                status_error = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-negative text-h6")
+                status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v==Status.ERROR)
 
     ui.button("feed", on_click=meowton.feeder.request)
 
@@ -73,6 +82,7 @@ def main_page():
 main_header()
 main_page()
 footer()
+
 
 # with ui.timeline(side='right'):
 #     with ui.timeline_entry(
@@ -110,8 +120,6 @@ footer()
 
 
 def run(startup_cb, shutdown_cb):
-
     nicegui.app.on_startup(startup_cb)
     nicegui.app.on_shutdown(shutdown_cb)
     ui.run(reload=settings.dev_mode, show=False)
-

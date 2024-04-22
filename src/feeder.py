@@ -13,6 +13,15 @@ PWM_FREQ = 50
 SERVO_MAX = 8
 SERVO_MIN = 5
 
+from enum import Enum
+
+
+class Status(Enum):
+    OK = 1
+    BUSY = 2
+    ERROR = 3
+
+
 class Feeder(Model):
     feed_duty = FloatField(default=8)
     feed_time = IntegerField(default=250)
@@ -26,11 +35,14 @@ class Feeder(Model):
     class Meta:
         database = db
 
-    def __init__(self,  *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.feeding=False
+        self.feeding = False
         self.__event_request = Event()
+
+        self.status_msg = "Ready"
+        self.status: Status = Status.OK
 
         if not settings.dev_mode:
             from RPi import GPIO
@@ -50,13 +62,15 @@ class Feeder(Model):
         self.__pwm.ChangeDutyCycle(0)
 
     async def __forward(self):
-        print("Feeder: Feeding...")
         await self.run_motor(self.feed_duty, self.feed_time)
 
     async def __reverse(self):
-        print("Feeder: Reversing...")
         await self.run_motor(self.reverse_duty, self.reverse_time)
 
+    def __log(self, status: Status, msg: str, log:str):
+        self.status = status
+        self.status_msg = msg
+        print(f"Feeder: {log}")
 
     async def task(self, food_scale: Scale):
         """will wait for feed requests and monitor the foodscale to see if it succeeded.
@@ -68,45 +82,45 @@ class Feeder(Model):
         async def food_landed():
             """scale should become unstable when the food lands"""
             if food_scale.stable:
-                print("Feeder: Waiting for food to land")
+                self.__log(Status.BUSY,"Waiting", "Waiting for food to land.")
                 try:
-                    await asyncio.wait_for(food_scale.event_unstable.wait(), timeout=self.retry_timeout/1000)
+                    await asyncio.wait_for(food_scale.event_unstable.wait(), timeout=self.retry_timeout / 1000)
                     return True
                 except asyncio.TimeoutError:
-                    print(f"Feeder: Timeout! (attempt {attempts})")
+                    self.__log(Status.BUSY, "Timeout", f"Timeout! (attempt {attempts})")
                     return False
 
-        #detection loop. wait until someone requests food and the do our procedure
+        # detection loop. wait until someone requests food and the do our procedure
         while await self.__event_request.wait():
 
-            self.feeding=True
+            self.feeding = True
 
-            attempts=0
-            while not food_detected() and attempts<=self.retry_max:
+            attempts = 0
+            while not food_detected() and attempts <= self.retry_max:
 
                 if not food_scale.stable:
-                    print("Feeder: Waiting until scale is stable")
+                    self.__log(Status.BUSY, "Waiting", f"Waiting until scale is stable")
                     await food_scale.event_stable.wait()
 
+                self.__log(Status.BUSY, "Feeding", f"Feeding")
                 await self.__forward()
 
                 if await food_landed():
-                    print("Feeder: Measuring food")
+                    self.__log(Status.BUSY, "Weighing", f"Weighing food")
                     await food_scale.event_stable.wait()
 
-                attempts=attempts+1
+                attempts = attempts + 1
 
-            self.feeding=False
+            self.feeding = False
             self.__event_request.clear()
 
             if food_detected():
-                print(f"Feeder: Completed: {food_scale.last_stable_weight:0.2f}g")
+                self.__log(Status.OK, "Ready", f"Ready: {food_scale.last_stable_weight:0.2f}g")
             else:
                 await self.__reverse()
-                print(f"Feeder: FOOD SILO EMPTY, REFILL AND TOUCH SCALE")
+                self.__log(Status.ERROR, "Refill!", f"PLEASE REFILL AND TOUCH SCALE")
                 await food_scale.event_stable.wait()
-                print("Feeder: Scale touched, resuming operation.")
-
+                self.__log(Status.OK, "Ready", f"Resuming operation")
 
     def request(self):
         """request a feed cycle, if its not already running and if foodscale is considered empty"""
