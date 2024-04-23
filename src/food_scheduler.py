@@ -1,7 +1,8 @@
 import asyncio
+import enum
 from datetime import datetime
 
-from peewee import Model, CharField, BooleanField
+from peewee import Model, CharField, BooleanField, IntegerField
 import re
 
 from db import db
@@ -15,15 +16,17 @@ def hours_to_list(hours):
     return [int(hour) for hour in list_hours if hour.isdigit()]
 
 
+class ScheduleMode(enum.Enum):
+    UNLIMITED = 0
+    SCHEDULED = 1
+    ALL_QUOTA = 2  # all cats have quota
+    CAT_QUOTA = 3  # cat on scale has quota
+    DISABLED = 4  # never feed automaticly
+
+
 class FoodScheduler(Model):
-    # always ensure full bowl regardless of schedule or quotas
-    feed_unlimited = BooleanField(default=True)
 
-    # dispense food at scheduled times, regardless of quota
-    feed_on_schedule = BooleanField(default=False)
-
-    # displense food as soon as all cats have quota
-    feed_when_quota = BooleanField(default=False)
+    mode = IntegerField(default=ScheduleMode.UNLIMITED.value)
 
     # times when to add to quota
     hours = CharField(default="9,13,17,21,1")
@@ -35,7 +38,7 @@ class FoodScheduler(Model):
 
         super().__init__(*args, **kwargs)
 
-        self.prev_hour=datetime.now().hour
+        self.prev_hour = datetime.now().hour
 
     def update_quotas(self):
         """updates food quotas of all the cats"""
@@ -43,7 +46,7 @@ class FoodScheduler(Model):
         for cat in DbCat.select():
             cat.update_quota()
 
-    def check_schedule(self, feeder:Feeder):
+    def check_schedule(self, feeder: Feeder):
         """check hourly schedule"""
 
         hour = datetime.now().hour
@@ -51,24 +54,26 @@ class FoodScheduler(Model):
             self.prev_hour = hour
             if hour in hours_to_list(self.hours):
                 print(f"FoodScheduler: Doing scheduled stuff of hour {hour}")
-                if self.feed_on_schedule:
+                if self.mode==ScheduleMode.SCHEDULED:
                     feeder.request()
 
     async def task(self, feeder: Feeder, food_scale: Scale):
 
-        prev_hour=None
+        prev_hour = None
 
         while True:
 
             self.check_schedule(feeder)
 
-            if self.feed_unlimited:
+            if self.mode==ScheduleMode.UNLIMITED:
                 if food_scale.stable:
                     feeder.request()
 
                 print("FoodScheduler: Unlimited, waiting for foodscale change..")
                 await food_scale.event_stable.wait()
                 continue
+
+            # if self.feed_when_quota:
 
             await asyncio.sleep(1)
 
