@@ -85,7 +85,7 @@ class Feeder(Model):
         async def food_landed():
             """scale should become unstable when the food lands"""
             if food_scale.stable:
-                self.__log(Status.BUSY,"Waiting", "Waiting for food to land.")
+                self.__log(Status.BUSY,"Dropping", "Waiting for food to land.")
                 try:
                     await asyncio.wait_for(food_scale.event_unstable.wait(), timeout=self.retry_timeout / 1000)
                     return True
