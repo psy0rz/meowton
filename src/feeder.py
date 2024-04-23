@@ -26,6 +26,8 @@ class Status(Enum):
 
 
 class Feeder(Model):
+    """operate the feeder servo and monitor if the food correctly dropped on the food_scale """
+
     feed_duty = FloatField(default=8)
     feed_time = IntegerField(default=250)
     reverse_duty = FloatField(default=6)

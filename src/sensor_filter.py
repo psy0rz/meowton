@@ -3,7 +3,7 @@ from db import db
 
 
 class SensorFilter(Model):
-    """filter sudden spikes due to measurement errors"""
+    """input filter that filters sudden spikes in the input data due to measurement errors"""
     name = CharField(primary_key=True)
     filter_diff = IntegerField(default=1000)
 

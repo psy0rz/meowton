@@ -6,6 +6,7 @@ IGNORE_REMOVED_ABOVE = 1
 
 
 class FoodCounter:
+    """count the amount of food that is eaten from the scale, since last reset()"""
     def __init__(self):
         self.ate = 0
 

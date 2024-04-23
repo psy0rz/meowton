@@ -11,6 +11,7 @@ from sensor_reader import SensorReader
 #NOTE: my catfood weigh aprox 0.33g per piece
 
 class Meowton:
+    """main class that instantiates the other classes and tasks"""
     food_reader: SensorReader
     food_scale: Scale
     food_counter: FoodCounter
@@ -64,10 +65,12 @@ class Meowton:
         self.cat_reader.stop()
 
     async def task(self):
+        pass
+        #
 
-        while True:
-
-
-            await self.cat_detector.event_changed()
+        # while True:
+        #
+        #
+        #     await self.cat_detector.event_changed()
 
 meowton = Meowton(settings.dev_mode)

@@ -9,6 +9,7 @@ MOVING_AVG_FACTOR = 0.01
 
 
 class DbCat(Model):
+    """a cat and its weight and food quota"""
     name = CharField()
     weight = FloatField(default=0)
     feed_daily = IntegerField(default=0)

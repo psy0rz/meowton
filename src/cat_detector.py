@@ -12,7 +12,6 @@ MIN_WEIGHT = 100
 class CatDetector:
     """detects which cat is on the scale and generates events"""
 
-
     def __init__(self):
 
         self.cat: DbCat | None = None
@@ -41,7 +40,10 @@ class CatDetector:
 
     async def task(self, scale: Scale):
         current_id = None
+
+        # wait for the cat scale to change
         while await scale.event_stable.wait():
+
             weight = scale.last_stable_weight
             cat: DbCat = self.__find_closest_weight(weight)
 

@@ -34,7 +34,7 @@ from sensor_filter import SensorFilter
 
 
 class Scale(Model):
-    """to calculate weights from raw data and do stuff like auto tarring and averaging"""
+    """scale class that does intput filtering, averaging and generates weigh-events"""
 
     ### settings that are stored in db
     name = CharField(primary_key=True)
