@@ -26,7 +26,7 @@ class FoodScheduler(Model):
     feed_when_quota = BooleanField(default=False)
 
     # times when to add to quota
-    hours = CharField(default="9, 13, 17, 21, 1")
+    hours = CharField(default="9,13,17,21,1")
 
     class Meta:
         database = db
