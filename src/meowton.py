@@ -5,6 +5,7 @@ import settings
 from cat_detector import CatDetector
 from feeder import Feeder
 from food_counter import FoodCounter
+from food_scheduler import FoodScheduler
 from scale import Scale
 from sensor_reader import SensorReader
 
@@ -15,6 +16,7 @@ class Meowton:
     food_reader: SensorReader
     food_scale: Scale
     food_counter: FoodCounter
+    food_scheduler: FoodScheduler
 
     cat_reader: SensorReader
     cat_scale: Scale
@@ -40,6 +42,11 @@ class Meowton:
         self.food_reader = SensorReader(name, 23, 24, sim, self.food_scale.measurement)
         self.food_counter = FoodCounter()
 
+
+        self.food_scheduler = FoodScheduler.get_or_none(id=1)
+        if self.food_scheduler is None:
+            self.food_scheduler = FoodScheduler.create()
+
     # cat scale stuff and default settings
     def init_cat(self, sim):
         name = 'cat'
@@ -58,6 +65,7 @@ class Meowton:
         self.__tasks.add(asyncio.create_task(self.cat_detector.task(self.cat_scale)))
         self.__tasks.add(asyncio.create_task(self.feeder.task(self.food_scale)))
         self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder)))
+        self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder, self.food_scale)))
         self.__tasks.add(asyncio.create_task(self.task()))
 
     def stop(self):

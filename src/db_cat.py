@@ -1,6 +1,6 @@
 import time
 
-from peewee import Model, CharField, IntegerField, FloatField
+from peewee import Model, CharField, IntegerField, FloatField, TimestampField
 
 import settings
 from db import db
@@ -15,48 +15,33 @@ class DbCat(Model):
     feed_daily = IntegerField(default=0)
 
     feed_quota = IntegerField(default=0)
-    feed_quota_last_hour = IntegerField(default=0)
+    feed_quota_last_update = TimestampField(default=0)
+
     # feed_quota_max = IntegerField(default=0)
     # feed_quota_min = IntegerField(default=0)
 
     class Meta:
         database = db
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def add_quota(self):
-        """
-        Increments the food quota for the current hour based on the set feeding times and the daily quota.
+    def update_quota(self):
+        """update the quota according to daily quota and last update time"""
 
-        Parameters:
-        None
+        diff = time.time() - self.feed_quota_last_update
 
-        Returns:
-        None
+        # update food quota
+        quota_add = (self.feed_daily / 24 * 60 * 60) * diff
 
-        Example Usage:
-        add_quota()
-        """
+        if (quota_add > 0):
+            self.feed_quota.value = self.feed_quota.value + quota_add
 
-        (year, month, mday, hour, minute, second, weekday, yearday) = time.localtime()
+            if self.feed_quota > self.feed_daily:
+                self.feed_quota = self.feed_daily
 
-        # hour changed?
-        if self.feed_quota_last_hour.value != hour:
-
-            self.feed_quota_last_hour.value = hour
-
-            # feeding time?
-            if hour in settings.feed_times:
-
-                # update food quota
-                quota_add = self.feed_daily / len(settings.feed_times)
-
-                self.feed_quota.value = self.feed_quota.value + quota_add
-
-                if self.feed_quota > self.feed_daily:
-                    self.feed_quota = self.feed_daily
+        self.feed_quota_last_update = time.time()
+        self.save()
 
     def quota_time(self):
         """
@@ -82,6 +67,11 @@ class DbCat(Model):
         if self.feed_quota < -self.feed_daily:
             self.feed_quota = -self.feed_daily
 
+        if self.feed_quota > self.feed_daily:
+            self.feed_quota = self.feed_daily
+
+        self.save()
+
     def update_weight(self, weight):
         """
         Update the weight value with moving average factor.
@@ -93,9 +83,12 @@ class DbCat(Model):
         None
 
         """
-        self.weight = self.weight * (1 - MOVING_AVG_FACTOR) + weight * (MOVING_AVG_FACTOR)
 
-
+        if self.weight == 0:
+            self.weight = weight
+        else:
+            self.weight = self.weight * (1 - MOVING_AVG_FACTOR) + weight * (MOVING_AVG_FACTOR)
+        self.save()
 
 
 db.create_tables([DbCat])

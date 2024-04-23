@@ -2,6 +2,7 @@ import settings
 import ui_page_calibrate
 import ui_page_cats
 import ui_page_feeder
+import ui_page_schedule
 from feeder import Status
 from meowton import meowton
 from ui_common import footer
@@ -24,13 +25,19 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
         with ui.item(on_click=lambda: ui.navigate.to(ui_page_cats.overview_page)):
             with ui.item_section():
                 ui.item_label('My cats')
-        with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_cat_page)):
+        with ui.item(on_click=lambda: ui.navigate.to(ui_page_schedule.overview_page)):
+            with ui.item_section():
+                ui.item_label('Feeding schedule')
+
+        ui.item_label('Configuration:').props("header")
+        ui.separator()
+        with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_cat_page)).props("inset-level=1"):
             with ui.item_section():
                 ui.item_label('Cat scale')
-        with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_food_page)):
+        with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_food_page)).props("inset-level=1"):
             with ui.item_section():
                 ui.item_label('Food scale')
-        with ui.item(on_click=lambda: ui.navigate.to(ui_page_feeder.feeder_page)):
+        with ui.item(on_click=lambda: ui.navigate.to(ui_page_feeder.feeder_page)).props("inset-level=1"):
             with ui.item_section():
                 ui.item_label('Feeder')
 
