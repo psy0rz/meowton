@@ -40,6 +40,8 @@ def overview_page():
             case ScheduleMode.DISABLED.value:
                 description.set_text("Never feed automaticly.")
 
+
+    ui.label("Feeding mode:")
     mode = ui.toggle(
         {
             ScheduleMode.UNLIMITED.value: "Unlimited",
@@ -47,7 +49,7 @@ def overview_page():
             ScheduleMode.ALL_QUOTA.value: "All",
             ScheduleMode.CAT_QUOTA.value: "Single",
             ScheduleMode.DISABLED.value: "Disabled"
-        }, value=meowton.food_scheduler.mode, on_change=changed)
+        }, value=meowton.food_scheduler.mode, on_change=changed).props("dense no-caps")
     description = ui.label("")
     changed()
 
