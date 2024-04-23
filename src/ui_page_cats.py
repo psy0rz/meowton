@@ -32,7 +32,7 @@ def cat_card(cat: DbCat):
             ui.input(label="Name").bind_value(cat, 'name')
             ui.number(label="Weight (g)").bind_value(cat, 'weight')
             ui.number(label="Daily quota", min=0, precision=0).bind_value(cat, 'feed_daily')
-            ui.number(label="Current quota", precision=1).bind_value(cat, 'feed_quota')
+            ui.number(label="Current quota", precision=3).bind_value(cat, 'feed_quota')
 
         with ui.card_actions():
             if cat.id is None:

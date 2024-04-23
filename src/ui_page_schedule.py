@@ -38,7 +38,7 @@ def overview_page():
         feed_when_quota.bind_enabled_from(feed_unlimited, 'value', backward=lambda v: not v)
         ui.label("Dispense a portion as soon as all cats have quota.").classes("text-grey")
 
-
+    ui.separator()
     ui.label("Schedule:")
     hours=hours_to_list(meowton.food_scheduler.hours)
     hour_checkboxes=[]

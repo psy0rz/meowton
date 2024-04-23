@@ -14,7 +14,7 @@ class DbCat(Model):
     weight = FloatField(default=0)
     feed_daily = IntegerField(default=0)
 
-    feed_quota = IntegerField(default=0)
+    feed_quota = FloatField(default=0)
     feed_quota_last_update = TimestampField(default=0)
 
     # feed_quota_max = IntegerField(default=0)
