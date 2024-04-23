@@ -33,10 +33,11 @@ class FoodScheduler(Model):
         while True:
 
             if self.feed_unlimited:
+                if food_scale.stable:
+                    feeder.request()
+
                 print("FoodScheduler: Unlimited, waiting for foodscale change..")
                 await food_scale.event_stable.wait()
-                print("FoodScheduler: req")
-                feeder.request()
                 continue
 
             await asyncio.sleep(1)
