@@ -1,9 +1,11 @@
 import asyncio
+from datetime import datetime
 
 from peewee import Model, CharField, BooleanField
 import re
 
 from db import db
+from db_cat import DbCat
 from feeder import Feeder
 from scale import Scale
 
@@ -29,8 +31,36 @@ class FoodScheduler(Model):
     class Meta:
         database = db
 
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.prev_hour=datetime.now().hour
+
+    def update_quotas(self):
+        """updates food quotas of all the cats"""
+
+        for cat in DbCat.select():
+            cat.update_quota()
+
+    def check_schedule(self, feeder:Feeder):
+        """check hourly schedule"""
+
+        hour = datetime.now().hour
+        if hour != self.prev_hour:
+            self.prev_hour = hour
+            if hour in hours_to_list(self.hours):
+                print(f"FoodScheduler: Doing scheduled stuff of hour {hour}")
+                if self.feed_on_schedule:
+                    feeder.request()
+
     async def task(self, feeder: Feeder, food_scale: Scale):
+
+        prev_hour=None
+
         while True:
+
+            self.check_schedule(feeder)
 
             if self.feed_unlimited:
                 if food_scale.stable:
