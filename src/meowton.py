@@ -1,6 +1,5 @@
 import asyncio
 
-
 import settings
 from cat_detector import CatDetector
 from feeder import Feeder
@@ -9,7 +8,8 @@ from food_scheduler import FoodScheduler
 from scale import Scale
 from sensor_reader import SensorReader
 
-#NOTE: my catfood weigh aprox 0.33g per piece
+
+# NOTE: my catfood weigh aprox 0.33g per piece
 
 class Meowton:
     """main class that instantiates the other classes and tasks"""
@@ -17,6 +17,7 @@ class Meowton:
     food_scale: Scale
     food_counter: FoodCounter
     food_scheduler: FoodScheduler
+    feeder: Feeder
 
     cat_reader: SensorReader
     cat_scale: Scale
@@ -27,9 +28,7 @@ class Meowton:
         self.init_food(sim)
         self.init_cat(sim)
 
-        self.feeder= Feeder.get_or_create(id=1)[0]
-
-        self.__tasks=set()
+        self.__tasks = set()
 
     # food scale stuff and default settings
     def init_food(self, sim):
@@ -42,10 +41,12 @@ class Meowton:
         self.food_reader = SensorReader(name, 23, 24, sim, self.food_scale.measurement)
         self.food_counter = FoodCounter()
 
-
         self.food_scheduler = FoodScheduler.get_or_none(id=1)
         if self.food_scheduler is None:
             self.food_scheduler = FoodScheduler.create()
+
+        self.feeder = Feeder.get_or_create(id=1)[0]
+        self.feeder.init(self.food_scale)
 
     # cat scale stuff and default settings
     def init_cat(self, sim):
@@ -63,9 +64,9 @@ class Meowton:
         self.cat_reader.start()
 
         self.__tasks.add(asyncio.create_task(self.cat_detector.task(self.cat_scale)))
-        self.__tasks.add(asyncio.create_task(self.feeder.task(self.food_scale)))
+        self.__tasks.add(asyncio.create_task(self.feeder.task()))
         self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder)))
-        self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder, self.food_scale)))
+        self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder)))
         self.__tasks.add(asyncio.create_task(self.task()))
 
     def stop(self):
@@ -80,5 +81,6 @@ class Meowton:
         #
         #
         #     await self.cat_detector.event_changed()
+
 
 meowton = Meowton(settings.dev_mode)

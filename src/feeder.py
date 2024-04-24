@@ -37,10 +37,12 @@ class Feeder(Model):
     retry_max = IntegerField(default=3)
     retry_timeout = IntegerField(default=1000)
 
+    __food_scale: Scale
+
     class Meta:
         database = db
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self,*args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.feeding = False
@@ -55,6 +57,10 @@ class Feeder(Model):
             GPIO.setup(SERVO_PIN, GPIO.OUT)
             self.__pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
             self.__pwm.start(0)
+
+    def init(self, food_scale:Scale):
+        self.__food_scale=food_scale
+
 
     async def run_motor(self, duty, time):
         if settings.dev_mode:
@@ -77,19 +83,20 @@ class Feeder(Model):
         self.status_msg = msg
         print(f"Feeder: {log}")
 
-    async def task(self, food_scale: Scale):
+    def food_detected(self):
+        return self.__food_scale.last_stable_weight > self.empty_weight
+
+    async def task(self):
         """will wait for feed requests and monitor the foodscale to see if it succeeded.
         also handles retries and errorr"""
 
-        def food_detected():
-            return food_scale.last_stable_weight > self.empty_weight
 
         async def food_landed():
             """scale should become unstable when the food lands"""
-            if food_scale.stable:
+            if self.__food_scale.stable:
                 self.__log(Status.BUSY,"Dropping", "Waiting for food to land.")
                 try:
-                    await asyncio.wait_for(food_scale.event_unstable.wait(), timeout=self.retry_timeout / 1000)
+                    await asyncio.wait_for(self.__food_scale.event_unstable.wait(), timeout=self.retry_timeout / 1000)
                     return True
                 except asyncio.TimeoutError:
                     self.__log(Status.BUSY, "Timeout", f"Timeout! (attempt {attempts})")
@@ -101,17 +108,17 @@ class Feeder(Model):
             self.feeding = True
 
             #wait until scale is in valid range
-            while food_scale.last_stable_weight < ERROR_WEIGHT_BELOW or food_scale.last_stable_weight > ERROR_WEIGHT_ABOVE:
+            while self.__food_scale.last_stable_weight < ERROR_WEIGHT_BELOW or self.__food_scale.last_stable_weight > ERROR_WEIGHT_ABOVE:
                 self.__log(Status.ERROR, "Out of range", "Error, scale out of range!")
-                await food_scale.event_stable.wait()
+                await self.__food_scale.event_stable.wait()
 
             #attempt a few times to get food in the scale
             attempts = 0
-            while not food_detected() and attempts <= self.retry_max:
+            while not self.food_detected() and attempts <= self.retry_max:
 
-                if not food_scale.stable:
+                if not self.__food_scale.stable:
                     self.__log(Status.BUSY, "Waiting", f"Waiting until scale is stable")
-                    await food_scale.event_stable.wait()
+                    await self.__food_scale.event_stable.wait()
 
 
                 self.__log(Status.BUSY, "Feeding", f"Feeding")
@@ -119,7 +126,7 @@ class Feeder(Model):
 
                 if await food_landed():
                     self.__log(Status.BUSY, "Weighing", f"Weighing food")
-                    await food_scale.event_stable.wait()
+                    await self.__food_scale.event_stable.wait()
 
                 attempts = attempts + 1
 
@@ -127,16 +134,20 @@ class Feeder(Model):
             self.__event_request.clear()
 
             #succeeded or food silo empty?
-            if food_detected():
-                self.__log(Status.OK, "Ready", f"Ready: {food_scale.last_stable_weight:0.2f}g")
+            if self.food_detected():
+                self.__log(Status.OK, "Ready", f"Ready: {self.__food_scale.last_stable_weight:0.2f}g")
             else:
                 await self.__reverse()
                 self.__log(Status.ERROR, "Refill!", f"PLEASE REFILL AND TOUCH SCALE")
-                await food_scale.event_stable.wait()
+                await self.__food_scale.event_stable.wait()
                 self.__log(Status.OK, "Ready", f"Resuming operation")
 
     def request(self):
         """request a feed cycle, if its not already running and if foodscale is considered empty"""
+
+        if self.food_detected():
+            return
+
         self.__event_request.set()
 
 

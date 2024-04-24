@@ -25,7 +25,6 @@ class ScheduleMode(enum.Enum):
 
 
 class FoodScheduler(Model):
-
     mode = IntegerField(default=ScheduleMode.UNLIMITED.value)
 
     # times when to add to quota
@@ -46,34 +45,28 @@ class FoodScheduler(Model):
         for cat in DbCat.select():
             cat.update_quota()
 
-    def check_schedule(self, feeder: Feeder):
-        """check hourly schedule"""
+    def check_schedule(self):
+        """check hourly schedule, return true if we should do our hourly things"""
 
         hour = datetime.now().hour
         if hour != self.prev_hour:
             self.prev_hour = hour
+            self.save()
             if hour in hours_to_list(self.hours):
-                print(f"FoodScheduler: Doing scheduled stuff of hour {hour}")
-                if self.mode==ScheduleMode.SCHEDULED:
-                    feeder.request()
+                return True
 
-    async def task(self, feeder: Feeder, food_scale: Scale):
+        return False
 
-        prev_hour = None
+    async def task(self, feeder: Feeder):
 
         while True:
 
-            self.check_schedule(feeder)
+            if self.check_schedule():
+                self.update_quotas()
 
-            if self.mode==ScheduleMode.UNLIMITED:
-                if food_scale.stable:
+            match self.mode:
+                case ScheduleMode.UNLIMITED.value:
                     feeder.request()
-
-                print("FoodScheduler: Unlimited, waiting for foodscale change..")
-                await food_scale.event_stable.wait()
-                continue
-
-            # if self.feed_when_quota:
 
             await asyncio.sleep(1)
 
