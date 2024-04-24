@@ -14,7 +14,7 @@ SERVO_MAX = 8
 SERVO_MIN = 5
 
 ERROR_WEIGHT_BELOW = -1
-ERROR_WEIGHT_ABOVE =50
+ERROR_WEIGHT_ABOVE = 50
 
 from enum import Enum
 
@@ -42,7 +42,7 @@ class Feeder(Model):
     class Meta:
         database = db
 
-    def __init__(self,*args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.feeding = False
@@ -58,9 +58,8 @@ class Feeder(Model):
             self.__pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
             self.__pwm.start(0)
 
-    def init(self, food_scale:Scale):
-        self.__food_scale=food_scale
-
+    def init(self, food_scale: Scale):
+        self.__food_scale = food_scale
 
     async def run_motor(self, duty, time):
         if settings.dev_mode:
@@ -78,7 +77,7 @@ class Feeder(Model):
     async def __reverse(self):
         await self.run_motor(self.reverse_duty, self.reverse_time)
 
-    def __log(self, status: Status, msg: str, log:str):
+    def __log(self, status: Status, msg: str, log: str):
         self.status = status
         self.status_msg = msg
         print(f"Feeder: {log}")
@@ -90,11 +89,10 @@ class Feeder(Model):
         """will wait for feed requests and monitor the foodscale to see if it succeeded.
         also handles retries and errorr"""
 
-
         async def food_landed():
             """scale should become unstable when the food lands"""
             if self.__food_scale.stable:
-                self.__log(Status.BUSY,"Dropping", "Waiting for food to land.")
+                self.__log(Status.BUSY, "Dropping", "Waiting for food to land.")
                 try:
                     await asyncio.wait_for(self.__food_scale.event_unstable.wait(), timeout=self.retry_timeout / 1000)
                     return True
@@ -102,24 +100,26 @@ class Feeder(Model):
                     self.__log(Status.BUSY, "Timeout", f"Timeout! (attempt {attempts})")
                     return False
 
+        #program startup
+        await self.__food_scale.event_stable.wait()
+
         # wait for feed request
         while await self.__event_request.wait():
 
             self.feeding = True
 
-            #wait until scale is in valid range
+            # wait until scale is in valid range
             while self.__food_scale.last_stable_weight < ERROR_WEIGHT_BELOW or self.__food_scale.last_stable_weight > ERROR_WEIGHT_ABOVE:
                 self.__log(Status.ERROR, "Out of range", "Error, scale out of range!")
                 await self.__food_scale.event_stable.wait()
 
-            #attempt a few times to get food in the scale
+            # attempt a few times to get food in the scale
             attempts = 0
             while not self.food_detected() and attempts <= self.retry_max:
 
                 if not self.__food_scale.stable:
                     self.__log(Status.BUSY, "Waiting", f"Waiting until scale is stable")
                     await self.__food_scale.event_stable.wait()
-
 
                 self.__log(Status.BUSY, "Feeding", f"Feeding")
                 await self.__forward()
@@ -133,7 +133,7 @@ class Feeder(Model):
             self.feeding = False
             self.__event_request.clear()
 
-            #succeeded or food silo empty?
+            # succeeded or food silo empty?
             if self.food_detected():
                 self.__log(Status.OK, "Ready", f"Ready: {self.__food_scale.last_stable_weight:0.2f}g")
             else:
