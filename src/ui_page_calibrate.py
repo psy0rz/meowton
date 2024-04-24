@@ -66,11 +66,13 @@ def sensor_settings_dialog(sensor_filter: SensorFilter):
 def scale_settings_dialog(scale: Scale):
     with ui.dialog(value=True) as dialog, ui.card():
         ui.label(f"Settings {scale.name} scale")
-        stable_range = ui.number("Stable range (g)", value=scale.stable_range, precision=3, min=0.001)
+        stable_range = ui.number("Stable range (g)", value=scale.stable_range, precision=3, min=0)
+        stable_range_perc = ui.number("Stable range (%)", value=scale.stable_range_perc, precision=0, min=0)
         stable_measurements = ui.number("Stable countdown", value=scale.stable_measurements, precision=0, min=1)
 
         def save():
             scale.stable_range = stable_range.value
+            scale.stable_range_perc=stable_range_perc.value
             scale.stable_measurements = stable_measurements.value
 
             scale.save()
@@ -87,7 +89,7 @@ def cards(scale: Scale, cal_weight: int):
         scale.calibration.save()
         ui.notify("tarred")
 
-
+    # SENSOR INPUT
     with ui.card():
         ui.label("1. Sensor input").classes('text-primary text-bold')
         with ui.grid(columns=2):
@@ -100,6 +102,7 @@ def cards(scale: Scale, cal_weight: int):
         with ui.card_actions():
             ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(scale.sensor_filter))
 
+    # CALIBRATION
     with ui.card():
         ui.label("2. Calibration").classes('text-primary text-bold')
         with ui.grid(columns=2):
@@ -116,6 +119,7 @@ def cards(scale: Scale, cal_weight: int):
             ui.button("Tarre", on_click=tarre)
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
 
+    # MEASURING
     with ui.card().style("min-width: 20em"):
         ui.label("3. Measuring").classes('text-primary text-bold')
 
@@ -130,10 +134,8 @@ def cards(scale: Scale, cal_weight: int):
         ui.separator()
 
         ui.label("Movement range:")
-        ui.linear_progress(0, show_value=False).bind_value_from(scale, 'measure_spread', backward=lambda
-            v: scale.measure_spread / scale.stable_range).props("instant-feedback")
+        ui.linear_progress(0, show_value=False).bind_value_from(scale, 'measure_spread_perc', backward=lambda v: v/100).props("instant-feedback")
         ui.label("...").bind_text_from(scale, 'measure_spread', backward=lambda v: f"{v:.2f}g")
-        # ui.circular_progress(0,min=0,max=scale.stable_range, color="green").bind_value_from(scale,'measure_spread').props("instant-feedback")
 
         with ui.card_actions():
             ui.button(icon='settings', on_click=lambda: scale_settings_dialog(scale))

@@ -32,15 +32,16 @@ from sensor_filter import SensorFilter
 """
 
 
-
 class Scale(Model):
     """scale class that does intput filtering, averaging and generates weigh-events"""
 
     ### settings that are stored in db
     name = CharField(primary_key=True)
 
-    # range in grams in which the scale should stay to be considered "stable"
+    # percentage range which the scale should stay to be considered "stable"
+    # biggest is used.
     stable_range = FloatField()
+    stable_range_perc = FloatField()
 
     # for how many measurements should the scale be in the stable_range to be considered stable?
     stable_measurements = IntegerField()
@@ -89,7 +90,6 @@ class Scale(Model):
         self.sensor_filter = SensorFilter.get_or_create(name=self.name)[0]
         self.calibration = ScaleSensorCalibration.get_or_create(name=self.name)[0]
 
-
         # may also be used as API to get lastet weights/status:
         self.last_stable_weight = 0
         self.last_realtime_weight = 0
@@ -105,13 +105,13 @@ class Scale(Model):
         # counts down to zero while stabilizing
         self.measure_countdown = 0
         self.measure_spread = 0
-
+        self.measure_spread_perc=0
 
         # The system is always changing between stable and unstable.
         # A stable event will be followed by an unstable event and vice versa.
-        self.event_stable=Event()
-        self.event_unstable=Event()
-        self.stable=False
+        self.event_stable = Event()
+        self.event_unstable = Event()
+        self.stable = False
 
         self.stable_reset()
 
@@ -133,7 +133,6 @@ class Scale(Model):
         self.event_unstable.set()
         self.event_unstable.clear()
 
-
     def tarre(self):
         """tarre away current raw value"""
         self.calibration.tarre(self.last_realtime_raw_value)
@@ -150,7 +149,7 @@ class Scale(Model):
         self.__measure_raw_sum = 0
         self.__measure_raw_sum_count = 0
         if self.stable:
-            #WAS stable, so send unstable event
+            # WAS stable, so send unstable event
             self.stable = False
             self.__event_unstable()
 
@@ -176,10 +175,19 @@ class Scale(Model):
         if self.__measure_max is None or weight > self.__measure_max:
             self.__measure_max = weight
 
-        self.measure_spread = abs(self.__measure_max - self.__measure_min)
+        # print(f"range {self.__measure_min}..{self.__measure_max}")
+        self.measure_spread = (self.__measure_max - self.__measure_min)
+
+        max_spread = max ((self.stable_range_perc/100*weight), self.stable_range)
+
+        #NOTE: only used in gui as feedback for user
+        if max_spread>0:
+            self.measure_spread_perc=int(self.measure_spread*100/max_spread)
+        else:
+            self.measure_spread_perc=0
 
         # reset if weight goes out of stable_range
-        if (self.__measure_max - self.__measure_min) > self.stable_range:
+        if self.measure_spread > max_spread:
             self.stable_reset(weight)
             return
 
@@ -194,7 +202,7 @@ class Scale(Model):
             if self.measure_countdown == 0:
                 average_weight = self.calibration.weight(self.__measure_raw_sum / self.__measure_raw_sum_count)
                 self.last_stable_weight = average_weight
-                self.stable=True
+                self.stable = True
                 self.__event_stable()
 
         # do auto tarring:

@@ -36,7 +36,7 @@ class Meowton:
 
         self.food_scale = Scale.get_or_none(name=name)
         if self.food_scale is None:
-            self.food_scale = Scale.create(name=name, stable_range=0.1, stable_measurements=2)
+            self.food_scale = Scale.create(name=name, stable_range=0.1, stable_range_perc= 0, stable_measurements=2)
 
         self.food_reader = SensorReader(name, 23, 24, sim, self.food_scale.measurement)
         self.food_counter = FoodCounter()
@@ -54,7 +54,7 @@ class Meowton:
 
         self.cat_scale = Scale.get_or_none(name=name)
         if self.cat_scale is None:
-            self.cat_scale = Scale.create(name=name, stable_range=50, stable_measurements=25)
+            self.cat_scale = Scale.create(name=name, stable_range=30, stable_range_perc=1, stable_measurements=10)
 
         self.cat_reader = SensorReader(name, 27, 17, sim, self.cat_scale.measurement)
         self.cat_detector = CatDetector()
