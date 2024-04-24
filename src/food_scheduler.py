@@ -64,9 +64,12 @@ class FoodScheduler(Model):
             if self.check_schedule():
                 self.update_quotas()
 
-            match self.mode:
-                case ScheduleMode.UNLIMITED.value:
-                    feeder.request()
+
+            #unlimited feeding
+            if self.mode == ScheduleMode.UNLIMITED.value:
+                feeder.request()
+            #always feed as long as detected cat has quota, unless we're disabled
+            # elif self.mode != ScheduleMode.DISABLED:
 
             await asyncio.sleep(1)
 
