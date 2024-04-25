@@ -1,15 +1,14 @@
 import asyncio
 import enum
+import re
 from datetime import datetime
 
-from peewee import Model, CharField, BooleanField, IntegerField
-import re
+from peewee import Model, CharField, IntegerField
 
 from cat_detector import CatDetector
 from db import db
 from db_cat import DbCat
 from feeder import Feeder
-from scale import Scale
 
 
 def hours_to_list(hours):
@@ -43,8 +42,8 @@ class FoodScheduler(Model):
     def update_quotas(self):
         """updates food quotas of all the cats"""
 
-        for cat in cat.cats:
-                cat.update_quota()
+        for cat in DbCat.cats.values():
+            cat.update_quota()
 
     def check_schedule(self):
         """check hourly schedule, return true if we should do our hourly things"""
@@ -62,8 +61,30 @@ class FoodScheduler(Model):
 
         while True:
 
+
             if self.check_schedule():
-                self.update_quotas(cat_detector.cat)
+                self.update_quotas()
+
+                match self.mode:
+
+                    case ScheduleMode.SCHEDULED.value:
+                        print("FoodScheduler: Feeding at scheduled time")
+                        feeder.request()
+
+
+                    case ScheduleMode.ALL_QUOTA.value:
+                        all_quota = False
+                        for cat in DbCat.cats.values():
+                            if cat.feed_quota <= 0:
+                                all_quota = False
+
+                        if all_quota:
+                            print("FoodScheduler: All cats have quota, feeding.")
+                            feeder.request()
+
+                    case ScheduleMode.CAT_QUOTA.value:
+                        #handled below
+                        pass
 
             # unlimited feeding
             if self.mode == ScheduleMode.UNLIMITED.value:

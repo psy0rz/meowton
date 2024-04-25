@@ -28,19 +28,21 @@ class CatDetector:
         self.event_changed.set()
         self.event_changed.clear()
 
-    def __find_closest_weight(self, target_weight):
+    def __find_closest_weight(self, target_weight) -> DbCat | None:
 
         if target_weight < MIN_WEIGHT:
             return None
 
-        if len(DbCat.cats) == 0:
-            return None
+        closest_cat: DbCat | None = None
 
-        closest_cat = DbCat.cats[0]
         for cat in DbCat.cats.values():
-            if abs(target_weight - cat.weight) < abs(target_weight - closest_cat.weight):
+            if (closest_cat is None or
+                    abs(target_weight - cat.weight) < abs(target_weight - closest_cat.weight)):
                 closest_cat = cat
-                continue
+
+        # not close enough?
+        if abs(closest_cat.weight - target_weight) > target_weight * 0.02:
+            return None
 
         return closest_cat
 
@@ -51,7 +53,7 @@ class CatDetector:
         while await scale.event_stable.wait():
 
             weight = scale.last_stable_weight
-            cat: DbCat = self.__find_closest_weight(weight)
+            cat = self.__find_closest_weight(weight)
 
             if cat is None:
                 id = None
