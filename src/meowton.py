@@ -1,7 +1,9 @@
 import asyncio
 
+import db_cat
 import settings
 from cat_detector import CatDetector
+from db_cat import DbCat
 from feeder import Feeder
 from food_counter import FoodCounter
 from food_scheduler import FoodScheduler
@@ -27,6 +29,7 @@ class Meowton:
 
         self.init_food(sim)
         self.init_cat(sim)
+        db_cat.reload_cats()
 
         self.__tasks = set()
 
@@ -36,7 +39,7 @@ class Meowton:
 
         self.food_scale = Scale.get_or_none(name=name)
         if self.food_scale is None:
-            self.food_scale = Scale.create(name=name, stable_range=0.1, stable_range_perc= 0, stable_measurements=2)
+            self.food_scale = Scale.create(name=name, stable_range=0.1, stable_range_perc=0, stable_measurements=2)
 
         self.food_reader = SensorReader(name, 23, 24, sim, self.food_scale.measurement)
         self.food_counter = FoodCounter()
@@ -47,6 +50,8 @@ class Meowton:
 
         self.feeder = Feeder.get_or_create(id=1)[0]
         self.feeder.init(self.food_scale)
+
+
 
     # cat scale stuff and default settings
     def init_cat(self, sim):
@@ -66,21 +71,21 @@ class Meowton:
         self.__tasks.add(asyncio.create_task(self.cat_detector.task(self.cat_scale)))
         self.__tasks.add(asyncio.create_task(self.feeder.task()))
         self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder)))
-        self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder)))
-        self.__tasks.add(asyncio.create_task(self.task()))
+        self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder, self.cat_detector)))
+        # self.__tasks.add(asyncio.create_task(self.task()))
 
     def stop(self):
         self.food_reader.stop()
         self.cat_reader.stop()
 
-    async def task(self):
-        pass
-        #
+    # async def task(self):
+    #     pass
+    #
 
-        # while True:
-        #
-        #
-        #     await self.cat_detector.event_changed()
+    # while True:
+    #
+    #
+    #     await self.cat_detector.event_changed()
 
 
 meowton = Meowton(settings.dev_mode)

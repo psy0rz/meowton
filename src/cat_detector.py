@@ -2,6 +2,7 @@ from asyncio import Event
 
 from peewee import fn
 
+import db_cat
 from db_cat import DbCat
 from scale import Scale
 
@@ -33,10 +34,15 @@ class CatDetector:
         if target_weight < MIN_WEIGHT:
             return None
 
-        query = (DbCat.select()
-                 .order_by(fn.Abs(DbCat.weight - target_weight))
-                 .limit(1))
-        return query.first()
+        closest_cat=None
+        for cat in db_cat.cats:
+            if closest_cat is None:
+                closest_cat = cat
+                continue
+
+            if abs(closest_cat.weight-target_weight)<abs()
+
+        return closest_cat
 
     async def task(self, scale: Scale):
         current_id = None
@@ -54,5 +60,8 @@ class CatDetector:
 
             if current_id != id:
                 current_id = id
+
+                #save previous cat
+
                 self.cat = cat
                 self.__event_changed()

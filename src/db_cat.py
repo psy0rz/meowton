@@ -92,3 +92,13 @@ class DbCat(Model):
 
 
 db.create_tables([DbCat])
+
+cats: dict[int, DbCat]={}
+
+def reload_cats(self):
+    # cache all cats since they will be referenced and updated from multiple locations
+    global cats
+    cats = {}
+
+    for cat in DbCat.select():
+        self.cats[cat.id] = cat
