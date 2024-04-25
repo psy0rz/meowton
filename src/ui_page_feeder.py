@@ -29,7 +29,7 @@ def feeder_page():
             ui.label("Detection").classes('text-primary text-bold')
 
             empty_weight = ui.number(label="Minimum weight (g)", min=0,precision=2, value=meowton.feeder.empty_weight)
-            retry_timeout = ui.number(label="Retry timeout (mS)", min=0,precision=0, value=meowton.feeder.retry_timeout)
+            retry_timeout = ui.number(label="Drop timeout (mS)", min=0,precision=0, value=meowton.feeder.retry_timeout)
             retry_max = ui.number(label="Retries", min=0,precision=0, value=meowton.feeder.retry_max)
 
         with ui.card():

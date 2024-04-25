@@ -9,7 +9,6 @@ from scale import Scale
 MIN_WEIGHT = 100
 
 
-
 class CatDetector:
     """detects which cat is on the scale and generates events"""
 
@@ -34,13 +33,14 @@ class CatDetector:
         if target_weight < MIN_WEIGHT:
             return None
 
-        closest_cat=None
-        for cat in db_cat.cats:
-            if closest_cat is None:
+        if len(DbCat.cats) == 0:
+            return None
+
+        closest_cat = DbCat.cats[0]
+        for cat in DbCat.cats.values():
+            if abs(target_weight - cat.weight) < abs(target_weight - closest_cat.weight):
                 closest_cat = cat
                 continue
-
-            if abs(closest_cat.weight-target_weight)<abs()
 
         return closest_cat
 
@@ -61,7 +61,7 @@ class CatDetector:
             if current_id != id:
                 current_id = id
 
-                #save previous cat
+                # save previous cat
 
                 self.cat = cat
                 self.__event_changed()

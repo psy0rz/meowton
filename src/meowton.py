@@ -29,7 +29,7 @@ class Meowton:
 
         self.init_food(sim)
         self.init_cat(sim)
-        db_cat.reload_cats()
+
 
         self.__tasks = set()
 

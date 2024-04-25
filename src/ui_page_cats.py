@@ -44,7 +44,7 @@ def cat_card(cat: DbCat):
 
 @ui.refreshable
 def cat_list():
-    for cat in DbCat.select():
+    for cat in DbCat.cats.values():
         cat_card(cat)
 
     cat_card(DbCat())

@@ -20,6 +20,8 @@ class DbCat(Model):
     # feed_quota_max = IntegerField(default=0)
     # feed_quota_min = IntegerField(default=0)
 
+    cats: dict[int, 'DbCat'] = {}
+
     class Meta:
         database = db
 
@@ -90,15 +92,25 @@ class DbCat(Model):
             self.weight = self.weight * (1 - MOVING_AVG_FACTOR) + weight * (MOVING_AVG_FACTOR)
         self.save()
 
+    @staticmethod
+    def reload():
+
+        # cache all cats since they will be referenced and updated from multiple locations
+        DbCat.cats = {}
+
+        for cat in DbCat.select():
+            DbCat.cats[cat.id] = cat
+
+    def delete_instance(self, **kwargs):
+        super().delete_instance(**kwargs)
+        if self.id in self.cats:
+            del (self.cats[self.id])
+
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        if self.id not in self.cats:
+            self.cats[self.id] = self
+
 
 db.create_tables([DbCat])
-
-cats: dict[int, DbCat]={}
-
-def reload_cats(self):
-    # cache all cats since they will be referenced and updated from multiple locations
-    global cats
-    cats = {}
-
-    for cat in DbCat.select():
-        self.cats[cat.id] = cat
+DbCat.reload()
