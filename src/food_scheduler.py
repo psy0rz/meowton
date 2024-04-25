@@ -17,10 +17,10 @@ def hours_to_list(hours):
 
 
 class ScheduleMode(enum.Enum):
-    UNLIMITED = 0
-    SCHEDULED = 1
-    ALL_QUOTA = 2  # all cats have quota
-    CAT_QUOTA = 3  # cat on scale has quota
+    UNLIMITED = 0  # nonstop feeding
+    SCHEDULED = 1  # always feed at scheduled times
+    ALL_QUOTA = 2  # feed at scheduled times, when all cats have quota
+    CAT_QUOTA = 3  # only feed cat on scale that has quota
     DISABLED = 4  # never feed automaticly
 
 
