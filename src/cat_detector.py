@@ -64,6 +64,8 @@ class CatDetector:
                 current_id = id
 
                 # save previous cat
+                if self.cat is not None:
+                    self.cat.save()
 
                 self.cat = cat
                 self.__event_changed()
