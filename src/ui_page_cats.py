@@ -20,8 +20,13 @@ def delete_button(cat: DbCat):
 def cat_card(cat: DbCat):
     def save():
         try:
+            cat.name=name.value
+            cat.feed_quota=feed_quota.value
+            cat.feed_daily=feed_daily.value
+            cat.weight=weight.value
             cat.save()
             cat_list.refresh()
+            ui.notify(f"Cat {cat.name} saved")
         except Exception as e:
             error.set_text(str(e))
 
@@ -29,17 +34,17 @@ def cat_card(cat: DbCat):
         error=ui.label().classes("text-negative")
 
         with ui.grid(columns=2):
-            ui.input(label="Name").bind_value(cat, 'name')
-            ui.number(label="Weight (g)", format='%.0f').bind_value(cat, 'weight')
-            ui.number(label="Daily quota", min=0, precision=0).bind_value(cat, 'feed_daily')
-            ui.number(label="Current quota", format='%0.2f').bind_value(cat, 'feed_quota')
+            name=ui.input(label="Name", value=cat.name)
+            weight=ui.number(label="Weight (g)", format='%.0f', value=cat.weight)
+            feed_daily=ui.number(label="Daily quota", min=0, precision=0, value=cat.feed_daily)
+            feed_quota=ui.number(label="Current quota", format='%0.2f', value=cat.feed_quota)
 
         with ui.card_actions():
             if cat.id is None:
                 ui.button(icon="add", on_click=save)
             else:
                 delete_button(cat)
-                ui.button(icon="save", on_click=save).bind_visibility_from(cat, 'dirty_fields')
+                ui.button(icon="save", on_click=save)
 
 
 @ui.refreshable
