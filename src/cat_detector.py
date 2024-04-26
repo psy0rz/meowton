@@ -124,7 +124,7 @@ class CatDetector:
                 self.status_msg = f"{self.cat.name}"
                 self.status = Status.BUSY
             else:
-                if weight<-10:
+                if weight<-50:
                     self.status_msg = "Out of range"
                     self.status = Status.ERROR
                 elif weight>MIN_WEIGHT:

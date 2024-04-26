@@ -45,9 +45,9 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
 
 def main_page():
 
-    with ui.grid(columns='auto 3em auto'):
+    with ui.grid(columns='auto 3em auto').classes(""):
         # scale progress
-        progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="red")
+        progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="purple")
         progress.bind_value_from(meowton.cat_scale, 'measure_countdown').props("instant-feedback")
 
         label = ui.label()
@@ -68,7 +68,7 @@ def main_page():
 
 
         # food progress
-        progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="red")
+        progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="purple")
         progress.bind_value_from(meowton.food_scale, 'measure_countdown').props("instant-feedback")
 
         label = ui.label()
