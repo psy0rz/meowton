@@ -1,4 +1,5 @@
 import asyncio
+from pprint import pprint
 
 import settings
 from cat_detector import CatDetector

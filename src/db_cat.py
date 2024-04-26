@@ -5,7 +5,7 @@ from peewee import Model, CharField, IntegerField, FloatField, TimestampField
 import settings
 from db import db
 
-MOVING_AVG_FACTOR = 0.01
+MOVING_AVG_FACTOR = 0.1
 
 
 class DbCat(Model):

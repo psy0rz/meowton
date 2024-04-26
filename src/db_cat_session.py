@@ -20,7 +20,7 @@ class DbCatSession(Model):
         database = db
 
     def end_session(self):
-        self.length = time.time() - self.start_time
+        self.length = int(time.time() - self.start_time)
         self.save()
 
 

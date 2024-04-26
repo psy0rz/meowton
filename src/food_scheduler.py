@@ -3,7 +3,7 @@ import enum
 import re
 from datetime import datetime
 
-from peewee import Model, CharField, IntegerField
+from peewee import Model, CharField, IntegerField, TimestampField
 
 from cat_detector import CatDetector
 from db import db
@@ -24,12 +24,15 @@ class ScheduleMode(enum.Enum):
     DISABLED = 4  # never feed automaticly
 
 
+
 class FoodScheduler(Model):
     """determines when to increase food quotas and when to dispense food."""
     mode = IntegerField(default=ScheduleMode.UNLIMITED.value)
 
     # times when to add to quota
     hours = CharField(default="9,13,17,21,1")
+
+    prev_hour=TimestampField(default=0)
 
     class Meta:
         database = db
@@ -38,7 +41,6 @@ class FoodScheduler(Model):
 
         super().__init__(*args, **kwargs)
 
-        self.prev_hour = datetime.now().hour
 
     def update_quotas(self):
         """updates food quotas of all the cats"""
