@@ -13,8 +13,8 @@ class DbCatSession(Model):
     cat = ForeignKeyField(DbCat, backref='cat_session')
     start_time = TimestampField(default=time.time)
     length = IntegerField(default=0)
-    amount = FloatField(default=0)  # food aten
-    ate = FloatField(default=0)
+    ate = FloatField(default=0)  # food aten
+    weight = FloatField(default=0)
 
     class Meta:
         database = db
