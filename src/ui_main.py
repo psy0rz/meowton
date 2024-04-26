@@ -45,8 +45,7 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
 def main_page():
     with (ui.card()):
         with ui.grid(columns=2):
-            with ui.grid(columns=1,rows=2):
-
+            with ui.grid(columns=1, rows=2):
                 # scale progress
                 progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="red")
                 progress.bind_value_from(meowton.cat_scale, 'measure_countdown').props("instant-feedback")
@@ -55,9 +54,7 @@ def main_page():
                 label.bind_text_from(meowton.cat_scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
                 label.classes("text-bold")
 
-
-            with ui.grid(columns=1,rows=2):
-
+            with ui.grid(columns=1, rows=2):
                 # food progress
                 progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="red")
                 progress.bind_value_from(meowton.food_scale, 'measure_countdown').props("instant-feedback")
@@ -65,7 +62,6 @@ def main_page():
                 label = ui.label()
                 label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
                 label.classes("text-bold")
-
 
         # feeder status
         status_ok = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-positive text-h6")
