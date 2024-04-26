@@ -1,10 +1,7 @@
 import asyncio
 
-import db_cat
 import settings
 from cat_detector import CatDetector
-from db_cat import DbCat
-from db_cat_session import DbCatSession
 from feeder import Feeder
 from food_counter import FoodCounter
 from food_scheduler import FoodScheduler
@@ -70,19 +67,13 @@ class Meowton:
         self.__tasks.add(asyncio.create_task(self.feeder.task()))
         self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder)))
         self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder, self.cat_detector)))
-        self.__tasks.add(asyncio.create_task(DbCatSession.task(self.food_counter, self.cat_detector)))
 
-
-        #to reraise axceptions
+        # to reraise axceptions
         await asyncio.gather(*self.__tasks)
-
-
 
     def stop(self):
         self.food_reader.stop()
         self.cat_reader.stop()
-
-
 
 
 meowton = Meowton(settings.dev_mode)

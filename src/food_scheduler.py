@@ -25,6 +25,7 @@ class ScheduleMode(enum.Enum):
 
 
 class FoodScheduler(Model):
+    """determines when to increase food quotas and when to dispense food."""
     mode = IntegerField(default=ScheduleMode.UNLIMITED.value)
 
     # times when to add to quota

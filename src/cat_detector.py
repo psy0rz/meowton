@@ -4,17 +4,19 @@ from peewee import fn
 
 import db_cat
 from db_cat import DbCat
+from db_cat_session import DbCatSession
 from scale import Scale
 
 MIN_WEIGHT = 100
 
 
 class CatDetector:
-    """detects which cat is on the scale and generates events"""
+    """detects which cat is on the scale and generates events and DbCatSessions"""
 
     def __init__(self):
 
         self.cat: DbCat | None = None
+        self.cat_session: DbCatSession | None = None
 
         self.event_changed = Event()
 
@@ -60,12 +62,22 @@ class CatDetector:
             else:
                 id = cat.id
 
+            # changed?
             if current_id != id:
                 current_id = id
 
-                # save previous cat
+                # save previous cat and end session
                 if self.cat is not None:
                     self.cat.save()
+                    print("ENDSESSION")
+                    self.cat_session.end_session()
+                    self.cat_session = None
 
                 self.cat = cat
+
+                # start new session
+                if cat is not None:
+                    print("CREATE SESSION")
+                    self.cat_session = DbCatSession.create(cat=cat)
+
                 self.__event_changed()
