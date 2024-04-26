@@ -1,10 +1,8 @@
 from asyncio import Event
 
-from peewee import fn
-
-import db_cat
 from db_cat import DbCat
 from db_cat_session import DbCatSession
+from food_counter import FoodCounter
 from scale import Scale
 
 MIN_WEIGHT = 100
@@ -48,7 +46,7 @@ class CatDetector:
 
         return closest_cat
 
-    async def task(self, scale: Scale):
+    async def task(self, scale: Scale, food_counter:FoodCounter):
         current_id = None
 
         # wait for the cat scale to change
@@ -69,15 +67,19 @@ class CatDetector:
                 # save previous cat and end session
                 if self.cat is not None:
                     self.cat.save()
-                    print("ENDSESSION")
                     self.cat_session.end_session()
                     self.cat_session = None
 
                 self.cat = cat
 
-                # start new session
+                # start new session?
                 if cat is not None:
-                    print("CREATE SESSION")
-                    self.cat_session = DbCatSession.create(cat=cat)
+                    # take into account food that was already eaten before session started:
+                    self.cat_session = DbCatSession.create(cat=cat, amount=food_counter.ate)
+                    self.cat.ate(food_counter.ate)
+                    if food_counter.ate!=0:
+                        print(f"CatDetector: {cat.name} probably already ate {food_counter.ate:0.2f}g")
+                    food_counter.reset()
+
 
                 self.__event_changed()
