@@ -44,66 +44,61 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
 
 
 def main_page():
-    with ui.grid(columns=1):
-        with (ui.card()):
+
+    with ui.grid(columns='auto 3em auto'):
+        # scale progress
+        progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="red")
+        progress.bind_value_from(meowton.cat_scale, 'measure_countdown').props("instant-feedback")
+
+        label = ui.label()
+        label.bind_text_from(meowton.cat_scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
+        label.classes("text-bold")
+
+        # scale status
+        cat_status_ok = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes("text-positive text-bold")
+        cat_status_ok.bind_visibility_from(meowton.cat_detector, 'status', backward=lambda v: v == Status.OK)
+
+        cat_status_busy = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes(
+            "text-accent text-bold")
+        cat_status_busy.bind_visibility_from(meowton.cat_detector, 'status', backward=lambda v: v == Status.BUSY)
+
+        cat_status_error = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes(
+            "text-negative text-bold")
+        cat_status_error.bind_visibility_from(meowton.cat_detector, 'status', backward=lambda v: v == Status.ERROR)
+
+
+        # food progress
+        progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="red")
+        progress.bind_value_from(meowton.food_scale, 'measure_countdown').props("instant-feedback")
+
+        label = ui.label()
+        label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
+        label.classes("text-bold")
+
+        # feeder status
+        status_ok = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-positive text-bold")
+        status_ok.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.OK)
+
+        status_busy = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes(
+            "text-accent text-bold")
+        status_busy.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.BUSY)
+
+        status_error = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes(
+            "text-negative text-bold")
+        status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.ERROR)
+
+    for cat in DbCat.cats.values():
+        with ui.card():
+            ui.label(f"{cat.name}").classes("text-primary text-h6")
             with ui.grid(columns=2):
-                with ui.grid(columns=1, rows=2):
-                    # scale progress
-                    progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="red")
-                    progress.bind_value_from(meowton.cat_scale, 'measure_countdown').props("instant-feedback")
+                ui.label(f"Weight:")
+                ui.label(f"{cat.weight:.0f}g")
 
-                    label = ui.label()
-                    label.bind_text_from(meowton.cat_scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
-                    label.classes("text-bold")
+                ui.label(f"Quota:")
+                ui.label(f"{cat.feed_quota:0.1f}g of {cat.feed_daily}g")
 
-                # scale status
-                cat_status_ok = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes("text-positive text-bold")
-                cat_status_ok.bind_visibility_from(meowton.cat_detector, 'status', backward=lambda v: v == Status.OK)
-
-                cat_status_busy = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes(
-                    "text-warning text-bold")
-                cat_status_busy.bind_visibility_from(meowton.cat_detector, 'status', backward=lambda v: v == Status.BUSY)
-
-                cat_status_error = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes(
-                    "text-negative text-bold")
-                cat_status_error.bind_visibility_from(meowton.cat_detector, 'status', backward=lambda v: v == Status.ERROR)
-
-
-            ui.separator()
-            with ui.grid(columns=2):
-                with ui.grid(columns=1, rows=2):
-                    # food progress
-                    progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="red")
-                    progress.bind_value_from(meowton.food_scale, 'measure_countdown').props("instant-feedback")
-
-                    label = ui.label()
-                    label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
-                    label.classes("text-bold")
-
-                # feeder status
-                status_ok = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-positive text-bold")
-                status_ok.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.OK)
-
-                status_busy = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes(
-                    "text-warning text-bold")
-                status_busy.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.BUSY)
-
-                status_error = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes(
-                    "text-negative text-bold")
-                status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.ERROR)
-
-        for cat in DbCat.cats.values():
-            with ui.card():
-                ui.label(f"{cat.name}").classes("text-primary text-h6")
-                with ui.grid(columns=2):
-                    ui.label(f"Weight:")
-                    ui.label(f"{cat.weight:.0f}g")
-
-                    ui.label(f"Quota:")
-                    ui.label(f"{cat.feed_quota:0.1f}g of {cat.feed_daily}g")
-
-                    ui.label(f"Seen:")
-                    ui.label(f"{cat.feed_quota_last_update}")
+                ui.label(f"Seen:")
+                ui.label(f"{cat.feed_quota_last_update}")
 
     ui.button("feed", on_click=meowton.feeder.request)
     ui.button("forced feed", on_click=meowton.feeder.forward)
