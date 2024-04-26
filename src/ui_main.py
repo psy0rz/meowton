@@ -43,35 +43,41 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
 
 
 def main_page():
-    with ui.row():
-        with (ui.card()):
-            ui.label("Scale").classes("text-primary text-bold")
-            with ui.row():
-                progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="red")
-                progress.bind_value_from(meowton.cat_scale, 'measure_countdown').props("instant-feedback")
+    with (ui.card()):
+        with ui.grid(columns=2):
+            # scale value
+            # with ui.column():
+                # ui.label("Scale:")
+            label = ui.label()
+            label.bind_text_from(meowton.cat_scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
+            label.classes("text-bold")
 
-                label = ui.label()
-                label.bind_text_from(meowton.cat_scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
-                label.classes("text-bold")
+            # scale progress
+            progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="red")
+            progress.bind_value_from(meowton.cat_scale, 'measure_countdown').props("instant-feedback")
 
-        with (ui.card()):
-            ui.label("Food").classes("text-primary text-bold")
-            with ui.row():
-                progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="red")
-                progress.bind_value_from(meowton.food_scale, 'measure_countdown').props("instant-feedback")
+        ui.separator()
+        with ui.grid(columns=2):
+            # with ui.column():
+                # food value
+                # ui.label("Food:")
+            label = ui.label()
+            label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
+            label.classes("text-bold")
 
-                label = ui.label()
-                label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
-                label.classes("text-bold")
-            with ui.row():
-                status_ok = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-positive text-h6")
-                status_ok.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v==Status.OK)
+            # food progress
+            progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="red")
+            progress.bind_value_from(meowton.food_scale, 'measure_countdown').props("instant-feedback")
 
-                status_busy = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-warning text-h6")
-                status_busy.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v==Status.BUSY)
+        # feeder status
+        status_ok = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-positive text-h6")
+        status_ok.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.OK)
 
-                status_error = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-negative text-h6")
-                status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v==Status.ERROR)
+        status_busy = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-warning text-h6")
+        status_busy.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.BUSY)
+
+        status_error = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-negative text-h6")
+        status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.ERROR)
 
     ui.button("feed", on_click=meowton.feeder.request)
     ui.button("forced feed", on_click=meowton.feeder.forward)
