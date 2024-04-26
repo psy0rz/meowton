@@ -2,7 +2,6 @@ import time
 
 from peewee import Model, CharField, IntegerField, FloatField, TimestampField
 
-import settings
 from db import db
 
 MOVING_AVG_FACTOR = 0.1
@@ -15,7 +14,7 @@ class DbCat(Model):
     feed_daily = IntegerField(default=0)
 
     feed_quota = FloatField(default=0)
-    feed_quota_last_update = TimestampField(default=0)
+    feed_quota_last_update = IntegerField(default=time.time)
 
     # feed_quota_max = IntegerField(default=0)
     # feed_quota_min = IntegerField(default=0)
@@ -37,12 +36,14 @@ class DbCat(Model):
         quota_add = (self.feed_daily / 24 * 60 * 60) * diff
 
         if (quota_add > 0):
-            self.feed_quota.value = self.feed_quota.value + quota_add
+            self.feed_quota = self.feed_quota + quota_add
 
             if self.feed_quota > self.feed_daily:
                 self.feed_quota = self.feed_daily
 
         self.feed_quota_last_update = time.time()
+
+        print(f"Cat [{self.name}]: added {quota_add:0.2f}g to quota. (total {self.feed_quota:0.2f}g)")
         self.save()
 
     def quota_time(self):
@@ -89,13 +90,13 @@ class DbCat(Model):
 
     def delete_instance(self, **kwargs):
         super().delete_instance(**kwargs)
-        if self.id in self.cats:
-            del (self.cats[self.id])
+        if self.id in DbCat.cats:
+            del (DbCat.cats[self.id])
 
     def save(self, **kwargs):
         super().save(**kwargs)
-        if self.id not in self.cats:
-            self.cats[self.id] = self
+        if self.id not in DbCat.cats:
+            DbCat.cats[self.id] = self
 
 
 db.create_tables([DbCat])

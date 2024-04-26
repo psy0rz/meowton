@@ -38,7 +38,7 @@ class CatDetector:
                 closest_cat = cat
 
         # not close enough?
-        if abs(closest_cat.weight - target_weight) > target_weight * 0.02:
+        if closest_cat is not None and abs(closest_cat.weight - target_weight) > target_weight * 0.02:
             return None
 
         return closest_cat
