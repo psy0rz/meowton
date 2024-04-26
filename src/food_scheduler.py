@@ -62,6 +62,9 @@ class FoodScheduler(Model):
 
     async def task(self, feeder: Feeder, cat_detector: CatDetector):
 
+        # in case we missed an update during offline time
+        self.update_quotas()
+
         while True:
 
 

@@ -68,7 +68,6 @@ class Meowton:
         self.__tasks.add(asyncio.create_task(self.feeder.task()))
         self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder, self.cat_detector)))
         self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder, self.cat_detector)))
-        self.food_scheduler.update_quotas()
 
         # to reraise axceptions
         await asyncio.gather(*self.__tasks)
