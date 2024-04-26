@@ -46,25 +46,11 @@ class DbCat(Model):
         self.save()
 
     def quota_time(self):
-        """
-        Calculates the time it takes to deplete the feed quota. (or to restore it, when its negative)
-
-        Returns:
-            float: The time in minutes it takes to deplete the feed quota.
-        """
         return self.feed_quota / (self.feed_daily / (24 * 60))
 
     def ate(self, weight):
-        """
-        Decreases the feed_quota attribute by the given weight.
 
-        Parameters:
-            weight (float): The weight to be subtracted from the feed_quota.
-
-        Returns:
-            None
-
-        """
+        print(f"Cat [{self.name}]: ate {weight:0.2f}g (quota {self.feed_quota:0.2f})g")
         self.feed_quota = self.feed_quota - weight
         if self.feed_quota < -self.feed_daily:
             self.feed_quota = -self.feed_daily

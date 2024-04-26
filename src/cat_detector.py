@@ -2,7 +2,6 @@ from asyncio import Event
 
 from db_cat import DbCat
 from db_cat_session import DbCatSession
-from food_counter import FoodCounter
 from scale import Scale
 
 MIN_WEIGHT = 100
@@ -18,12 +17,10 @@ class CatDetector:
 
         self.event_changed = Event()
 
+        self.unknown_ate = 0
+
     def __event_changed(self):
         """called when a different cat is detected (or None)"""
-        if self.cat is not None:
-            print(f"CatDetector: cat changed to {self.cat.name}")
-        else:
-            print(f"CatDetector: cat left")
 
         self.event_changed.set()
         self.event_changed.clear()
@@ -46,13 +43,49 @@ class CatDetector:
 
         return closest_cat
 
-    async def task(self, scale: Scale, food_counter:FoodCounter):
+    def ate(self, weight):
+        if self.cat is None:
+            self.unknown_ate += weight
+            print(f"CatDetector: unknown cat ate {weight:0.2f}g (total: {self.unknown_ate:0.2f}g)")
+        else:
+            self.cat.ate(weight)
+            self.cat_session.ate += weight
+
+    def __start_session(self, cat: DbCat):
+
+        if cat is None:
+            return
+
+        print(f"CatDetector: {cat.name} on scale.")
+
+        # take into account food that was already eaten before session started:
+        if self.unknown_ate!=0:
+            print(f"CatDetector: {cat.name} probably already ate {self.unknown_ate:0.2f}g")
+            cat.ate(self.unknown_ate)
+            self.unknown_ate = 0
+
+        self.cat=cat
+        self.cat_session = DbCatSession.create(cat=cat, amount=self.unknown_ate)
+
+    def __end_session(self):
+
+        if self.cat is None:
+            return
+
+        print(f"CatDetector: {self.cat.name} left.")
+
+        self.cat.save()
+        self.cat_session.end_session()
+        self.cat_session = None
+        self.cat=None
+
+    async def task(self, cat_scale: Scale):
         current_id = None
 
         # wait for the cat scale to change
-        while await scale.event_stable.wait():
+        while await cat_scale.event_stable.wait():
 
-            weight = scale.last_stable_weight
+            weight = cat_scale.last_stable_weight
             cat = self.__find_closest_weight(weight)
 
             if cat is None:
@@ -64,22 +97,6 @@ class CatDetector:
             if current_id != id:
                 current_id = id
 
-                # save previous cat and end session
-                if self.cat is not None:
-                    self.cat.save()
-                    self.cat_session.end_session()
-                    self.cat_session = None
-
-                self.cat = cat
-
-                # start new session?
-                if cat is not None:
-                    # take into account food that was already eaten before session started:
-                    self.cat_session = DbCatSession.create(cat=cat, amount=food_counter.ate)
-                    self.cat.ate(food_counter.ate)
-                    if food_counter.ate!=0:
-                        print(f"CatDetector: {cat.name} probably already ate {food_counter.ate:0.2f}g")
-                    food_counter.reset()
-
-
+                self.__end_session()
+                self.__start_session(cat)
                 self.__event_changed()

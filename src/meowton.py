@@ -63,9 +63,9 @@ class Meowton:
         self.food_reader.start()
         self.cat_reader.start()
 
-        self.__tasks.add(asyncio.create_task(self.cat_detector.task(self.cat_scale, self.food_counter)))
+        self.__tasks.add(asyncio.create_task(self.cat_detector.task(self.cat_scale)))
         self.__tasks.add(asyncio.create_task(self.feeder.task()))
-        self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder)))
+        self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder, self.cat_detector)))
         self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder, self.cat_detector)))
 
         # to reraise axceptions
