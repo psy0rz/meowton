@@ -3,6 +3,7 @@ from asyncio import Event
 from db_cat import DbCat
 from db_cat_session import DbCatSession
 from scale import Scale
+from util import Status
 
 MIN_WEIGHT = 100
 
@@ -18,6 +19,9 @@ class CatDetector:
         self.event_changed = Event()
 
         self.unknown_ate = 0
+
+        self.status_msg = "Ready"
+        self.status: Status = Status.OK
 
     def __event_changed(self):
         """called when a different cat is detected (or None)"""
@@ -98,6 +102,7 @@ class CatDetector:
 
             if cat is None:
                 id = None
+
             else:
                 id = cat.id
 
@@ -112,4 +117,22 @@ class CatDetector:
 
             if weight > max_weight:
                 max_weight = weight
+
+            #update status:
+
+            if self.cat is not None:
+                self.status_msg = f"{self.cat.name}"
+                self.status = Status.BUSY
+            else:
+                if weight<-10:
+                    self.status_msg = "Out of range"
+                    self.status = Status.ERROR
+                elif weight>MIN_WEIGHT:
+                    self.status_msg="Unknown cat"
+                    self.status=Status.ERROR
+                else:
+                    self.status_msg="Ready"
+                    self.status=Status.OK
+
+
 

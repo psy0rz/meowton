@@ -6,6 +6,7 @@ from peewee import Model, IntegerField, FloatField
 import settings
 from db import db
 from scale import Scale
+from util import Status
 
 SERVO_PIN = 18
 PWM_FREQ = 50
@@ -19,10 +20,6 @@ ERROR_WEIGHT_ABOVE = 50
 from enum import Enum
 
 
-class Status(Enum):
-    OK = 1
-    BUSY = 2
-    ERROR = 3
 
 
 class Feeder(Model):
