@@ -33,7 +33,7 @@ class DbCat(Model):
         diff = time.time() - self.feed_quota_last_update
 
         # update food quota
-        quota_add = (self.feed_daily / 24 * 60 * 60) * diff
+        quota_add = (self.feed_daily / (24 * 60 * 60)) * diff
 
         if (quota_add > 0):
             self.feed_quota = self.feed_quota + quota_add
