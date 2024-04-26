@@ -73,7 +73,8 @@ def main_page():
                 status_error = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-negative text-h6")
                 status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v==Status.ERROR)
 
-    ui.button("feed", on_click=meowton.feeder.forward)
+    ui.button("feed", on_click=meowton.feeder.request)
+    ui.button("forced feed", on_click=meowton.feeder.forward)
 
     # cat_name=ui.label("cat")
     # def cat_detected(cat:DbCat):
