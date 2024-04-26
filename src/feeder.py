@@ -71,7 +71,7 @@ class Feeder(Model):
         await asyncio.sleep(time / 1000)
         self.__pwm.ChangeDutyCycle(0)
 
-    async def __forward(self):
+    async def forward(self):
         await self.run_motor(self.feed_duty, self.feed_time)
 
     async def __reverse(self):
@@ -122,7 +122,7 @@ class Feeder(Model):
                     await self.__food_scale.event_stable.wait()
 
                 self.__log(Status.BUSY, "Feeding", f"Feeding")
-                await self.__forward()
+                await self.forward()
 
                 if await food_landed():
                     self.__log(Status.BUSY, "Weighing", f"Weighing food")
