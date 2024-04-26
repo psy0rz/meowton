@@ -56,6 +56,9 @@ class CatDetector:
             self.cat.ate(weight)
             self.cat_session.ate += weight
 
+            self.status_msg = f"{self.cat.name} ate {self.cat_session.ate:0.2f}g"
+            self.status = Status.BUSY
+
     def __start_session(self, cat: DbCat):
 
         if cat is None:
@@ -121,7 +124,7 @@ class CatDetector:
             #update status:
 
             if self.cat is not None:
-                self.status_msg = f"{self.cat.name}"
+                self.status_msg = f"{self.cat.name} ate {self.cat_session.ate:0.2f}g"
                 self.status = Status.BUSY
             else:
                 if weight<-50:
