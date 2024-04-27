@@ -92,7 +92,7 @@ def main_page():
     # cats overview
 
     def stats_button(cat):
-        ui.button(icon="bar_chart", on_click=lambda x: print(x)).props("flat ")
+        ui.button(icon="bar_chart", on_click=lambda x: ui.navigate.to(f"/stats/{cat.id}")).props("flat ")
 
     with ui.row():
         for cat in DbCat.cats.values():
