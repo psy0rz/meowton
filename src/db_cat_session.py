@@ -11,7 +11,7 @@ class DbCatSession(Model):
 
     # fields definition
     cat = ForeignKeyField(DbCat, backref='cat_session')
-    start_time = TimestampField(default=time.time)
+    start_time = IntegerField(default=time.time)
     length = IntegerField(default=0)
     ate = FloatField(default=0)  # food aten
     weight = FloatField(default=0)

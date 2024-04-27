@@ -88,6 +88,7 @@ def main_page():
             "text-negative text-bold")
         status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.ERROR)
 
+    # cats overview
     with ui.row():
         for cat in DbCat.cats.values():
             with ui.card():
@@ -99,8 +100,8 @@ def main_page():
                     ui.label(f"Quota:")
                     ui.label().bind_text_from(cat, 'feed_quota', backward=lambda v: f"{v:.1f}g of {cat.feed_daily:0.0f}g")
 
-                    ui.label(f"Seen:")
-                    ui.label(f"{cat.feed_quota_last_update}")
+                    # ui.label(f"Seen:")
+                    # ui.label(f"{cat.feed_quota_last_update}")
 
     ui.button("feed", on_click=meowton.feeder.request)
     ui.button("forced feed", on_click=meowton.feeder.forward)
