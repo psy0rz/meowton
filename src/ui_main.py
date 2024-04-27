@@ -91,8 +91,10 @@ def main_page():
     # cats overview
     with ui.row():
         for cat in DbCat.cats.values():
-            with ui.card():
-                ui.label(f"{cat.name}").classes("text-primary text-h6")
+            with ui.card() as cat_card:
+                with ui.row():
+                    ui.label(f"{cat.name}").classes("text-h6")
+                    ui.button(icon="bar_chart", on_click=lambda x: print(x)).props("flat ")
 
                 with ui.card_section():
                     ui.label().bind_text_from(cat,'weight', backward=lambda v : f"{v:.0f}g").classes("text-bold text-centered")
