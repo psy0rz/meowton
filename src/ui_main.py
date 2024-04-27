@@ -53,7 +53,7 @@ def main_page():
 
         label = ui.label()
         label.bind_text_from(meowton.cat_scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
-        label.classes("text-bold")
+# /        label.classes("text-bold")
 
         # scale status
         cat_status_ok = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes("text-positive text-bold")
@@ -74,7 +74,7 @@ def main_page():
 
         label = ui.label()
         label.bind_text_from(meowton.food_scale, 'last_stable_weight', backward=lambda x: f"{x:.1f}g")
-        label.classes("text-bold")
+        # label.classes("text-bold")
 
         # feeder status
         status_ok = ui.label("").bind_text_from(meowton.feeder, 'status_msg').classes("text-positive text-bold")
