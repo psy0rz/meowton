@@ -12,7 +12,7 @@ MIN_WEIGHT = 100
 OUT_OF_RANGE_WEIGHT=-100
 
 #minimum amount of total food we consider "eating" in the GUI feedback
-MIN_FOOD=0.3
+MIN_FOOD=0.25
 
 
 class CatDetector:
@@ -106,7 +106,6 @@ class CatDetector:
         if self.weight<OUT_OF_RANGE_WEIGHT:
             self.status_msg = "Out of range"
             self.status = Status.ERROR
-
         else:
 
             if self.unknown_ate>MIN_FOOD:
