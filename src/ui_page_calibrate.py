@@ -119,6 +119,8 @@ def cards(scale: Scale, cal_weight: int):
         with ui.card_actions():
             ui.button(icon='settings', on_click=lambda: sensor_settings_dialog(scale.sensor_filter))
 
+    ui.icon("arrow_downward")
+
     # CALIBRATION
     with ui.card():
         ui.label("2. Calibration").classes('text-primary text-bold')
@@ -136,6 +138,8 @@ def cards(scale: Scale, cal_weight: int):
             ui.button("Tarre", on_click=tarre)
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
             ui.button(icon='settings', on_click=lambda: calibrate_settings_dialog(scale))
+
+    ui.icon("arrow_downward")
 
     # MEASURING
     with ui.card().style("min-width: 20em"):
