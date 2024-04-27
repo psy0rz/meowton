@@ -70,10 +70,11 @@ class CatDetector:
         if self.unknown_ate != 0:
             print(f"CatDetector: {cat.name} probably already ate {self.unknown_ate:0.2f}g")
             cat.ate(self.unknown_ate)
-            self.unknown_ate = 0
 
         self.cat = cat
-        self.cat_session = DbCatSession.create(cat=cat, amount=self.unknown_ate)
+        self.cat_session = DbCatSession.create(cat=cat, ate=self.unknown_ate)
+
+        self.unknown_ate = 0
 
     def __end_session(self, max_weight:float):
 
