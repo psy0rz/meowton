@@ -3,6 +3,7 @@ import ui_page_calibrate
 import ui_page_cats
 import ui_page_feeder
 import ui_page_schedule
+import ui_page_stats
 from db_cat import DbCat
 from feeder import Status
 from meowton import meowton

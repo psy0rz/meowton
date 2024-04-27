@@ -46,12 +46,12 @@ class Scale(Model):
     # for how many measurements should the scale be in the stable_range to be considered stable?
     stable_measurements = IntegerField()
 
-    # number of measurements averaging after which to auto tarre
-    stable_auto_tarre_count = IntegerField(default=600)
+    # stepsize for self.calibration.auto_tarre()
+    stable_auto_tarre_count = FloatField(default=0.1)
 
-    # max weight to tarre away (initial values will always be tarred)
+    # max weight to tarre away
     # 0 to disable
-    stable_auto_tarre_max = IntegerField(default=0)
+    stable_auto_tarre_max = FloatField(default=0)
 
     class Meta:
         database = db
@@ -60,32 +60,6 @@ class Scale(Model):
     sensor_filter: SensorFilter
 
     def __init__(self, *args, **kwargs):
-        """
-        Initializes an instance of the class.
-
-        Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-
-        Returns:
-            None
-
-        Attributes:
-            sensor_filter (SensorFilter): The sensor filter associated with the instance.
-            calibration (ScaleSensorCalibration): The calibration associated with the instance.
-            last_stable_weight (float): The last stable weight recorded by the instance.
-            last_realtime_weight (float): The last real-time weight recorded by the instance.
-            last_realtime_raw_value (float): The last real-time raw value recorded by the instance.
-            __measure_min (float): The minimum measurement value used for averaging and event generation.
-            __measure_max (float): The maximum measurement value used for averaging and event generation.
-            __measure_count (int): The count of measurements used for averaging and event generation.
-            __measure_raw_sum (float): The sum of raw measurements used for averaging and event generation.
-            __measure_raw_sum_count (int): The count of raw measurements used for averaging and event generation.
-            measure_countdown (int): The count down to stabilization.
-            measure_spread (int): The spread of measurements.
-            stable_event (Event): An event triggered when the measurement stabilizes.
-            unstable_event (Event): An event triggered when the measurement becomes unstable.
-        """
         super().__init__(*args, **kwargs)
         self.sensor_filter = SensorFilter.get_or_create(name=self.name)[0]
         self.calibration = ScaleSensorCalibration.get_or_create(name=self.name)[0]
@@ -105,7 +79,7 @@ class Scale(Model):
         # counts down to zero while stabilizing
         self.measure_countdown = 0
         self.measure_spread = 0
-        self.measure_spread_perc=0
+        self.measure_spread_perc = 0
 
         # The system is always changing between stable and unstable.
         # A stable event will be followed by an unstable event and vice versa.
@@ -178,13 +152,13 @@ class Scale(Model):
         # print(f"range {self.__measure_min}..{self.__measure_max}")
         self.measure_spread = (self.__measure_max - self.__measure_min)
 
-        max_spread = max ((self.stable_range_perc/100*weight), self.stable_range)
+        max_spread = max((self.stable_range_perc / 100 * weight), self.stable_range)
 
-        #NOTE: only used in gui as feedback for user
-        if max_spread>0:
-            self.measure_spread_perc=int(self.measure_spread*100/max_spread)
+        # NOTE: only used in gui as feedback for user
+        if max_spread > 0:
+            self.measure_spread_perc = int(self.measure_spread * 100 / max_spread)
         else:
-            self.measure_spread_perc=0
+            self.measure_spread_perc = 0
 
         # reset if weight goes out of stable_range
         if self.measure_spread > max_spread:
@@ -205,9 +179,8 @@ class Scale(Model):
                 self.stable = True
                 self.__event_stable()
 
-        # do auto tarring:
-        if self.__measure_raw_sum_count > self.stable_auto_tarre_count and abs(weight) < self.stable_auto_tarre_max:
-            self.calibration.tarre(int(self.__measure_raw_sum / self.__measure_raw_sum_count))
+        if self.stable and abs(weight) < self.stable_auto_tarre_max:
+            self.calibration.auto_tarre(raw_value, self.stable_auto_tarre_count)
 
 
 db.create_tables([Scale])

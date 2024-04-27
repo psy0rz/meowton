@@ -82,6 +82,23 @@ def scale_settings_dialog(scale: Scale):
             ui.button('Save', on_click=save)
             ui.button('Cancel', on_click=dialog.close).props('flat')
 
+def calibrate_settings_dialog(scale: Scale):
+    with ui.dialog(value=True) as dialog, ui.card():
+        ui.label(f"Calibration settings {scale.name} scale")
+        auto_tarre_max = ui.number("Auto tarre max (g)", value=scale.stable_auto_tarre_max, precision=3, min=0)
+        auto_tarre_count = ui.number("Auto tarre step size", value=scale.stable_auto_tarre_count, precision=3, min=0)
+
+        def save():
+            scale.stable_auto_tarre_count=auto_tarre_count.value
+            scale.stable_auto_tarre_max=auto_tarre_max.value
+
+            scale.save()
+            dialog.close()
+
+        with ui.row():
+            ui.button('Save', on_click=save)
+            ui.button('Cancel', on_click=dialog.close).props('flat')
+
 
 def cards(scale: Scale, cal_weight: int):
     def tarre():
@@ -107,10 +124,10 @@ def cards(scale: Scale, cal_weight: int):
         ui.label("2. Calibration").classes('text-primary text-bold')
         with ui.grid(columns=2):
             ui.label("Tarre: ")
-            ui.label("...").bind_text_from(scale.calibration, 'offset', backward=lambda v: f"{v:}")
+            ui.label("...").bind_text_from(scale.calibration, 'offset', backward=lambda v: f"{v:.0f}")
 
             ui.label("Cal. factor: ")
-            ui.label("...").bind_text_from(scale.calibration, 'factor', backward=lambda v: f"{v:.5f}")
+            ui.label("...").bind_text_from(scale.calibration, 'factor', backward=lambda v: f"{v:.8f}")
 
             ui.label("Weight: ")
             ui.label("...").bind_text_from(scale, 'last_realtime_weight', backward=lambda v: f"{v:.2f}g")
@@ -118,6 +135,7 @@ def cards(scale: Scale, cal_weight: int):
         with ui.card_actions():
             ui.button("Tarre", on_click=tarre)
             ui.button("Calibrate", on_click=lambda: calibrate_wizard(scale, cal_weight))
+            ui.button(icon='settings', on_click=lambda: calibrate_settings_dialog(scale))
 
     # MEASURING
     with ui.card().style("min-width: 20em"):
