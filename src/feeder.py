@@ -45,6 +45,7 @@ class Feeder(Model):
         self.feeding = False
         self.__event_request = Event()
 
+        #For GUI feedback
         self.status_msg = "Ready"
         self.status: Status = Status.OK
 
@@ -75,6 +76,7 @@ class Feeder(Model):
         await self.run_motor(self.reverse_duty, self.reverse_time)
 
     def __log(self, status: Status, msg: str, log: str):
+        """update status for GUI feedback"""
         self.status = status
         self.status_msg = msg
         print(f"Feeder: {log}")

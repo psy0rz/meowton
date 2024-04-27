@@ -5,8 +5,14 @@ from db_cat_session import DbCatSession
 from scale import Scale
 from util import Status
 
+#under this, the scale is considered empty
 MIN_WEIGHT = 100
+
+#under this is out of range
 OUT_OF_RANGE_WEIGHT=-100
+
+#minimum amount of total food we consider "eating" in the GUI feedback
+MIN_FOOD=0.3
 
 
 class CatDetector:
@@ -95,6 +101,7 @@ class CatDetector:
         self.cat = None
 
     def update_status(self):
+        """update status for GUI feedback"""
 
         if self.weight<OUT_OF_RANGE_WEIGHT:
             self.status_msg = "Out of range"
@@ -102,7 +109,7 @@ class CatDetector:
 
         else:
 
-            if self.unknown_ate>0.5:
+            if self.unknown_ate>MIN_FOOD:
                 self.status_msg = f"Unknown cat ate {self.unknown_ate:0.2f}g"
                 self.status = Status.ERROR
             else:
@@ -114,7 +121,11 @@ class CatDetector:
                         self.status_msg = "Ready"
                         self.status = Status.OK
                 else:
-                    self.status_msg = f"{self.cat.name} ate {self.cat_session.ate:0.2f}g"
+                    if self.cat_session.ate>MIN_FOOD:
+                        self.status_msg = f"{self.cat.name} eating: {self.cat_session.ate:0.2f}g"
+                    else:
+
+                       self.status_msg = f"{self.cat.name} on scale"
                     self.status = Status.BUSY
 
 
