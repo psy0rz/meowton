@@ -24,7 +24,6 @@ class ScheduleMode(enum.Enum):
     DISABLED = 4  # never feed automaticly
 
 
-
 class FoodScheduler(Model):
     """determines when to increase food quotas and when to dispense food."""
     mode = IntegerField(default=ScheduleMode.UNLIMITED.value)
@@ -32,7 +31,7 @@ class FoodScheduler(Model):
     # times when to add to quota
     hours = CharField(default="9,13,17,21,1")
 
-    prev_hour=TimestampField(default=0)
+    prev_hour = IntegerField(default=0)
 
     class Meta:
         database = db
@@ -40,7 +39,6 @@ class FoodScheduler(Model):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
-
 
     def update_quotas(self):
         """updates food quotas of all the cats"""
@@ -67,7 +65,6 @@ class FoodScheduler(Model):
 
         while True:
 
-
             if self.check_schedule():
                 self.update_quotas()
 
@@ -76,7 +73,6 @@ class FoodScheduler(Model):
                     case ScheduleMode.SCHEDULED.value:
                         print("FoodScheduler: Feeding at scheduled time")
                         feeder.request()
-
 
                     case ScheduleMode.ALL_QUOTA.value:
                         all_quota = False
@@ -89,7 +85,7 @@ class FoodScheduler(Model):
                             feeder.request()
 
                     case ScheduleMode.CAT_QUOTA.value:
-                        #handled below
+                        # handled below
                         pass
 
             # unlimited feeding
