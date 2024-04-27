@@ -38,8 +38,8 @@ def cat_card(cat: DbCat):
         with ui.grid(columns=2):
             name=ui.input(label="Name", value=cat.name)
             weight=ui.number(label="Weight (g)", format='%.0f', value=cat.weight)
-            feed_daily=ui.number(label="Daily quota", min=0, precision=0, value=cat.feed_daily)
             feed_quota=ui.number(label="Current quota", format='%0.2f', value=cat.feed_quota)
+            feed_daily=ui.number(label="Daily quota", min=0, precision=0, value=cat.feed_daily)
 
         with ui.card_actions():
             if cat.id is None:

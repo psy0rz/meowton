@@ -93,15 +93,13 @@ def main_page():
         for cat in DbCat.cats.values():
             with ui.card():
                 ui.label(f"{cat.name}").classes("text-primary text-h6")
-                with ui.grid(columns=2):
-                    ui.label(f"Weight:")
-                    ui.label().bind_text_from(cat,'weight', backward=lambda v : f"{v:.0f}g")
 
-                    ui.label(f"Quota:")
-                    ui.label().bind_text_from(cat, 'feed_quota', backward=lambda v: f"{v:.1f}g of {cat.feed_daily:0.0f}g")
+                with ui.card_section():
+                    ui.label().bind_text_from(cat,'weight', backward=lambda v : f"{v:.0f}g").classes("text-bold text-centered")
 
-                    # ui.label(f"Seen:")
-                    # ui.label(f"{cat.feed_quota_last_update}")
+                with ui.row():
+                    ui.label().bind_text_from(cat, 'feed_quota', backward=lambda v: f"{v:.1f}g")
+                    ui.label(f"(of {cat.feed_daily:.0f}g)")
 
     ui.button("feed", on_click=meowton.feeder.request)
     ui.button("forced feed", on_click=meowton.feeder.forward)
