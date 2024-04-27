@@ -6,6 +6,7 @@ from scale import Scale
 from util import Status
 
 MIN_WEIGHT = 100
+OUT_OF_RANGE_WEIGHT=-100
 
 
 class CatDetector:
@@ -22,6 +23,8 @@ class CatDetector:
 
         self.status_msg = "Ready"
         self.status: Status = Status.OK
+
+        self.weight=0
 
     def __event_changed(self):
         """called when a different cat is detected (or None)"""
@@ -56,8 +59,7 @@ class CatDetector:
             self.cat.ate(weight)
             self.cat_session.ate += weight
 
-            self.status_msg = f"{self.cat.name} ate {self.cat_session.ate:0.2f}g"
-            self.status = Status.BUSY
+        self.update_status()
 
     def __start_session(self, cat: DbCat):
 
@@ -92,6 +94,30 @@ class CatDetector:
         self.cat_session = None
         self.cat = None
 
+    def update_status(self):
+
+        if self.weight<OUT_OF_RANGE_WEIGHT:
+            self.status_msg = "Out of range"
+            self.status = Status.ERROR
+
+        else:
+
+            if self.unknown_ate>0.5:
+                self.status_msg = f"Unknown cat ate {self.unknown_ate:0.2f}g"
+                self.status = Status.ERROR
+            else:
+                if self.cat is None:
+                    if self.weight>MIN_WEIGHT:
+                        self.status_msg="Unknown cat"
+                        self.status=Status.ERROR
+                    else:
+                        self.status_msg = "Ready"
+                        self.status = Status.OK
+                else:
+                    self.status_msg = f"{self.cat.name} ate {self.cat_session.ate:0.2f}g"
+                    self.status = Status.BUSY
+
+
     async def task(self, cat_scale: Scale):
 
         current_id = None
@@ -100,9 +126,9 @@ class CatDetector:
         # wait for the cat scale to change
         while await cat_scale.event_stable.wait():
 
-            weight = cat_scale.last_stable_weight
+            self.weight = cat_scale.last_stable_weight
 
-            cat = self.__find_closest_weight(weight)
+            cat = self.__find_closest_weight(self.weight)
 
             if cat is None:
                 id = None
@@ -119,24 +145,11 @@ class CatDetector:
                 self.__start_session(cat)
                 self.__event_changed()
 
-            if weight > max_weight:
-                max_weight = weight
+            if self.weight > max_weight:
+                max_weight = self.weight
 
             #update status:
-
-            if self.cat is not None:
-                self.status_msg = f"{self.cat.name} ate {self.cat_session.ate:0.2f}g"
-                self.status = Status.BUSY
-            else:
-                if weight<-50:
-                    self.status_msg = "Out of range"
-                    self.status = Status.ERROR
-                elif weight>MIN_WEIGHT:
-                    self.status_msg="Unknown cat"
-                    self.status=Status.ERROR
-                else:
-                    self.status_msg="Ready"
-                    self.status=Status.OK
+            self.update_status()
 
 
 
