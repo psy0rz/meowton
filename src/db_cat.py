@@ -26,6 +26,7 @@ class DbCat(Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.__deleted=False
 
     def update_quota(self):
         """update the quota according to daily quota and last update time"""
@@ -90,13 +91,15 @@ class DbCat(Model):
 
     def delete_instance(self, **kwargs):
         super().delete_instance(**kwargs)
+        self.__deleted=True
         if self.id in DbCat.cats:
             del (DbCat.cats[self.id])
 
     def save(self, **kwargs):
-        super().save(**kwargs)
-        if self.id not in DbCat.cats:
-            DbCat.cats[self.id] = self
+        if not self.__deleted:
+            super().save(**kwargs)
+            if self.id not in DbCat.cats:
+                DbCat.cats[self.id] = self
 
 
 db.create_tables([DbCat])

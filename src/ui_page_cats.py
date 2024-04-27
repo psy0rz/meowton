@@ -10,6 +10,7 @@ def delete_button(cat: DbCat):
     def confirmed():
         cat.delete_instance()
         cat_list.refresh()
+        ui_main.main_page.refresh()
 
     def click():
         ui_common.confirm(message=f"Delete cat {cat.name} ?", on_confirm=confirmed)
@@ -26,6 +27,7 @@ def cat_card(cat: DbCat):
             cat.weight=weight.value
             cat.save()
             cat_list.refresh()
+            ui_main.main_page.refresh()
             ui.notify(f"Cat {cat.name} saved")
         except Exception as e:
             error.set_text(str(e))

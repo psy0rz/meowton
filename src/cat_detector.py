@@ -80,7 +80,7 @@ class CatDetector:
         if self.cat is None:
             return
 
-        #note that we want the maximum weight of the cat during this session, to make sure the whole cat, including its tail is measured :D
+        # note that we want the maximum weight of the cat during this session, to make sure the whole cat, including its tail is measured :D
         self.cat.update_weight(max_weight)
         self.cat.save()
         self.cat_session.weight=max_weight

@@ -43,6 +43,7 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
                 ui.item_label('Feeder')
 
 
+@ui.refreshable
 def main_page():
 
     with ui.grid(columns='auto 3em auto').classes(""):
@@ -87,18 +88,19 @@ def main_page():
             "text-negative text-bold")
         status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.ERROR)
 
-    for cat in DbCat.cats.values():
-        with ui.card():
-            ui.label(f"{cat.name}").classes("text-primary text-h6")
-            with ui.grid(columns=2):
-                ui.label(f"Weight:")
-                ui.label(f"{cat.weight:.0f}g")
+    with ui.row():
+        for cat in DbCat.cats.values():
+            with ui.card():
+                ui.label(f"{cat.name}").classes("text-primary text-h6")
+                with ui.grid(columns=2):
+                    ui.label(f"Weight:")
+                    ui.label().bind_text_from(cat,'weight', backward=lambda v : f"{v:.0f}g")
 
-                ui.label(f"Quota:")
-                ui.label(f"{cat.feed_quota:0.1f}g of {cat.feed_daily}g")
+                    ui.label(f"Quota:")
+                    ui.label().bind_text_from(cat, 'feed_quota', backward=lambda v: f"{v:.1f}g of {cat.feed_daily:0.0f}g")
 
-                ui.label(f"Seen:")
-                ui.label(f"{cat.feed_quota_last_update}")
+                    ui.label(f"Seen:")
+                    ui.label(f"{cat.feed_quota_last_update}")
 
     ui.button("feed", on_click=meowton.feeder.request)
     ui.button("forced feed", on_click=meowton.feeder.forward)
