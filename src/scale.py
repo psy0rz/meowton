@@ -6,31 +6,6 @@ from db import db
 from scale_sensor_calibration import ScaleSensorCalibration
 from sensor_filter import SensorFilter
 
-"""
-
-
-(weight)    *
-             *
-            __*__________________________
-              | **                       }
-              |   ***                    } stable_range
-              |      *########********   }
-            __|__________________________}
-              |       |      |
-              |       |<---->|<EVENT
-              |       |   stable_measurements
-              |<----->|
-              |   stable_skip_measurements
-              v
-              (entered new stable range)
-
-
-                   (measurement nr)
-
-
-
-"""
-
 
 class Scale(Model):
     """scale class that does intput filtering, averaging and generates weigh-events"""
@@ -46,10 +21,14 @@ class Scale(Model):
     # for how many measurements should the scale be in the stable_range to be considered stable?
     stable_measurements = IntegerField()
 
-    # stepsize for self.calibration.auto_tarre()
+    #NOTE: For the simple loadcells found on the meowton cat scale, the tarre drift can be as much as 100g by temperature fluctuations.
+    # So auto tarre is essential for these! The more expensive loadcell in the foodcell does not drift, but autotarre is still usefull to
+    # compensate for sticking debree and stuff.
+
+    # Step size for self.calibration.auto_tarre()
     stable_auto_tarre_count = FloatField(default=0.1)
 
-    # max weight to tarre away
+    # Auto tarre only under this weight.
     # 0 to disable
     stable_auto_tarre_max = FloatField(default=0)
 

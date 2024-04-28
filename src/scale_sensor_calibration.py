@@ -1,4 +1,6 @@
 # simple AX + B formula :)
+import time
+
 from peewee import Model, CharField, FloatField, IntegerField
 
 from db import db
@@ -14,6 +16,11 @@ class ScaleSensorCalibration(Model):
     class Meta:
         database = db
 
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self.last_save_time=time.time()
+
     def tarre(self, raw_value: int):
         self.offset = raw_value
 
@@ -23,6 +30,12 @@ class ScaleSensorCalibration(Model):
             self.offset += step_size
         elif raw_value < self.offset:
             self.offset -= step_size
+
+        #save every hour, to survive restarts (since auto tarring takes long)
+        if time.time()-self.last_save_time > 3600:
+            print(f"{self.__class__}: Saving auto tarre value.")
+            self.save()
+            self.last_save_time=time.time()
 
     def __tarred_value(self, raw_value):
         return raw_value - self.offset

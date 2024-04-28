@@ -14,6 +14,9 @@ OUT_OF_RANGE_WEIGHT=-100
 #minimum amount of total food we consider "eating" in the GUI feedback
 MIN_FOOD=0.25
 
+#cats should be +/- this percentage to the target weight to be detected
+MAX_PERCENTAGE=0.04
+
 
 class CatDetector:
     """detects which cat is on the scale and generates DbCatSessions. also records max weight of cat during a weighing session"""
@@ -51,7 +54,7 @@ class CatDetector:
                 closest_cat = cat
 
         # not close enough?
-        if closest_cat is not None and abs(closest_cat.weight - target_weight) > target_weight * 0.02:
+        if closest_cat is not None and abs(closest_cat.weight - target_weight) > target_weight * MAX_PERCENTAGE:
             return None
 
         return closest_cat
