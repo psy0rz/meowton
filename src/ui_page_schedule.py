@@ -54,7 +54,7 @@ def overview_page():
     changed()
 
     ui.separator()
-    ui.label("Schedule:")
+    ui.label("Scheduling hours:")
     hours = hours_to_list(meowton.food_scheduler.hours)
     hour_checkboxes = []
     with ui.grid(columns=4):

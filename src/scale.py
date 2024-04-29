@@ -144,6 +144,10 @@ class Scale(Model):
             self.stable_reset(weight)
             return
 
+        # do slow auto tarring when stable and below a certain weight
+        if self.stable and abs(weight) < self.stable_auto_tarre_max:
+            self.calibration.auto_tarre(raw_value, self.stable_auto_tarre_count)
+
         # do averaging or raw values, but skip the first measurements because of scale drifting and recovery
         # if self.__measure_count >= self.__stable_skip_measurements:
         self.__measure_raw_sum = self.__measure_raw_sum + raw_value
@@ -158,8 +162,6 @@ class Scale(Model):
                 self.stable = True
                 self.__event_stable()
 
-        if self.stable and abs(weight) < self.stable_auto_tarre_max:
-            self.calibration.auto_tarre(raw_value, self.stable_auto_tarre_count)
 
 
 db.create_tables([Scale])
