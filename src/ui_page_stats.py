@@ -8,7 +8,7 @@ from db_cat_session import DbCatSession
 
 
 async def event_list(id: int):
-    page_nr = 0
+    page_nr = 1
     last_day=0
 
     async def check():
@@ -35,12 +35,16 @@ async def event_list(id: int):
 
                     if session.ate < 0.1:
                         title = f"{session.cat.name} waited for {session.length}s"
+                        icon="no_meals"
+                        color="red"
                     else:
                         title = f"{session.cat.name} ate {session.ate:0.1f}g in {session.length}s"
+                        icon="restaurant"
+                        color=None
 
                     time_str = time.ctime(session.start_time)
 
-                    with ui.timeline_entry(title=title, subtitle=time.strftime("%H:%M",t)):
+                    with ui.timeline_entry(title=title, subtitle=time.strftime("%H:%M",t), icon=icon, color=color):
                         ui.label(f"Max weight: {session.weight:0.0f}g")
 
                 page_nr += 1
