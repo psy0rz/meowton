@@ -122,7 +122,8 @@ async def page(id):
         'layout': {
             'title': 'Daily Weight Statistics',
             'xaxis': {'title': 'Date'},
-            'yaxis': {'title': 'Weight'}
+            'yaxis': {'title': 'Weight (g)'},
+            'showlegend': False
         }
     }
     ui_common.header(f"Statistics {DbCat.cats[int(id)].name}")
