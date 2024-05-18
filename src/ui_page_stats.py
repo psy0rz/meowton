@@ -76,7 +76,6 @@ def show_graph(id):
     sum_ates = []
 
     for record in results:
-        print(record.date, record.min_weight, record.avg_weight, record.max_weight, record.sum_ate)
 
         dates.append(record.date)
         avg_weights.append(record.avg_weight)
