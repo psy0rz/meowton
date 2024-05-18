@@ -52,15 +52,11 @@ async def event_list(id: int):
         except TimeoutError:
             pass
 
-    await ui.context.client.connected()
 
     t = ui.timer(1, check)
 
 
-@ui.page("/stats/{id}")
-async def page(id):
-    id = int(id)
-
+def show_graph(id):
     results = (DbCatSession
                .select(
         fn.DATE(DbCatSession.start_time, 'unixepoch').alias('date'),
@@ -77,6 +73,7 @@ async def page(id):
     avg_weights = []
     min_weights = []
     max_weights = []
+    sum_ates = []
 
     for record in results:
         print(record.date, record.min_weight, record.avg_weight, record.max_weight, record.sum_ate)
@@ -85,12 +82,14 @@ async def page(id):
         avg_weights.append(record.avg_weight)
         min_weights.append(record.min_weight)
         max_weights.append(record.max_weight)
+        sum_ates.append(record.sum_ate)
 
     fig = {
         'data': [
             {
                 'x': dates,
                 'y': min_weights,
+
                 'mode': 'line',
                 'name': 'Min Weight',
                 'line': {
@@ -116,20 +115,60 @@ async def page(id):
                 'mode': 'line',
                 'name': 'Average Weight',
                 'line': {'shape': 'linear'},
-                'color': '#ff0000'
             },
+            {
+                'x': dates,
+                'y': sum_ates,
+                'yaxis': 'y2',
+                'name': 'Food',
+                'mode': 'markers',
+                'line': {
+                    'shape': 'linear',
+                    'color': '#ff000050',
+
+                },
+            },
+
         ],
         'layout': {
             'title': 'Daily Weight Statistics',
             'xaxis': {'title': 'Date'},
-            'yaxis': {'title': 'Weight (g)'},
-            'showlegend': False
+            'yaxis': {
+                'title': 'Weight (g)'
+            },
+            'yaxis2': {
+                'title': 'Food (g)',
+                'side': 'right',
+                'overlaying': 'y'
+            },
+            'showlegend': False,
+            'clickmode': False,
+            'dragmode': False,
+            'margin':{
+                'b': 40,
+                't': 40,
+                'l': 50,
+                'r': 40
+
+            }
+        }
+        , 'config': {
+            'displayModeBar': False
         }
     }
+    ui.plotly(fig)
+
+
+@ui.page("/stats/{id}")
+async def page(id):
+    id = int(id)
+
+    await ui.context.client.connected()
+
+
     ui_common.header(f"Statistics {DbCat.cats[int(id)].name}")
     ui_common.footer()
 
-    ui.plotly(fig)
-
-    # with ui.timeline(side='right'):
-    #     await event_list(id)
+    with ui.timeline(side='right'):
+        show_graph(id)
+        await event_list(id)
