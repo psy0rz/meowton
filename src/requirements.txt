@@ -1,4 +1,4 @@
-nicegui
+nicegui[plotly]
 RPi.GPIO
 hx711
 peewee

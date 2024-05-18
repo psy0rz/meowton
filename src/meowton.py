@@ -1,6 +1,7 @@
 import asyncio
 from pprint import pprint
 
+import db
 import settings
 from cat_detector import CatDetector
 from feeder import Feeder
@@ -61,6 +62,9 @@ class Meowton:
         self.cat_detector = CatDetector()
 
     async def start(self):
+
+
+
         self.food_reader.start()
         self.cat_reader.start()
 
