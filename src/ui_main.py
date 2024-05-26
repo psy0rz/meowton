@@ -18,7 +18,7 @@ print("Loading nicegui done.")
 def main_header():
     with ui.header(elevated=True).classes('items-center justify-between'):
         ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat color=white')
-        ui.label("MEOWTON")
+        ui.label(f"MEOWTON v{settings.version}")
 
 
 with ui.left_drawer(elevated=True, value=False) as left_drawer:
