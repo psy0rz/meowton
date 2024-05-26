@@ -164,8 +164,11 @@ async def page(id):
 
     await ui.context.client.connected()
 
+    title=f"Statistics {DbCat.cats[int(id)].name}"
+    ui.page_title(f"Meowton | {title}")
 
-    ui_common.header(f"Statistics {DbCat.cats[int(id)].name}")
+
+    ui_common.header(title)
     ui_common.footer()
 
     with ui.timeline(side='right'):

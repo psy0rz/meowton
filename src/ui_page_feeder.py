@@ -10,7 +10,9 @@ from meowton import meowton
 
 @ui.page('/feeder')
 def feeder_page():
-    ui_common.header("Feeder")
+    ui.page_title("Meowton | Feeder settings")
+
+    ui_common.header("Feeder settings")
 
     with ui.row():
         with ui.card():

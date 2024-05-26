@@ -46,7 +46,6 @@ with ui.left_drawer(elevated=True, value=False) as left_drawer:
 
 @ui.refreshable
 def main_page():
-
     with ui.grid(columns='auto 3em auto').classes(""):
         # scale progress
         progress = ui.circular_progress(0, min=0, max=meowton.cat_scale.stable_measurements, color="purple")
@@ -54,10 +53,11 @@ def main_page():
 
         label = ui.label()
         label.bind_text_from(meowton.cat_scale, 'last_stable_weight', backward=lambda x: f"{x:.0f}g")
-# /        label.classes("text-bold")
+        # /        label.classes("text-bold")
 
         # scale status
-        cat_status_ok = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes("text-positive text-bold")
+        cat_status_ok = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes(
+            "text-positive text-bold")
         cat_status_ok.bind_visibility_from(meowton.cat_detector, 'status', backward=lambda v: v == Status.OK)
 
         cat_status_busy = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes(
@@ -67,7 +67,6 @@ def main_page():
         cat_status_error = ui.label("").bind_text_from(meowton.cat_detector, 'status_msg').classes(
             "text-negative text-bold")
         cat_status_error.bind_visibility_from(meowton.cat_detector, 'status', backward=lambda v: v == Status.ERROR)
-
 
         # food progress
         progress = ui.circular_progress(0, min=0, max=meowton.food_scale.stable_measurements, color="purple")
@@ -89,7 +88,6 @@ def main_page():
             "text-negative text-bold")
         status_error.bind_visibility_from(meowton.feeder, 'status', backward=lambda v: v == Status.ERROR)
 
-
     # cats overview
 
     def stats_button(cat):
@@ -103,7 +101,8 @@ def main_page():
                     stats_button(cat)
 
                 with ui.card_section():
-                    ui.label().bind_text_from(cat,'weight', backward=lambda v : f"{v:.0f}g").classes("text-bold text-centered")
+                    ui.label().bind_text_from(cat, 'weight', backward=lambda v: f"{v:.0f}g").classes(
+                        "text-bold text-centered")
 
                 with ui.row():
                     ui.label().bind_text_from(cat, 'feed_quota', backward=lambda v: f"{v:.1f}g")
@@ -156,4 +155,8 @@ footer()
 def run(startup_cb, shutdown_cb):
     nicegui.app.on_startup(startup_cb)
     nicegui.app.on_shutdown(shutdown_cb)
-    ui.run(reload=settings.dev_mode, show=False)
+    ui.page_title("Meowton")
+    ui.run(reload=settings.dev_mode,
+           show=False,
+           port=(8080 if settings.dev_mode else 80),
+           favicon="./image/pawnsmall.png")

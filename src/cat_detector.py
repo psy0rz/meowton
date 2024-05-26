@@ -83,7 +83,7 @@ class CatDetector:
             cat.ate(self.unknown_ate)
 
         self.cat = cat
-        self.cat_session = DbCatSession.create(cat=cat, ate=self.unknown_ate)
+        self.cat_session = DbCatSession(cat=cat, ate=self.unknown_ate)
 
         self.unknown_ate = 0
 

@@ -59,6 +59,9 @@ def cat_list():
 
 @ui.page('/cats')
 def overview_page():
+
+    ui.page_title("Meowton | Cats")
+
     ui_common.header("Cats")
     cat_list()
     ui_common.footer()

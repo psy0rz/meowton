@@ -20,7 +20,7 @@ def main():
             pass
     else:
         import ui_main
-        ui_main.run(meowton.start, meowton.stop)
+        ui_main.run(meowton.start, meowton.stop )
 
 
 main()

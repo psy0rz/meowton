@@ -165,6 +165,8 @@ def cards(scale: Scale, cal_weight: int):
 
 @ui.page('/cat-scale')
 async def calibrate_cat_page():
+    ui.page_title("Meowton | Cat scale calibration")
+
     ui_common.header("cat scale calibration")
     ui_common.footer()
 
@@ -173,6 +175,8 @@ async def calibrate_cat_page():
 
 @ui.page('/food-scale')
 async def calibrate_food_page():
+    ui.page_title("Meowton | Food scale calibration")
+
     ui_common.header("food scale calibration")
     ui_common.footer()
 

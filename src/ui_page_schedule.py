@@ -23,6 +23,8 @@ def overview_page():
         ui.navigate.back()
         pass
 
+
+    ui.page_title("Meowton | Schedule")
     ui_common.header("Schedule")
 
     def changed():
