@@ -1,6 +1,7 @@
 # This is the Raspberry PI version, still work in progress!
 
-![logo](https://raw.githubusercontent.com/psy0rz/meowton/master/logo/normal.png)
+![logo](https://raw.githubusercontent.com/psy0rz/meowton/rpi/logo/meowton-colored.png)
+
 # Automatic cat dieting system 
 
 Use Pi zero 2 W, with  rpi-imager with Ubuntu server 22 64-bit
