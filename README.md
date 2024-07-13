@@ -1,5 +1,3 @@
-# This is the Raspberry PI version, still work in progress!
-
 ![logo](https://raw.githubusercontent.com/psy0rz/meowton/rpi/logo/meowton-colored.png)
 
 # Automatic cat dieting system 
