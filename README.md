@@ -1,3 +1,6 @@
+# This is the old ESP32 version. We use a Raspberry pi now, switch to the rpi-branch 
+
+
 ![logo](https://raw.githubusercontent.com/psy0rz/meowton/rpi/logo/meowton-colored.png)
 
 
