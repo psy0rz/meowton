@@ -26,11 +26,11 @@ class Scale(Model):
     # compensate for sticking debree and stuff.
 
     # Step size for self.calibration.auto_tarre()
-    stable_auto_tarre_count = FloatField(default=0.1)
+    stable_auto_tarre_count = FloatField()
 
     # Auto tarre only under this weight.
     # 0 to disable
-    stable_auto_tarre_max = FloatField(default=0)
+    stable_auto_tarre_max = FloatField()
 
     class Meta:
         database = db

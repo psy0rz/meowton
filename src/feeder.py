@@ -26,13 +26,13 @@ class Feeder(Model):
     """operate the feeder servo and monitor if the food correctly dropped on the food_scale """
 
     feed_duty = FloatField(default=8)
-    feed_time = IntegerField(default=500)
+    feed_time = IntegerField(default=100)
     reverse_duty = FloatField(default=6)
     reverse_time = IntegerField(default=500)
 
     empty_weight = FloatField(default=1)
-    retry_max = IntegerField(default=3)
-    retry_timeout = IntegerField(default=500)
+    retry_max = IntegerField(default=10)
+    retry_timeout = IntegerField(default=1000)
 
     __food_scale: Scale
 
