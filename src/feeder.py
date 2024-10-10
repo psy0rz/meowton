@@ -47,7 +47,7 @@ class Feeder(Model):
         self.__event_request = Event()
 
         # For GUI feedback
-        self.status_msg = "Ready"
+        self.status_msg = "Food ready"
         self.status: Status = Status.OK
 
         if not settings.dev_mode:
@@ -138,7 +138,7 @@ class Feeder(Model):
                 self.__log(Status.ERROR, "Refill!", f"PLEASE REFILL AND TOUCH SCALE")
                 await self.wait_for_food(60)
 
-        self.__log(Status.OK, "Ready", f"Ready: {self.__food_scale.last_stable_weight:0.2f}g")
+        self.__log(Status.OK, "Food ready", f"Ready: {self.__food_scale.last_stable_weight:0.2f}g")
         self.feeding = False
         self.__event_request.clear()
 

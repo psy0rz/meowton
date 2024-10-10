@@ -5,17 +5,17 @@ from db_cat_session import DbCatSession
 from scale import Scale
 from util import Status
 
-#under this, the scale is considered empty
+# under this, the scale is considered empty
 MIN_WEIGHT = 100
 
-#under this is out of range
-OUT_OF_RANGE_WEIGHT=-100
+# under this is out of range
+OUT_OF_RANGE_WEIGHT = -100
 
-#minimum amount of total food we consider "eating" in the GUI feedback
-MIN_FOOD=0.25
+# minimum amount of total food we consider "eating" in the GUI feedback
+MIN_FOOD = 0.25
 
-#cats should be +/- this percentage to the target weight to be detected
-MAX_PERCENTAGE=0.04
+# cats should be +/- this percentage to the target weight to be detected
+MAX_PERCENTAGE = 0.04
 
 
 class CatDetector:
@@ -30,10 +30,10 @@ class CatDetector:
 
         self.unknown_ate = 0
 
-        self.status_msg = "Ready"
+        self.status_msg = "Scale ready"
         self.status: Status = Status.OK
 
-        self.weight=0
+        self.weight = 0
 
     def __event_changed(self):
         """called when a different cat is detected (or None)"""
@@ -87,7 +87,7 @@ class CatDetector:
 
         self.unknown_ate = 0
 
-    def __end_session(self, max_weight:float):
+    def __end_session(self, max_weight: float):
 
         if self.cat is None:
             return
@@ -95,10 +95,11 @@ class CatDetector:
         # note that we want the maximum weight of the cat during this session, to make sure the whole cat, including its tail is measured :D
         self.cat.update_weight(max_weight)
         self.cat.save()
-        self.cat_session.weight=max_weight
+        self.cat_session.weight = max_weight
         self.cat_session.end_session()
 
-        print(f"CatDetector: {self.cat.name} left. Max weight {max_weight:0.2f}g . Ate {self.cat_session.ate:0.2f}g . Duration {self.cat_session.length}s")
+        print(
+            f"CatDetector: {self.cat.name} left. Max weight {max_weight:0.2f}g . Ate {self.cat_session.ate:0.2f}g . Duration {self.cat_session.length}s")
 
         self.cat_session = None
         self.cat = None
@@ -106,30 +107,29 @@ class CatDetector:
     def update_status(self):
         """update status for GUI feedback"""
 
-        if self.weight<OUT_OF_RANGE_WEIGHT:
+        if self.weight < OUT_OF_RANGE_WEIGHT:
             self.status_msg = "Out of range"
             self.status = Status.ERROR
         else:
 
-            if self.unknown_ate>MIN_FOOD:
+            if self.unknown_ate > MIN_FOOD:
                 self.status_msg = f"Unknown cat ate {self.unknown_ate:0.2f}g"
                 self.status = Status.ERROR
             else:
                 if self.cat is None:
-                    if self.weight>MIN_WEIGHT:
-                        self.status_msg="Unknown cat"
-                        self.status=Status.ERROR
+                    if self.weight > MIN_WEIGHT:
+                        self.status_msg = "Unknown cat"
+                        self.status = Status.ERROR
                     else:
-                        self.status_msg = "Ready"
+                        self.status_msg = "Scale ready"
                         self.status = Status.OK
                 else:
-                    if self.cat_session.ate>MIN_FOOD:
+                    if self.cat_session.ate > MIN_FOOD:
                         self.status_msg = f"{self.cat.name} eating: {self.cat_session.ate:0.2f}g"
                     else:
 
-                       self.status_msg = f"{self.cat.name} on scale"
+                        self.status_msg = f"{self.cat.name} on scale"
                     self.status = Status.BUSY
-
 
     async def task(self, cat_scale: Scale):
 
@@ -161,8 +161,5 @@ class CatDetector:
             if self.weight > max_weight:
                 max_weight = self.weight
 
-            #update status:
+            # update status:
             self.update_status()
-
-
-
