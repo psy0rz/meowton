@@ -14,8 +14,9 @@ podman create -e MATPLOTLIB=false --stop-timeout=0 --network host --privileged -
 # add to systemctl
 podman generate systemd -n meowton > /etc/systemd/system/meowton.service
 systemctl daemon-reload
+systemctl enable meowton --now
 
 
-echo "Done: created and started meowton container. Use systemctl to start/top meowton."
-
-./podman-restart.sh
+echo "Done: created and started meowton container."
+echo "Use systemctl to start/top meowton."
+echo "Use jouralctl -f to see logs."
