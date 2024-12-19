@@ -9,6 +9,7 @@ from food_counter import FoodCounter
 from food_scheduler import FoodScheduler
 from scale import Scale
 from sensor_reader import SensorReader
+from status_led import StatusLed
 
 
 # NOTE: my catfood weigh aprox 0.33g per piece
@@ -20,6 +21,7 @@ class Meowton:
     food_counter: FoodCounter
     food_scheduler: FoodScheduler
     feeder: Feeder
+    status_led: StatusLed
 
     cat_reader: SensorReader
     cat_scale: Scale
@@ -29,6 +31,8 @@ class Meowton:
 
         self.init_food(sim)
         self.init_cat(sim)
+        self.status_led=StatusLed()
+
 
         self.__tasks = set()
 
@@ -75,6 +79,8 @@ class Meowton:
         self.__tasks.add(asyncio.create_task(self.feeder.task()))
         self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder, self.cat_detector)))
         self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder, self.cat_detector)))
+
+        self.__tasks.add(asyncio.create_task(self.status_led.task(self.feeder, self.cat_detector)))
 
         # to reraise axceptions
         await asyncio.gather(*self.__tasks)
