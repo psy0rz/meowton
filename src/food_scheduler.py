@@ -90,10 +90,12 @@ class FoodScheduler(Model):
 
             # unlimited feeding
             if self.mode == ScheduleMode.UNLIMITED.value:
+                # print("FoodScheduler: Unlimited mode, feeding.")
                 feeder.request()
             # always feed as long as detected cat has quota, unless we're disabled
-            elif self.mode != ScheduleMode.DISABLED:
+            elif self.mode != ScheduleMode.DISABLED.value:
                 if cat_detector.cat is not None and cat_detector.cat.feed_quota > 0:
+                    # print("FoodScheduler: Cat detected and all cats have quota, feeding.")
                     feeder.request()
 
             await asyncio.sleep(1)

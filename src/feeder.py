@@ -150,8 +150,11 @@ class Feeder(Model):
         await self.__food_scale.event_stable.wait()
 
         # wait for feed request
+        print("Feeder: Waitting for request")
         while await self.__event_request.wait():
+            print("Feeder: Got feed request")
             await self.feed_and_wait()
+            print("Feeder: Done, waiting for next feed request.")
 
     def request(self):
         """request a feed cycle, if its not already running and if foodscale is considered empty"""
