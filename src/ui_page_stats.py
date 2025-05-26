@@ -8,7 +8,7 @@ from db_cat import DbCat
 from db_cat_session import DbCatSession
 
 
-async def event_list(id: int):
+async def event_list(cat_id: int):
     page_nr = 1
     last_day = 0
 
@@ -20,7 +20,7 @@ async def event_list(id: int):
             if await ui.run_javascript('window.pageYOffset >= document.body.offsetHeight - 2 * window.innerHeight'):
                 session: DbCatSession
                 query = (DbCatSession.select()
-                         .where(DbCatSession.cat_id == id)
+                         .where(DbCatSession.cat_id == cat_id)
                          .order_by(DbCatSession.start_time.desc())
                          .paginate(page_nr, 10))
 
@@ -56,7 +56,16 @@ async def event_list(id: int):
     t = ui.timer(1, check)
 
 
-def show_graph(id):
+graph=None
+
+def show_graph(cat_id, range_days=30):
+    global graph
+    now = int(time.time())
+    if range_days == 'all':
+        time_filter = 0
+    else:
+        time_filter = now - (int(range_days) * 24 * 60 * 60)
+
     results = (DbCatSession
                .select(
         fn.DATE(DbCatSession.start_time, 'unixepoch').alias('date'),
@@ -65,8 +74,8 @@ def show_graph(id):
         fn.MAX(DbCatSession.weight).alias('max_weight'),
         fn.SUM(DbCatSession.ate).alias('sum_ate')
     )
-               .where(DbCatSession.cat == id)
-               .group_by(SQL('date'))  # Use SQL function to refer to the alias
+               .where((DbCatSession.cat == cat_id) & (DbCatSession.start_time >= time_filter))
+               .group_by(SQL('date'))
                )
 
     dates = []
@@ -76,7 +85,6 @@ def show_graph(id):
     sum_ates = []
 
     for record in results:
-
         dates.append(record.date)
         avg_weights.append(record.avg_weight)
         min_weights.append(record.min_weight)
@@ -88,7 +96,6 @@ def show_graph(id):
             {
                 'x': dates,
                 'y': min_weights,
-
                 'mode': 'line',
                 'name': 'Min Weight',
                 'line': {
@@ -111,7 +118,7 @@ def show_graph(id):
             {
                 'x': dates,
                 'y': avg_weights,
-                'mode': 'line',
+                'mode': 'lines+markers',
                 'name': 'Average Weight',
                 'line': {'shape': 'linear'},
             },
@@ -124,10 +131,8 @@ def show_graph(id):
                 'line': {
                     'shape': 'linear',
                     'color': '#ff000050',
-
                 },
             },
-
         ],
         'layout': {
             'title': 'Daily Weight Statistics',
@@ -148,29 +153,44 @@ def show_graph(id):
                 't': 40,
                 'l': 50,
                 'r': 40
-
             }
-        }
-        , 'config': {
+        },
+        'config': {
             'displayModeBar': False
         }
     }
-    ui.plotly(fig)
+
+    if graph is None:
+        graph=ui.plotly(fig)
+    else:
+        graph.update_figure(fig)
 
 
-@ui.page("/stats/{id}")
-async def page(id):
-    id = int(id)
-
+@ui.page("/stats/{cat_id}")
+async def page(cat_id):
+    cat_id = int(cat_id)
     await ui.context.client.connected()
-
-    title=f"Statistics {DbCat.cats[int(id)].name}"
+    title=f"Statistics {DbCat.cats[int(cat_id)].name}"
     ui.page_title(f"Meowton | {title}")
-
-
     ui_common.header(title)
-    ui_common.footer()
-
+    # Add range selector
+    range_options = {
+        30: "1 month",
+        90: "3 months",
+        180: "6 months",
+        365: "1 year",
+        'all': "All",
+    }
     with ui.timeline(side='right'):
-        show_graph(id)
-        await event_list(id)
+        range_select = ui.select(
+            options=range_options,
+            value=list(range_options.keys())[2],
+            on_change=lambda e: show_graph(cat_id, e.value)
+        )
+
+        global graph
+        graph=None
+        show_graph(cat_id, range_select.value)
+
+        await event_list(cat_id)
+    ui_common.footer()

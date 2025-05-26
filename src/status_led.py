@@ -1,8 +1,9 @@
 import asyncio
 
-from RPi import GPIO
 
 import settings
+
+
 from cat_detector import CatDetector
 from feeder import Feeder
 from util import Status
@@ -19,6 +20,8 @@ class StatusLed():
 
 
     async def task(self, feeder:Feeder, cat_detector:CatDetector):
+        if settings.dev_mode:
+            return
         while True:
             if feeder.status==Status.OK and cat_detector.status==Status.OK:
                 GPIO.output(LED_PIN, GPIO.HIGH)
