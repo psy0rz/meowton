@@ -66,13 +66,14 @@ def show_graph(cat_id, range_days=30):
     else:
         time_filter = now - (int(range_days) * 24 * 60 * 60)
 
+    # Group by 2-day intervals
     results = (DbCatSession
                .select(
-        fn.DATE(DbCatSession.start_time, 'unixepoch').alias('date'),
+        fn.DATE((DbCatSession.start_time / (2 * 24 * 60 * 60))*(2*24*60*60), 'unixepoch').alias('date'),
         fn.ROUND(fn.MIN(DbCatSession.weight)).alias('min_weight'),
         fn.AVG(DbCatSession.weight).alias('avg_weight'),
         fn.MAX(DbCatSession.weight).alias('max_weight'),
-        fn.SUM(DbCatSession.ate).alias('sum_ate')
+        fn.SUM(DbCatSession.ate/2).alias('sum_ate')
     )
                .where((DbCatSession.cat == cat_id) & (DbCatSession.start_time >= time_filter))
                .group_by(SQL('date'))
