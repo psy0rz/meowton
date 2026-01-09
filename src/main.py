@@ -8,19 +8,8 @@ from meowton import meowton
 def main():
 
 
-    # start
-    if settings.headless:
-        meowton.start()
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            # the program execution will continue here after Ctrl+C
-            meowton.stop()
-            pass
-    else:
-        import ui_main
-        ui_main.run(meowton.start, meowton.stop )
+    import ui_main
+    ui_main.run(meowton.start, meowton.stop )
 
 
 main()

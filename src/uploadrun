@@ -1,4 +1,4 @@
-rsync -avx --exclude meowton.db --exclude __pycache__ --exclude venv . $1:meowton
+rsync -avx --exclude .venv --exclude meowton.db --exclude __pycache__ --exclude venv . $1:meowton
 ssh $1 'cd meowton/src;./podman-restart.sh'
 
 
