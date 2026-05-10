@@ -34,7 +34,6 @@ class Meowton:
         self.status_led=StatusLed()
 
 
-        self.__tasks = set()
 
     # food scale stuff and default settings
     def init_food(self, sim):
@@ -71,19 +70,19 @@ class Meowton:
     async def start(self):
 
 
+        tasks=[]
 
         self.food_reader.start()
         self.cat_reader.start()
 
-        self.__tasks.add(asyncio.create_task(self.cat_detector.task(self.cat_scale)))
-        self.__tasks.add(asyncio.create_task(self.feeder.task()))
-        self.__tasks.add(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder, self.cat_detector)))
-        self.__tasks.add(asyncio.create_task(self.food_scheduler.task(self.feeder, self.cat_detector)))
+        tasks.append(asyncio.create_task(self.cat_detector.task(self.cat_scale)))
+        tasks.append(asyncio.create_task(self.feeder.task()))
+        tasks.append(asyncio.create_task(self.food_counter.task(self.food_scale, self.feeder, self.cat_detector)))
+        tasks.append(asyncio.create_task(self.food_scheduler.task(self.feeder, self.cat_detector)))
 
-        self.__tasks.add(asyncio.create_task(self.status_led.task(self.feeder, self.cat_detector)))
+        tasks.append(asyncio.create_task(self.status_led.task(self.feeder, self.cat_detector)))
 
-        # to reraise axceptions
-        await asyncio.gather(*self.__tasks)
+        return tasks
 
     def stop(self):
         self.food_reader.stop()
