@@ -7,16 +7,15 @@ import settings
 from cat_detector import CatDetector
 from feeder import Feeder
 from util import Status
+from RPi import GPIO
 
 LED_PIN=4
 
 class StatusLed():
     def __init__(self):
 
-        if not settings.dev_mode:
-            from RPi import GPIO
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setup(LED_PIN, GPIO.OUT)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(LED_PIN, GPIO.OUT)
 
 
     async def task(self, feeder:Feeder, cat_detector:CatDetector):
