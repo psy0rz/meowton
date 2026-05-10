@@ -15,33 +15,10 @@ from nicegui import ui, nicegui
 print("Loading nicegui done.")
 
 
-def main_header():
+def main_header(left_drawer):
     with ui.header(elevated=True).classes('items-center justify-between'):
         ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat color=white')
         ui.label(f"MEOWTON v{settings.version}")
-
-
-with ui.left_drawer(elevated=True, value=False) as left_drawer:
-    # with ui.scroll_area().classes("fit"):
-    with ui.list().props('separator clickable').classes("fit"):
-        with ui.item(on_click=lambda: ui.navigate.to(ui_page_cats.overview_page)):
-            with ui.item_section():
-                ui.item_label('My cats')
-        with ui.item(on_click=lambda: ui.navigate.to(ui_page_schedule.overview_page)):
-            with ui.item_section():
-                ui.item_label('Feeding schedule')
-
-        ui.item_label('Configuration:').props("header")
-        ui.separator()
-        with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_cat_page)).props("inset-level=1"):
-            with ui.item_section():
-                ui.item_label('Cat scale')
-        with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_food_page)).props("inset-level=1"):
-            with ui.item_section():
-                ui.item_label('Food scale')
-        with ui.item(on_click=lambda: ui.navigate.to(ui_page_feeder.feeder_page)).props("inset-level=1"):
-            with ui.item_section():
-                ui.item_label('Feeder')
 
 
 @ui.refreshable
@@ -112,9 +89,33 @@ def main_page():
     ui.button("forced feed", on_click=meowton.feeder.forward)
 
 
-main_header()
-main_page()
-footer()
+@ui.page('/')
+def index_page():
+    ui.page_title("Meowton")
+    with ui.left_drawer(elevated=True, value=False) as left_drawer:
+        with ui.list().props('separator clickable').classes("fit"):
+            with ui.item(on_click=lambda: ui.navigate.to(ui_page_cats.overview_page)):
+                with ui.item_section():
+                    ui.item_label('My cats')
+            with ui.item(on_click=lambda: ui.navigate.to(ui_page_schedule.overview_page)):
+                with ui.item_section():
+                    ui.item_label('Feeding schedule')
+
+            ui.item_label('Configuration:').props("header")
+            ui.separator()
+            with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_cat_page)).props("inset-level=1"):
+                with ui.item_section():
+                    ui.item_label('Cat scale')
+            with ui.item(on_click=lambda: ui.navigate.to(ui_page_calibrate.calibrate_food_page)).props("inset-level=1"):
+                with ui.item_section():
+                    ui.item_label('Food scale')
+            with ui.item(on_click=lambda: ui.navigate.to(ui_page_feeder.feeder_page)).props("inset-level=1"):
+                with ui.item_section():
+                    ui.item_label('Feeder')
+
+    main_header(left_drawer)
+    main_page()
+    footer()
 
 
 # with ui.timeline(side='right'):
@@ -155,7 +156,6 @@ footer()
 def run(startup_cb, shutdown_cb):
     nicegui.app.on_startup(startup_cb)
     nicegui.app.on_shutdown(shutdown_cb)
-    ui.page_title("Meowton")
     ui.run(reload=settings.dev_mode,
            show=False,
            port=(8080 if settings.dev_mode else 80),
